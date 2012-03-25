@@ -240,8 +240,10 @@ table_ref_product
 
 
 table_ref
-    : IDENTIFIER -> ^(TableRef ^(SimpleRef IDENTIFIER))
+    : table_rename -> table_rename
+    | IDENTIFIER -> ^(TableRef ^(SimpleRef IDENTIFIER))
     | '(' query ')' AS IDENTIFIER -> ^(TableRef ^(QueryRef query IDENTIFIER))
+
     ;
 
 table_rename
