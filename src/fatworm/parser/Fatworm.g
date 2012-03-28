@@ -197,14 +197,14 @@ select_suffix
     ;
 
 order_key_list
-    : order_key (',' order_key) -> ^(OrderKeyList order_key+)
+    : order_key (',' order_key)* -> ^(OrderKeyList order_key+)
     ;
 
 
 order_key
-    : col_name -> ^(OrderKey col_name ASC)
-    | col_name ASC -> ^(OrderKey col_name ASC)
+    : col_name ASC -> ^(OrderKey col_name ASC)
     | col_name DESC -> ^(OrderKey col_name DESC)
+    | col_name -> ^(OrderKey col_name ASC)
     ;
 
 select_expr_list
@@ -261,8 +261,8 @@ and_bool_expr
 
 atom_bool_expr
     :compare
-   | EXISTS query -> ^(Exist query)
-   | NOT EXISTS query -> ^(Not ^(Exist query))
+   | EXISTS '(' query ')'-> ^(Exist query)
+   | NOT EXISTS '(' query ')' -> ^(Not ^(Exist query))
    | value cop ANY '(' query ')' -> ^(CompareAny value query cop)
    | value cop ALL '(' query ')' -> ^(CompareAll value query cop)
    | value IN '(' query ')' -> ^(In value query)
