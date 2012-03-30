@@ -74,6 +74,7 @@ tokens {
     ASC;
     DESC;
     Func;
+    ColNameList;
 }
 
 @header {
@@ -153,9 +154,14 @@ decimal_with_point
 
 insert_stmt
     : INSERT INTO IDENTIFIER VALUES'(' value_list')' -> ^(InsertStmt IDENTIFIER value_list)
+    | INSERT INTO IDENTIFIER '(' col_name_list ')' VALUES '(' value_list ')' -> ^(InsertStmt IDENTIFIER col_name_list value_list)
+    | INSERT INTO IDENTIFIER '(' query ')' -> ^(InsertStmt IDENTIFIER query) 
     ;
 
-
+col_name_list
+	: col_name (',' col_name)* -> ^(ColNameList col_name+)
+	;
+	
 value_list
     : value  (',' value )* -> ^(ValueList value+)
     ;
@@ -227,8 +233,8 @@ func
     ;
 
 col_name
-    : IDENTIFIER -> ^(ColumnName ^(SimpleColumn IDENTIFIER))
-    | field_column_name -> field_column_name
+    : field_column_name -> field_column_name
+    |IDENTIFIER -> ^(ColumnName ^(SimpleColumn IDENTIFIER))
     ;
 
 field_column_name
@@ -241,10 +247,9 @@ table_ref_product
 
 
 table_ref
-    : table_rename -> table_rename
+    : table_rename
     | IDENTIFIER -> ^(TableRef ^(SimpleRef IDENTIFIER))
     | '(' query ')' AS IDENTIFIER -> ^(TableRef ^(QueryRef query IDENTIFIER))
-
     ;
 
 table_rename
@@ -262,17 +267,26 @@ and_bool_expr
 
 atom_bool_expr
     :compare
+<<<<<<< HEAD
    | EXISTS '(' query ')'-> ^(Exist query)
    | NOT EXISTS '(' query ')' -> ^(Not ^(Exist query))
    | value cop ANY '(' query ')' -> ^(CompareAny value query cop)
    | value cop ALL '(' query ')' -> ^(CompareAll value query cop)
    | value IN '(' query ')' -> ^(In value query)
+=======
+    | EXISTS query -> ^(Exist query)
+    | NOT EXISTS query -> ^(Not ^(Exist query))
+    | value cop ANY '(' query ')' -> ^(CompareAny value query cop)
+    | value cop ALL '(' query ')' -> ^(CompareAll value query cop)
+    | value IN '(' query ')' -> ^(In value query)
+>>>>>>> 7d823912e3d5b995cb9fd337e2170484c2dd87a1
     | '(' bool_expr ')' -> bool_expr
     ;
 
 compare
     : v1=value cop v2=value -> ^(Compare $v1 $v2 cop)
     ;
+    
 cop
     : '<=' -> LE
     | '>=' -> GE
