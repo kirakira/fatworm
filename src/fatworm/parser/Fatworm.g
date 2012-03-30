@@ -266,20 +266,11 @@ and_bool_expr
     ;
 
 atom_bool_expr
-    :compare
-<<<<<<< HEAD
-   | EXISTS '(' query ')'-> ^(Exist query)
-   | NOT EXISTS '(' query ')' -> ^(Not ^(Exist query))
-   | value cop ANY '(' query ')' -> ^(CompareAny value query cop)
-   | value cop ALL '(' query ')' -> ^(CompareAll value query cop)
-   | value IN '(' query ')' -> ^(In value query)
-=======
-    | EXISTS query -> ^(Exist query)
-    | NOT EXISTS query -> ^(Not ^(Exist query))
+    : EXISTS '(' query ')'-> ^(Exist query)
+    | NOT EXISTS '(' query ')' -> ^(Not ^(Exist query))
     | value cop ANY '(' query ')' -> ^(CompareAny value query cop)
     | value cop ALL '(' query ')' -> ^(CompareAll value query cop)
     | value IN '(' query ')' -> ^(In value query)
->>>>>>> 7d823912e3d5b995cb9fd337e2170484c2dd87a1
     | '(' bool_expr ')' -> bool_expr
     ;
 
