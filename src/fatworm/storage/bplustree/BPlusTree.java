@@ -96,7 +96,7 @@ public class BPlusTree {
         io.writeBlock(block, data, 0);
     }
 
-    private class SearchResult {
+    private static class SearchResult {
         boolean success;
         int block;
         boolean leaf;
@@ -110,6 +110,12 @@ public class BPlusTree {
             this.block = block;
             this.leaf = leaf;
         }
+    }
+
+    private static class InsertResult {
+        boolean split;
+        byte[] key;
+        int value;
     }
 
     private SearchResult searchNode(int root, byte[] key) throws java.io.IOException {
@@ -150,7 +156,11 @@ public class BPlusTree {
         int[] pointers;
         byte[][] keys;
 
-        private List<Integer> blocks = new LinkedList<Integer>();
+        private LinkedList<Integer> blocks = new LinkedList<Integer>();
+
+        private Node(boolean leaf) {
+            this.leaf = leaf;
+        }
 
         public Node(int block) throws java.io.IOException {
             byte[] data = new byte[io.getBlockSize()], tmp = new byte[io.getBlockSize()];
@@ -208,9 +218,6 @@ public class BPlusTree {
         }
 
         public int save() throws java.io.IOException {
-            if (blocks.size() != 0)
-                remove();
-
             byte[] data = new byte[12];
             ByteLib.intToBytes(pointers.length, data, 0);
             if (leaf)
@@ -226,8 +233,14 @@ public class BPlusTree {
                 data = concat(data, tmp, 0);
             }
 
-            int current = io.occupy(), ret = current;
-            blocks.add(new Integer(current));
+            LinkedList<Integer> newBlocks = new LinkedList<Integer>();
+            int current;
+            if (blocks.isEmpty())
+                current = io.occupy();
+            else
+                current = blocks.removeFirst();
+            int ret = current;
+            newBlocks.add(new Integer(current));
             int s = 0;
             byte[] tmp = new byte[io.getBlockSize()];
             while (data.length - s > 0) {
@@ -238,8 +251,12 @@ public class BPlusTree {
                     io.writeBlock(current, tmp, 0);
                     break;
                 } else {
-                    int next = io.occupy();
-                    blocks.add(new Integer(next));
+                    int next;
+                    if (blocks.isEmpty())
+                        next = io.occupy();
+                    else
+                        next = blocks.removeFirst();
+                    newBlocks.add(new Integer(next));
 
                     System.arraycopy(data, s, tmp, 4, io.getBlockSize() - 4);
                     s += io.getBlockSize() - 4;
@@ -248,6 +265,11 @@ public class BPlusTree {
                     current = next;
                 }
             }
+
+            for (Integer i: blocks)
+                io.free(i.intValue());
+
+            blocks = newBlocks;
 
             return ret;
         }
@@ -301,6 +323,123 @@ public class BPlusTree {
 
         public boolean isLeaf() {
             return leaf;
+        }
+
+        public InsertResult insertSplitSave(byte[] key, int value) throws java.io.IOException {
+            int pos = binarySearch(key);
+            if (pos != -1 && compare.compare(keys[pos], key) == 0) {
+                System.err.println("Inserting a key that is already existed");
+                return null;
+            }
+            ++pos;
+
+            if (pos == 0 && !leaf) {
+                System.err.println("Inserting a key that is lower than the minimum of an internal node");
+                return null;
+            }
+
+            byte[][] newKeys = new byte[keys.length + 1][];
+            int[] newPointers = new int[pointers.length + 1];
+
+            if (leaf)
+                newPointers[pointers.length] = pointers[pointers.length - 1];
+            else
+                newPointers[0] = pointers[0];
+            for (int i = 0; i < pointers.length; ++i) {
+                if (leaf) {
+                    if (i < pos) {
+                        newPointers[i] = pointers[i];
+                        newKeys[i] = keys[i];
+                    } else if (i == pos) {
+                        newPointers[i] = value;
+                        newKeys[i] = key;
+                    } else {
+                        newPointers[i] = pointers[i - 1];
+                        newKeys[i] = keys[i - 1];
+                    }
+                } else {
+                    if (i < pos) {
+                        newKeys[i] = keys[i];
+                        newPointers[i + 1] = pointers[i + 1];
+                    } else if (i == pos) {
+                        newKeys[i] = key;
+                        newPointers[i + 1] = value;
+                    } else {
+                        newKeys[i] = keys[i - 1];
+                        newPointers[i + 1] = pointers[i];
+                    }
+                }
+            }
+
+            keys = newKeys;
+            pointers = newPointers;
+
+            InsertResult ret = new InsertResult();
+            if (pointers.length > fanout)
+                ret = splitSave();
+            else {
+                save();
+
+                ret = new InsertResult();
+                ret.split = false;
+            }
+
+            return ret;
+        }
+
+        private InsertResult splitSave() throws java.io.IOException {
+            if (pointers.length <= fanout) {
+                System.err.println("Splitting a node that is not overfull");
+                return null;
+            }
+
+            InsertResult ret = new InsertResult();
+            ret.split = true;
+            Node node = new Node(leaf);
+            if (leaf) {
+                int right = (pointers.length + 1) / 2, left = pointers.length + 1 - right, mid = pointers.length / 2;
+
+                node.pointers = new int[right];
+                node.keys = new byte[right - 1][];
+
+                System.arraycopy(pointers, left - 1, node.pointers, 0, right);
+                System.arraycopy(keys, left - 1, node.keys, 0, right - 1);
+                
+                int next = node.save();
+                int[] newPointers = new int[left];
+                byte[][] newKeys = new byte[left - 1][];
+                System.arraycopy(pointers, 0, newPointers, 0, left - 1);
+                System.arraycopy(keys, 0, newKeys, 0, left - 1);
+                newPointers[left - 1] = next;
+
+                ret.key = keys[mid];
+                ret.value = next;
+
+                pointers = newPointers;
+                keys = newKeys;
+            } else {
+                int right = pointers.length / 2, left = pointers.length - right, mid = (pointers.length - 1) / 2;
+
+                node.pointers = new int[right];
+                node.keys = new byte[right - 1][];
+
+                System.arraycopy(pointers, left, node.pointers, 0, right);
+                System.arraycopy(keys, left, node.keys, 0, right - 1);
+
+                int next = node.save();
+                int[] newPointers = new int[left];
+                byte[][] newKeys = new byte[left - 1][];
+                System.arraycopy(pointers, 0, newPointers, 0, left);
+                System.arraycopy(keys, 0, newKeys, 0, left - 1);
+
+                ret.key = keys[mid];
+                ret.value = next;
+
+                pointers = newPointers;
+                keys = newKeys;
+            }
+
+            return ret;
         }
     }
 }
