@@ -151,6 +151,41 @@ public class BPlusTree {
         } while (true);
     }
 
+    public void insert(byte[] key, int value) throws java.io.IOException {
+        if (root == 0) {
+            Node n = new Node(true, key, value, 0);
+            changeRoot(n.save());
+        } else {
+            InsertResult ret = insertRaw(root, key, value);
+            if (ret.split) {
+                Node n = new Node(false, ret.key, root, ret.value);
+                changeRoot(n.save());
+            }
+        }
+    }
+
+    private InsertResult insertRaw(int current, byte[] key, int value) throws java.io.IOException {
+        Node n = new Node(current);
+        int block = n.find(key);
+        if (n.isLeaf()) {
+            List<Integer> b;
+            if (block == 0)
+                b = new LinkedList<Integer>();
+            else
+                b = bucket.load(block);
+            b.add(value);
+            
+            int bucketBlock = bucket.create(b);
+            return n.insertSplitSave(key, bucketBlock);
+        } else {
+            InsertResult ret = insertRaw(block, key, value);
+            if (ret.split)
+                return n.insertSplitSave(ret.key, ret.value);
+            else
+                return ret;
+        }
+    }
+
     class Node {
         boolean leaf;
         int[] pointers;
@@ -328,8 +363,17 @@ public class BPlusTree {
         public InsertResult insertSplitSave(byte[] key, int value) throws java.io.IOException {
             int pos = binarySearch(key);
             if (pos != -1 && compare.compare(keys[pos], key) == 0) {
-                System.err.println("Inserting a key that is already existed");
-                return null;
+                if (leaf) {
+                    pointers[pos] = value;
+                    save();
+
+                    InsertResult ret = new InsertResult();
+                    ret.split = false;
+                    return ret;
+                } else {
+                    System.err.println("Inserting a key that is already existed");
+                    return null;
+                }
             }
             ++pos;
 
