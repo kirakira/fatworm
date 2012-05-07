@@ -16,12 +16,12 @@ public class BPlusTree {
     private int block;
     private int fanout;
     private int root;
-    private Comparator compare;
+    private Comparator<byte[]> compare;
     private Bucket bucket;
 
     private static char[] magic = {'f', 'a', 't', 'w', 'o', 'r', 'm', 'b', 'p', 't'};
 
-    private BPlusTree(IOHelper ioHelper, int block, Comparator compare, KeySize size) {
+    private BPlusTree(IOHelper ioHelper, int block, Comparator<byte[]> compare, KeySize size) {
         io = ioHelper;
         this.block = block;
         this.compare = compare;
@@ -29,7 +29,7 @@ public class BPlusTree {
         keySize = size;
     }
 
-    public static BPlusTree load(IOHelper ioHelper, int block, Comparator compare) {
+    public static BPlusTree load(IOHelper ioHelper, Comparator<byte[]> compare, int block) {
         BPlusTree ret = new BPlusTree(ioHelper, block, compare, null);
         try {
             byte[] data  = new byte[ret.io.getBlockSize()];
@@ -59,7 +59,7 @@ public class BPlusTree {
         }
     }
 
-    public static BPlusTree create(IOHelper ioHelper, Comparator compare, KeySize size) throws java.io.IOException {
+    public static BPlusTree create(IOHelper ioHelper, Comparator<byte[]> compare, KeySize size) throws java.io.IOException {
         BPlusTree ret = new BPlusTree(ioHelper, ioHelper.occupy(), compare, size);
         byte[] data = new byte[ret.io.getBlockSize()];
 
@@ -83,9 +83,70 @@ public class BPlusTree {
         ret.root = 0;
         ByteLib.intToBytes(ret.root, data, s);
 
+        ret.block = ret.io.occupy();
         ret.io.writeBlock(ret.block, data, 0);
 
         return ret;
+    }
+
+    public int getBlock() {
+        return block;
+    }
+
+    public boolean check() {
+        try {
+            if (root == 0)
+                return true;
+            else if (!check(root, 0))
+                return false;
+            else {
+                Node n = new Node(root);
+                while (!n.isLeaf()) {
+                    n = new Node(n.pointers[0]);
+                }
+                byte[] last = null;
+                while (true) {
+                    for (int i = 0; i < n.keys.length; ++i) {
+                        if (last == null)
+                            last = n.keys[i];
+                        else {
+                            if (compare.compare(last, n.keys[i]) >= 0)
+                                return false;
+                            last = n.keys[i];
+                        }
+                    }
+                    if (n.pointers[n.pointers.length - 1] == 0)
+                        break;
+                    else
+                        n = new Node(n.pointers[n.pointers.length - 1]);
+                }
+                System.out.println();
+                return true;
+            }
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private boolean check(int root, int level) throws java.io.IOException {
+        Node n = new Node(root);
+        System.out.println("Level " + level + ": " + n.pointers() + " children" + (n.isLeaf() ? " (leaf)" : ""));
+        for (int i = 1; i < n.keys(); ++i)
+            if (compare.compare(n.keys[i - 1], n.keys[i]) >= 0)
+                return false;
+        if ((root == this.root && !n.isLeaf() && n.pointers() < 2) || (root != this.root && n.pointers() < (fanout + 1) / 2)) {
+            System.err.println("Node has too few pointers");
+            return false;
+        }
+        if (n.isLeaf())
+            return true;
+        else {
+            for (int i = 0; i < n.pointers(); ++i)
+                if (n.pointers[i] != 0 && !check(n.pointers[i], level + 1))
+                    return false;
+            return true;
+        }
     }
 
     private void changeRoot(int value) throws java.io.IOException {
@@ -136,7 +197,7 @@ public class BPlusTree {
         }
     }
 
-    public List<Integer> search(byte[] key) throws java.io.IOException {
+    public List<Integer> find(byte[] key) throws java.io.IOException {
         int current = root;
 
         do {
@@ -153,7 +214,10 @@ public class BPlusTree {
 
     public void insert(byte[] key, int value) throws java.io.IOException {
         if (root == 0) {
-            Node n = new Node(true, key, value, 0);
+            List<Integer> b = new LinkedList<Integer>();
+            b.add(value);
+            int bucketBlock = bucket.create(b);
+            Node n = new Node(true, key, bucketBlock, 0);
             changeRoot(n.save());
         } else {
             InsertResult ret = insertRaw(root, key, value);
@@ -199,6 +263,7 @@ public class BPlusTree {
 
         public Node(int block) throws java.io.IOException {
             byte[] data = new byte[io.getBlockSize()], tmp = new byte[io.getBlockSize()];
+            int datalen = io.getBlockSize();
             io.readBlock(block, data, 0);
             blocks.add(new Integer(block));
 
@@ -216,7 +281,8 @@ public class BPlusTree {
                 io.readBlock(next, tmp, 0);
                 blocks.add(new Integer(next));
                 next = ByteLib.bytesToInt(tmp, 0);
-                data = concat(data, tmp, 4);
+                data = concat(data, datalen, tmp, 4);
+                datalen += io.getBlockSize() - 4;
             }
 
             int s = 12;
@@ -253,7 +319,8 @@ public class BPlusTree {
         }
 
         public int save() throws java.io.IOException {
-            byte[] data = new byte[12];
+            byte[] data = new byte[io.getBlockSize()];
+            int datalen = 12;
             ByteLib.intToBytes(pointers.length, data, 0);
             if (leaf)
                 ByteLib.intToBytes(1, data, 4);
@@ -262,10 +329,17 @@ public class BPlusTree {
             ByteLib.intToBytes(pointers[0], data, 8);
 
             for (int i = 0; i < pointers.length - 1; ++i) {
-                data = concat(data, keys[i], 0);
                 byte[] tmp = new byte[4];
+                if (keySize == KeySize.VARIANT) {
+                    ByteLib.intToBytes(keys[i].length, tmp, 0);
+                    data = concat(data, datalen, tmp, 0);
+                    datalen += 4;
+                }
+                data = concat(data, datalen, keys[i], 0);
+                datalen += keys[i].length;
                 ByteLib.intToBytes(pointers[i + 1], tmp, 0);
-                data = concat(data, tmp, 0);
+                data = concat(data, datalen, tmp, 0);
+                datalen += 4;
             }
 
             LinkedList<Integer> newBlocks = new LinkedList<Integer>();
@@ -278,10 +352,10 @@ public class BPlusTree {
             newBlocks.add(new Integer(current));
             int s = 0;
             byte[] tmp = new byte[io.getBlockSize()];
-            while (data.length - s > 0) {
-                if (s + io.getBlockSize() - 4 >= data.length) {
-                    System.arraycopy(data, s, tmp, 4, data.length - s);
-                    s += data.length - s;
+            while (datalen - s > 0) {
+                if (s + io.getBlockSize() - 4 >= datalen) {
+                    System.arraycopy(data, s, tmp, 4, datalen - s);
+                    s += datalen - s;
                     ByteLib.intToBytes(0, tmp, 0);
                     io.writeBlock(current, tmp, 0);
                     break;
@@ -316,11 +390,20 @@ public class BPlusTree {
             blocks = new LinkedList<Integer>();
         }
 
-        private byte[] concat(byte[] a, byte[] b, int boffset) {
-            byte[] c = new byte[a.length + b.length - boffset];
-            System.arraycopy(a, 0, c, 0, a.length);
-            System.arraycopy(b, boffset, c, a.length, b.length - boffset);
-            return c;
+        private byte[] concat(byte[] a, int alen, byte[] b, int boffset) {
+            if (a.length - alen < b.length - boffset) {
+                int newlen = a.length * 2;
+                if (newlen < alen + b.length - boffset)
+                    newlen += b.length - boffset;
+
+                byte[] c = new byte[newlen];
+                System.arraycopy(a, 0, c, 0, alen);
+                System.arraycopy(b, boffset, c, alen, b.length - boffset);
+                return c;
+            } else {
+                System.arraycopy(b, boffset, a, alen, b.length - boffset);
+                return a;
+            }
         }
 
         private int binarySearch(byte[] key) {
@@ -344,7 +427,7 @@ public class BPlusTree {
         public int find(byte[] key) {
             int pos = binarySearch(key);
             if (leaf) {
-                if (compare.compare(keys[pos], key) == 0)
+                if (pos != -1 && compare.compare(keys[pos], key) == 0)
                     return pointers[pos];
                 else
                     return 0;
@@ -358,6 +441,14 @@ public class BPlusTree {
 
         public boolean isLeaf() {
             return leaf;
+        }
+
+        public int pointers() {
+            return pointers.length;
+        }
+
+        public int keys() {
+            return keys.length;
         }
 
         public InsertResult insertSplitSave(byte[] key, int value) throws java.io.IOException {
@@ -376,11 +467,6 @@ public class BPlusTree {
                 }
             }
             ++pos;
-
-            if (pos == 0 && !leaf) {
-                System.err.println("Inserting a key that is lower than the minimum of an internal node");
-                return null;
-            }
 
             byte[][] newKeys = new byte[keys.length + 1][];
             int[] newPointers = new int[pointers.length + 1];
@@ -426,6 +512,7 @@ public class BPlusTree {
 
                 ret = new InsertResult();
                 ret.split = false;
+
             }
 
             return ret;
@@ -461,6 +548,8 @@ public class BPlusTree {
 
                 pointers = newPointers;
                 keys = newKeys;
+
+                save();
             } else {
                 int right = pointers.length / 2, left = pointers.length - right, mid = (pointers.length - 1) / 2;
 
@@ -481,6 +570,8 @@ public class BPlusTree {
 
                 pointers = newPointers;
                 keys = newKeys;
+
+                save();
             }
 
             return ret;
