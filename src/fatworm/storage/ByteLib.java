@@ -13,4 +13,12 @@ public class ByteLib {
         data[offset + 2] = (byte) ((value >> 16) & 0xFF);
         data[offset + 3] = (byte) ((value >> 24) & 0xFF);
     }
+
+    public static String bytesToString(byte[] data, int offset, int len) {
+        return new String(data, offset, len);
+    }
+
+    public static byte[] stringToBytes(String s) {
+        return s.getBytes();
+    }
 }
