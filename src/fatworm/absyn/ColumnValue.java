@@ -11,7 +11,8 @@ public class ColumnValue extends Value{
 
 	public String toString(){
 		return colName.toString();
-
+	}
+	
 	@Override
 	public DataEntity getValue(Env env) {
 		// TODO Auto-generated method stub
