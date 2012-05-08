@@ -235,8 +235,10 @@ public class BPlusTree {
             List<Integer> b;
             if (block == 0)
                 b = new LinkedList<Integer>();
-            else
+            else {
                 b = bucket.load(block);
+                bucket.remove(block);
+            }
             b.add(value);
             
             int bucketBlock = bucket.create(b);
