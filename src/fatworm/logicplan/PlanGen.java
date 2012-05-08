@@ -346,6 +346,7 @@ public class PlanGen {
 	}
 	static PrintWriter writer = null;
 	public static void main(String[] args) throws Exception {
+
         //initial
 		File file = new File("/home/hxr/fatworm/input.txt");
     	InputStream inp = new FileInputStream(file);

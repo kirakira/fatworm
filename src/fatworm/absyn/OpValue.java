@@ -1,5 +1,8 @@
 package fatworm.absyn;
 
+import fatworm.dataentity.DataEntity;
+import fatworm.query.Env;
+
 public class OpValue extends Value{
 	public String op;
 	public Value left, right;
@@ -8,7 +11,15 @@ public class OpValue extends Value{
 		this.left = left;
 		this.right = right;
 	}
+
 	public String toString(){
 		return left.toString()+op+right.toString();
 	}
+
+	@Override
+	public DataEntity getValue(Env env) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
 }

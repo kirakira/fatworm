@@ -1,6 +1,9 @@
 package fatworm.absyn;
 
-public class RenameValue extends Value{
+import fatworm.dataentity.DataEntity;
+import fatworm.query.Env;
+
+public class RenameValue {
 	public Value val;
 	public String alias;
 	public RenameValue(Value val, String alias){

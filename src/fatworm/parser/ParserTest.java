@@ -8,7 +8,7 @@ import org.antlr.runtime.*;
 import org.antlr.runtime.tree.*;
 public class ParserTest {
     public static void main(String[] args) throws Exception {
-    	File file = new File("/home/hxr/fatworm/input.txt");
+    	File file = new File("input.txt");
     	InputStream inp = new FileInputStream(file);
         ANTLRInputStream input = new ANTLRInputStream(inp);
         FatwormLexer lexer = new FatwormLexer(input);
