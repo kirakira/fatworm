@@ -1,6 +1,6 @@
 package fatworm.dataentity;
 
-public class Char {
+public class Char extends DataEntity{
     String value;
     int length;
     public Char(String s, int l){

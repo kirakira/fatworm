@@ -14,8 +14,6 @@ public class ConstValue extends Value{
 	}
 	@Override
 	public DataEntity getValue(Env env) {
-		// TODO Auto-generated method stub
 		return null;
-
 	}
 }

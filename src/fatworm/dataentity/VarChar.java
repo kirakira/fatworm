@@ -1,6 +1,6 @@
 package fatworm.dataentity;
 
-public class VarChar {
+public class VarChar extends DataEntity {
     String value;
     public VarChar(String v) {
         value = v;

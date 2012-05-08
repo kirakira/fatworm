@@ -1,6 +1,8 @@
 package fatworm.query;
 
+import fatworm.dataentity.DataEntity;
+
 public interface Env {
-    Object getValue(String tableName, String columnName);
-    Object getValue(String columnName);
+    DataEntity getValue(String tableName, String columnName);
+    DataEntity getValue(String columnName);
 }
