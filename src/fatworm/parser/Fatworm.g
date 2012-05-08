@@ -226,8 +226,8 @@ select_expr_list
     ;
 
 select_expr
-    :value -> ^(SelectExpr ^(SimpleValue value))
-    |value AS IDENTIFIER -> ^(SelectExpr ^(RenameValue value IDENTIFIER))
+    :value AS IDENTIFIER -> ^(SelectExpr ^(RenameValue value IDENTIFIER))
+    |value -> ^(SelectExpr ^(SimpleValue value))
     |'*' -> ^(SelectExpr ^(AllColumn))
     ;
 
