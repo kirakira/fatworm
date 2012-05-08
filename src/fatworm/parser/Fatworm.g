@@ -10,6 +10,13 @@ options {
 
 tokens {
     ConstValue;
+    ConstInt;
+    ConstFloat;
+    ConstString;
+    ConstTimeStamp;
+    ConstBoolean;
+    ConstNull;
+    ConstDefault;
     Char;
     VarChar;
     Decimal;
@@ -305,14 +312,14 @@ atom_value
     ;
 
 const_value
-    :INTEGER_LITERAL
-    |STRING_LITERAL
-    |FLOATING_POINT_LITERAL
-    |TIMESTAMP_LITERAL
-    |TRUE
-    |FALSE
-    |NULL
-    |DEFAULT
+    :INTEGER_LITERAL -> ^(ConstInt INTEGER_LITERAL)
+    |STRING_LITERAL -> ^(ConstString STRING_LITERAL)
+    |FLOATING_POINT_LITERAL -> ^(ConstFloat FLOATING_POINT_LITERAL)
+    |TIMESTAMP_LITERAL -> ^(ConstTimeStamp TIMESTAMP_LITERAL)
+    |TRUE -> ^(ConstBoolean TRUE)
+    |FALSE -> ^(ConstBoolean FALSE)
+    |NULL -> ^(ConstNull NULL)
+    |DEFAULT -> ^(ConstDefault DEFAULT)
     ;
 
 
