@@ -10,6 +10,7 @@ options {
 
 tokens {
     ConstValue;
+    QueryValue;
     ConstInt;
     ConstFloat;
     ConstString;
@@ -308,7 +309,7 @@ atom_value
     : '(' value ')' -> value
     | col_name -> col_name
     | const_value -> ^(ConstValue const_value)
-    | '(' query ')' -> query
+    | '(' query ')' -> ^(QueryValue query)
     | func '(' col_name ')' -> ^(Func ^(func) col_name)
     ;
 
