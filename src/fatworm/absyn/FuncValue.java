@@ -7,4 +7,7 @@ public class FuncValue extends Value{
 		this.func = func;
 		this.val = val;
 	}
+	public String toString(){
+		return func+"("+val.toString()+")";
+	}
 }

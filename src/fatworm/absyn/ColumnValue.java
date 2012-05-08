@@ -5,4 +5,7 @@ public class ColumnValue extends Value{
 	public ColumnValue(ColName colName){
 		this.colName = colName;
 	}
+	public String toString(){
+		return colName.toString();
+	}
 }

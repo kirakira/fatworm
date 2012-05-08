@@ -8,5 +8,7 @@ public class OpValue extends Value{
 		this.left = left;
 		this.right = right;
 	}
-	
+	public String toString(){
+		return left.toString()+op+right.toString();
+	}
 }

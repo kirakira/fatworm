@@ -5,4 +5,7 @@ public class ConstValue extends Value{
 	public ConstValue(String val){
 		this.val = val;
 	}
+	public String toString(){
+		return val;
+	}
 }

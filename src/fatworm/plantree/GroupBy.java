@@ -7,4 +7,7 @@ public class GroupBy extends Node{
 	public GroupBy(ColName colName){
 		this.colName = colName;
 	}
+	public String toString(){
+		return "GroupBy\t"+colName.toString();
+	}
 }

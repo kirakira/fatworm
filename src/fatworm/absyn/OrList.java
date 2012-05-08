@@ -7,4 +7,12 @@ public class OrList extends BoolExpr{
 	public OrList(LinkedList<BoolExpr> orList){
 		this.orList = orList;
 	}
+	public String toString(){
+		String ors = "";
+		for (BoolExpr expr: orList){
+			if (ors != "") ors += "|";
+			ors += expr.toString();
+		}
+		return ors;
+	}
 }

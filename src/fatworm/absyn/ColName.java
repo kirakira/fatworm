@@ -15,4 +15,7 @@ public class ColName {
 		}
 		return null;
 	}
+	public void print(){
+		System.out.println("mustn't be echoed, something wrong@ColName");
+	}
 }

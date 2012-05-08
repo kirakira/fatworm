@@ -266,7 +266,8 @@ and_bool_expr
     ;
 
 atom_bool_expr
-    : EXISTS '(' query ')'-> ^(Exist query)
+    : compare
+    | EXISTS '(' query ')'-> ^(Exist query)
     | NOT EXISTS '(' query ')' -> ^(Not ^(Exist query))
     | value cop ANY '(' query ')' -> ^(CompareAny value query cop)
     | value cop ALL '(' query ')' -> ^(CompareAll value query cop)

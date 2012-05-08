@@ -10,7 +10,11 @@ public class Projection extends Node{
 	public Projection(LinkedList<Value> valList){
 		this.valList = valList;
 	}
-	public void print() {
-		System.out.println( "(Project)");
+	public String toString() {
+		String values = "Projection";
+		for (Value v : valList){
+			values = values+"\t"+v.toString();
+		}
+		return values;
 	}
 }

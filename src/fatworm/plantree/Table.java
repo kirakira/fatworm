@@ -5,4 +5,7 @@ public class Table extends Node{
 	public Table(String name){
 		this.name = name;
 	}
+	public String toString(){
+		return "Table\t"+name;
+	}
 }

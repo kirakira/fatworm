@@ -5,4 +5,7 @@ public class Rename extends Node{
 	public Rename(String alias){
 		this.alias = alias;
 	}
+	public String toString(){
+		return "Rename\t"+alias;
+	}
 }

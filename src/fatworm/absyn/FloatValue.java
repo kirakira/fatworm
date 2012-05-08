@@ -5,4 +5,7 @@ public class FloatValue extends Value{
 	public FloatValue(Double fl){
 		this.fl = fl;
 	}
+	public String toString(){
+		return fl.toString();
+	}
 }

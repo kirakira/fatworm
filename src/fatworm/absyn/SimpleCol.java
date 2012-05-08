@@ -8,4 +8,7 @@ public class SimpleCol extends ColName{
 		super(t);
 		id = t.getChild(0).getText();
 	}
+	public String toString(){
+		return id;
+	}
 }

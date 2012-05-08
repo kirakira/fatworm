@@ -8,4 +8,7 @@ public class CompareExpr extends BoolExpr{
 		this.right = right;
 		this.cop = cop;
 	}
+	public String toString(){
+		return left.toString() + " " + cop + " " + right.toString();
+	}
 }

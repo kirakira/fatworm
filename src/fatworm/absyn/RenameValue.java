@@ -7,4 +7,7 @@ public class RenameValue extends Value{
 		this.val = val;
 		this.alias = alias;
 	}
+	public String toString(){
+		return "Rename "+val.toString()+" as "+alias;
+	}
 }

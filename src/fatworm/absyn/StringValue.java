@@ -5,4 +5,7 @@ public class StringValue extends Value{
 	public StringValue(String s){
 		this.s = s;
 	}
+	public String toString(){
+		return s;
+	}
 }

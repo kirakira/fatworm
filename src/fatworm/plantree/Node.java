@@ -16,13 +16,7 @@ public class Node {
 			}
 		}
 	}
-	public void Display() {
-		this.print();
-		for (Node n : childList){
-			n.Display();
-		}
-	}
-	public void print(){
-		System.out.print(this.getClass().toString());
+	public String toString(){
+		return "mustn't be echoed, something wrong@Node";
 	}
 }
