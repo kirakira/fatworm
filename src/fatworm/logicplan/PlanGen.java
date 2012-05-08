@@ -172,7 +172,7 @@ public class PlanGen {
 	public static Node processSelectColumn(CommonTree query, Node current){
 		CommonTree tree = selectChild(query, "SelectColumn");
 		if (tree == null) return current;
-		LinkedList<Value> valList = new LinkedList<Value>();
+		LinkedList<ProjectionValue> valList = new LinkedList<ProjectionValue>();
 		CommonTree exprList = (CommonTree)tree.getChild(0);
 		for (int j = 0; j < exprList.getChildCount(); j++){
 			/**
@@ -183,7 +183,16 @@ public class PlanGen {
 			 * 				 exprList	 	 			  ChildJ
 			 */
 			CommonTree childJ = (CommonTree)exprList.getChild(j).getChild(0);
-			Value val = getValue(childJ);
+			ProjectionValue val = null;
+			if (childJ.getText().startsWith("AllColumn")){
+				val =  new ProjectionAllColumnValue(new ConstDefault("AllColumn"));
+			}
+			if (childJ.getText().startsWith("RenameValue")){
+				val = new ProjectionRenameValue(getValue((CommonTree)childJ.getChild(0)), childJ.getChild(1).getText());
+			}
+			if (childJ.getText().startsWith("SimpleValue")){
+				val = new ProjectionSimpleValue(getValue((CommonTree)childJ.getChild(0)));
+			}
 			valList.add(val);
 		}
 		Projection projection = new Projection(valList);
@@ -239,11 +248,10 @@ public class PlanGen {
 	 */
 	public static Value getValue(CommonTree tree){
 		if (tree.getText().startsWith("AllColumn")){
-			return new ConstValue("AllColumn");
+			return new ConstDefault("AllColumn");
 		}
 		if (tree.getText().startsWith("RenameValue")){
-			return new RenameValue(getValue((CommonTree)tree.getChild(0)), 
-					tree.getChild(1).getText());
+			return null;//new ProjectionRenameValue(getValue((CommonTree)tree.getChild(0)), tree.getChild(1).getText());
 		}
 		if (tree.getText().startsWith("SimpleValue")){
 			return getValue((CommonTree)tree.getChild(0));
@@ -274,7 +282,22 @@ public class PlanGen {
 			Value val = getValue((CommonTree)tree.getChild(1));
 			return new FuncValue(func, val);
 		}
-		return new ConstValue(root);
+		if (root.startsWith("ConstInt")) 
+			return new ConstInt(tree.getChild(0).getText());
+		if (root.startsWith("ConstFloat")) 
+			return new ConstFloat(tree.getChild(0).getText());
+		if (root.startsWith("ConstTimeStamp")) 
+			return new ConstTimeStamp(tree.getChild(0).getText());
+		if (root.startsWith("ConstString")) 
+			return new ConstString(tree.getChild(0).getText());
+		if (root.startsWith("ConstNull")) 
+			return new ConstNull(tree.getChild(0).getText());
+		if (root.startsWith("ConstDefault")) 
+			return new ConstDefault(tree.getChild(0).getText());
+		if (root.startsWith("ConstBoolean"))
+			return new ConstBoolean(tree.getChild(0).getText());
+		// must not be reached
+		return null;
 	}
 	
 	/**
