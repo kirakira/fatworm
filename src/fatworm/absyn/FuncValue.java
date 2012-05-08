@@ -12,8 +12,7 @@ public class FuncValue extends Value{
 	}
 	@Override
 	public DataEntity getValue(Env env) {
-		// TODO Auto-generated method stub
-		return null;
+        return env.getValue(func, val.colName);
 	}
 	public String toString(){
 		return func+"("+val.toString()+")";

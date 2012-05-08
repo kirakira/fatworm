@@ -18,8 +18,6 @@ public class OpValue extends Value{
 
 	@Override
 	public DataEntity getValue(Env env) {
-		// TODO Auto-generated method stub
-		return null;
+		return  left.getValue(env).opWith(right.getValue(env),op);
 	}
-	
 }

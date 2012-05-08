@@ -1,8 +1,8 @@
 package fatworm.query;
 
 import fatworm.dataentity.DataEntity;
-
+import fatworm.absyn.ColName;
 public interface Env {
-    DataEntity getValue(String tableName, String columnName);
-    DataEntity getValue(String columnName);
+    DataEntity getValue(ColName colname);
+    DataEntity getValue(String func, ColName colname);
 }

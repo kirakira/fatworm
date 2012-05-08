@@ -15,9 +15,10 @@ public class ColumnValue extends Value{
 	
 	@Override
 	public DataEntity getValue(Env env) {
-        if (colName instanceof SimpleCol)
-            return env.getValue(((SimpleCol)colName).id);
-        else 
-            return env.getValue(((FieldCol)colName).table, ((FieldCol)colName).col);
+        return env.getValue(colName);
+        // if (colName instanceof SimpleCol)
+        //     return env.getValue(((SimpleCol)colName).id);
+        // else 
+        //     return env.getValue(((FieldCol)colName).table, ((FieldCol)colName).col);
 	}
 }
