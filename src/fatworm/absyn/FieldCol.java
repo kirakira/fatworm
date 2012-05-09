@@ -9,4 +9,7 @@ public class FieldCol extends ColName{
 		table = t.getChild(0).getText();
 		col = t.getChild(1).getText();
 	}
+	public String toString(){
+		return table+"."+col;
+	}
 }

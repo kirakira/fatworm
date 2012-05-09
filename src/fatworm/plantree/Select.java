@@ -6,11 +6,11 @@ import fatworm.absyn.AndList;
 import fatworm.absyn.BoolExpr;
 
 public class Select extends Node{
-	BoolExpr boolValue;
+	public BoolExpr boolValue;
 	public Select(BoolExpr boolValue){
 		this.boolValue = boolValue;
 	}
-	public void print() {
-		System.out.println( "(Select)");
+	public String toString() {
+		return "Select\t"+boolValue.toString();
 	}
 }

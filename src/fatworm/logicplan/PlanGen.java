@@ -1,8 +1,12 @@
 package fatworm.logicplan;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.util.LinkedList;
 
 import org.antlr.runtime.ANTLRInputStream;
@@ -90,7 +94,10 @@ public class PlanGen {
 				join.childList.add(r);
 			}
 		}
-		current.childList.add(join);
+		if (current == null) 
+			current = join;
+		else
+			current.childList.add(join);
 		return current;
 	}
 	
@@ -165,7 +172,7 @@ public class PlanGen {
 	public static Node processSelectColumn(CommonTree query, Node current){
 		CommonTree tree = selectChild(query, "SelectColumn");
 		if (tree == null) return current;
-		LinkedList<Value> valList = new LinkedList<Value>();
+		LinkedList<ProjectionValue> valList = new LinkedList<ProjectionValue>();
 		CommonTree exprList = (CommonTree)tree.getChild(0);
 		for (int j = 0; j < exprList.getChildCount(); j++){
 			/**
@@ -176,7 +183,16 @@ public class PlanGen {
 			 * 				 exprList	 	 			  ChildJ
 			 */
 			CommonTree childJ = (CommonTree)exprList.getChild(j).getChild(0);
-			Value val = getValue(childJ);
+			ProjectionValue val = null;
+			if (childJ.getText().startsWith("AllColumn")){
+				val =  new ProjectionAllColumnValue(new ConstDefault("AllColumn"));
+			}
+			if (childJ.getText().startsWith("RenameValue")){
+				val = new ProjectionRenameValue(getValue((CommonTree)childJ.getChild(0)), childJ.getChild(1).getText());
+			}
+			if (childJ.getText().startsWith("SimpleValue")){
+				val = new ProjectionSimpleValue(getValue((CommonTree)childJ.getChild(0)));
+			}
 			valList.add(val);
 		}
 		Projection projection = new Projection(valList);
@@ -197,7 +213,7 @@ public class PlanGen {
 		Select select = new Select(getBoolExpr((CommonTree)tree.getChild(0)));
 		current.parent = select;
 		select.childList.add(current);
-		return select;	
+		return select;
 	}
 	
 	/**
@@ -210,15 +226,18 @@ public class PlanGen {
 		CommonTree tree = selectChild(query, "HavingCondition");
 		if (tree == null) return current;
 		Select select = new Select(getBoolExpr((CommonTree)tree.getChild(0)));
+		if (select.boolValue instanceof InExpr){
+			
+		}
 		current.parent = select;
 		return select;
 	}
 	
-	public static void printNode(int level, Node cur){
+	public static void printNode(PrintWriter writer, int level, Node cur){
 		if (cur == null) return;
-		System.out.println("Level "+level+" "+cur.getClass().toString());
+		writer.println(level+"\t"+cur.toString());
 		for (Node n : cur.childList){
-			printNode(level+1, n);
+			printNode(writer, level+1, n);
 		}
 	}
 	
@@ -229,11 +248,10 @@ public class PlanGen {
 	 */
 	public static Value getValue(CommonTree tree){
 		if (tree.getText().startsWith("AllColumn")){
-			return new ConstValue("AllColumn");
+			return new ConstDefault("AllColumn");
 		}
 		if (tree.getText().startsWith("RenameValue")){
-			return new RenameValue(getValue((CommonTree)tree.getChild(0)), 
-					tree.getChild(1).getText());
+			return null;//new ProjectionRenameValue(getValue((CommonTree)tree.getChild(0)), tree.getChild(1).getText());
 		}
 		if (tree.getText().startsWith("SimpleValue")){
 			return getValue((CommonTree)tree.getChild(0));
@@ -264,7 +282,22 @@ public class PlanGen {
 			Value val = getValue((CommonTree)tree.getChild(1));
 			return new FuncValue(func, val);
 		}
-		return new ConstValue(root);
+		if (root.startsWith("ConstInt")) 
+			return new ConstInt(tree.getChild(0).getText());
+		if (root.startsWith("ConstFloat")) 
+			return new ConstFloat(tree.getChild(0).getText());
+		if (root.startsWith("ConstTimeStamp")) 
+			return new ConstTimeStamp(tree.getChild(0).getText());
+		if (root.startsWith("ConstString")) 
+			return new ConstString(tree.getChild(0).getText());
+		if (root.startsWith("ConstNull")) 
+			return new ConstNull(tree.getChild(0).getText());
+		if (root.startsWith("ConstDefault")) 
+			return new ConstDefault(tree.getChild(0).getText());
+		if (root.startsWith("ConstBoolean"))
+			return new ConstBoolean(tree.getChild(0).getText());
+		// must not be reached
+		return null;
 	}
 	
 	/**
@@ -292,6 +325,7 @@ public class PlanGen {
 		if (tree.getText().startsWith("In")){
 			Value val = getValue((CommonTree)tree.getChild(0));
 			Node query = planGen((CommonTree)tree.getChild(1));
+			printNode(writer,0,query);
 			return new InExpr(val, query);
 		}
 		if (tree.getText()=="Compare"){
@@ -312,7 +346,6 @@ public class PlanGen {
 			String cop = tree.getChild(2).getText();
 			return new CompareAllExpr(val, query, cop);
 		}
-		
 		return null;
 	}
 	
@@ -322,31 +355,41 @@ public class PlanGen {
 	 * @return	the logical query plan tree
 	 */
 	public static Node planGen(CommonTree t) {
-		Node current = new Node();
+		Node current = null;
 		if (t.getText().startsWith("Query")) {
 			current = processFrom(t, current);
 			current = processGroupBy(t, current);
 			current = processOrderBy(t, current);
 			current = processDistinct(t, current);
-			current = processSelectColumn(t, current);
 			current = processWhereCondition(t, current);
 			current = processHavingCondition(t, current);
-			printNode(0, current);
+			current = processSelectColumn(t, current);
 		}
-		return null;
+		return current;
 	}
-	
+	static PrintWriter writer = null;
 	public static void main(String[] args) throws Exception {
-    	File file = new File("/home/hxr/fatworm/input.txt");
+
+        //initial
+		File file = new File("/home/hxr/fatworm/input.txt");
     	InputStream inp = new FileInputStream(file);
         ANTLRInputStream input = new ANTLRInputStream(inp);
+        writer = new PrintWriter(new FileOutputStream("/home/hxr/fatworm/output.txt"));
         FatwormLexer lexer = new FatwormLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
+        
+        //parser 
         FatwormParser parser = new FatwormParser(tokens);
         FatwormParser.prog_return r= parser.prog();
         CommonTree t = (CommonTree)r.getTree();
         CommonTreeNodeStream ns = new CommonTreeNodeStream(t);
-        System.out.println(t.toStringTree());
-        planGen(t);
+        writer.println(t.toStringTree());
+        
+        //logical query plan/ relation algebra tree
+        Node tree = planGen(t);
+        
+        //output
+        printNode(writer, 0, tree);
+        writer.flush();
     }
 }

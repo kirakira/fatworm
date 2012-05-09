@@ -9,4 +9,11 @@ public class OrderBy extends Node{
 	public OrderBy(LinkedList<ColName> colNameList){
 		this.colNameList = colNameList;
 	}
+	public String toString(){
+		String colNames = "OrderBy";
+		for (ColName name: colNameList){
+			colNames = colNames + "\t"+name.toString();
+		}
+		return colNames;
+	}
 }

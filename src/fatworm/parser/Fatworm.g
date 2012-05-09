@@ -10,6 +10,14 @@ options {
 
 tokens {
     ConstValue;
+    QueryValue;
+    ConstInt;
+    ConstFloat;
+    ConstString;
+    ConstTimeStamp;
+    ConstBoolean;
+    ConstNull;
+    ConstDefault;
     Char;
     VarChar;
     Decimal;
@@ -32,6 +40,7 @@ tokens {
     AssignList;
     Assign;
     CreateIndex;
+    DropIndex;
     UpdateStmt;
     Query;
     SelectColumn;
@@ -102,6 +111,7 @@ prog
      | insert_stmt
      | delete_stmt
      | update_stmt
+    |  index_stmt
      ;
 
 database_stmt
@@ -171,11 +181,13 @@ id_list
     ;
 
 delete_stmt
-    : DELETE FROM IDENTIFIER  (WHERE bool_expr)? -> ^(DeleteStmt IDENTIFIER ^(Condition bool_expr))
+    : DELETE FROM IDENTIFIER  WHERE bool_expr -> ^(DeleteStmt IDENTIFIER ^(Condition bool_expr))
+    |DELETE FROM IDENTIFIER -> ^(DeleteStmt IDENTIFIER)
     ;
 
 update_stmt
-    :UPDATE IDENTIFIER SET assign_list (WHERE bool_expr)? -> ^(UpdateStmt IDENTIFIER ^(Condition bool_expr) assign_list)
+    :UPDATE IDENTIFIER SET update_assign_list WHERE bool_expr -> ^(UpdateStmt IDENTIFIER ^(Condition bool_expr) update_assign_list)
+    |UPDATE IDENTIFIER SET update_assign_list -> ^(UpdateStmt IDENTIFIER update_assign_list)
     ;
 
 assign_list
@@ -186,9 +198,18 @@ assign
     : IDENTIFIER '=' const_value -> ^(Assign IDENTIFIER const_value)
     ;
 
+update_assign_list
+    :update_assign (',' update_assign)* -> ^(AssignList update_assign+)
+    ;
+
+update_assign
+    : IDENTIFIER '=' value -> ^(Assign IDENTIFIER value)
+    ;
+
 index_stmt
-    : CREATE UNIQUE? INDEX index=IDENTIFIER ON table=IDENTIFIER(column=IDENTIFIER) -> ^(CreateIndex $index $table $column UNIQUE?)
-    ; 
+    : CREATE UNIQUE? INDEX index=IDENTIFIER ON table=IDENTIFIER '(' column=IDENTIFIER ')' -> ^(CreateIndex $index $table $column UNIQUE?)
+    | DROP INDEX index=IDENTIFIER ON table=IDENTIFIER -> ^(DropIndex $index $table)
+    ;
 
 query
     :SELECT DISTINCT? select_expr_list (select_suffix)*
@@ -219,8 +240,8 @@ select_expr_list
     ;
 
 select_expr
-    :value -> ^(SelectExpr ^(SimpleValue value))
-    |value AS IDENTIFIER -> ^(SelectExpr ^(RenameValue value IDENTIFIER))
+    :value AS IDENTIFIER -> ^(SelectExpr ^(RenameValue value IDENTIFIER))
+    |value -> ^(SelectExpr ^(SimpleValue value))
     |'*' -> ^(SelectExpr ^(AllColumn))
     ;
 
@@ -266,7 +287,8 @@ and_bool_expr
     ;
 
 atom_bool_expr
-    : EXISTS '(' query ')'-> ^(Exist query)
+    : compare
+    | EXISTS '(' query ')'-> ^(Exist query)
     | NOT EXISTS '(' query ')' -> ^(Not ^(Exist query))
     | value cop ANY '(' query ')' -> ^(CompareAny value query cop)
     | value cop ALL '(' query ')' -> ^(CompareAll value query cop)
@@ -300,19 +322,19 @@ atom_value
     : '(' value ')' -> value
     | col_name -> col_name
     | const_value -> ^(ConstValue const_value)
-    | '(' query ')' -> query
+    | '(' query ')' -> ^(QueryValue query)
     | func '(' col_name ')' -> ^(Func ^(func) col_name)
     ;
 
 const_value
-    :INTEGER_LITERAL
-    |STRING_LITERAL
-    |FLOATING_POINT_LITERAL
-    |TIMESTAMP_LITERAL
-    |TRUE
-    |FALSE
-    |NULL
-    |DEFAULT
+    :INTEGER_LITERAL -> ^(ConstInt INTEGER_LITERAL)
+    |STRING_LITERAL -> ^(ConstString STRING_LITERAL)
+    |FLOATING_POINT_LITERAL -> ^(ConstFloat FLOATING_POINT_LITERAL)
+    |TIMESTAMP_LITERAL -> ^(ConstTimeStamp TIMESTAMP_LITERAL)
+    |TRUE -> ^(ConstBoolean TRUE)
+    |FALSE -> ^(ConstBoolean FALSE)
+    |NULL -> ^(ConstNull NULL)
+    |DEFAULT -> ^(ConstDefault DEFAULT)
     ;
 
 
