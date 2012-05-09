@@ -2,11 +2,14 @@ package fatworm.storage;
 
 import java.io.RandomAccessFile;
 import fatworm.storage.bplustree.*;
+import fatworm.storage.bucket.Bucket;
 
 import java.util.List;
 import java.util.LinkedList;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Arrays;
+import java.util.Random;
 
 public class Database implements IOHelper {
     private File file;
@@ -14,6 +17,23 @@ public class Database implements IOHelper {
 
     public Database(String name) throws java.io.FileNotFoundException, java.io.IOException {
         load(name);
+    }
+
+    public void testBucket() throws java.io.IOException {
+        Random rand = new Random();
+        int datalen = 10000;
+        byte[] data = new byte[datalen];
+        for (int i = 0; i < datalen; ++i)
+            data[i] = (byte) rand.nextInt(255);
+
+        Bucket bucket = Bucket.create(this, data);
+        int block = bucket.save();
+
+        bucket = Bucket.load(this, block);
+        if (!Arrays.equals(bucket.getData(), data))
+            System.out.println("Wrong data");
+        else
+            System.out.println("Correct data");
     }
 
     public void testBPlusTree() throws java.io.IOException {
