@@ -40,6 +40,7 @@ tokens {
     AssignList;
     Assign;
     CreateIndex;
+    DropIndex;
     UpdateStmt;
     Query;
     SelectColumn;
@@ -110,6 +111,7 @@ prog
      | insert_stmt
      | delete_stmt
      | update_stmt
+    |  index_stmt
      ;
 
 database_stmt
@@ -179,11 +181,13 @@ id_list
     ;
 
 delete_stmt
-    : DELETE FROM IDENTIFIER  (WHERE bool_expr)? -> ^(DeleteStmt IDENTIFIER ^(Condition bool_expr))
+    : DELETE FROM IDENTIFIER  WHERE bool_expr -> ^(DeleteStmt IDENTIFIER ^(Condition bool_expr))
+    |DELETE FROM IDENTIFIER -> ^(DeleteStmt IDENTIFIER)
     ;
 
 update_stmt
-    :UPDATE IDENTIFIER SET assign_list (WHERE bool_expr)? -> ^(UpdateStmt IDENTIFIER ^(Condition bool_expr) assign_list)
+    :UPDATE IDENTIFIER SET update_assign_list WHERE bool_expr -> ^(UpdateStmt IDENTIFIER ^(Condition bool_expr) update_assign_list)
+    |UPDATE IDENTIFIER SET update_assign_list -> ^(UpdateStmt IDENTIFIER update_assign_list)
     ;
 
 assign_list
@@ -194,9 +198,18 @@ assign
     : IDENTIFIER '=' const_value -> ^(Assign IDENTIFIER const_value)
     ;
 
+update_assign_list
+    :update_assign (',' update_assign)* -> ^(AssignList update_assign+)
+    ;
+
+update_assign
+    : IDENTIFIER '=' value -> ^(Assign IDENTIFIER value)
+    ;
+
 index_stmt
-    : CREATE UNIQUE? INDEX index=IDENTIFIER ON table=IDENTIFIER(column=IDENTIFIER) -> ^(CreateIndex $index $table $column UNIQUE?)
-    ; 
+    : CREATE UNIQUE? INDEX index=IDENTIFIER ON table=IDENTIFIER '(' column=IDENTIFIER ')' -> ^(CreateIndex $index $table $column UNIQUE?)
+    | DROP INDEX index=IDENTIFIER ON table=IDENTIFIER -> ^(DropIndex $index $table)
+    ;
 
 query
     :SELECT DISTINCT? select_expr_list (select_suffix)*
