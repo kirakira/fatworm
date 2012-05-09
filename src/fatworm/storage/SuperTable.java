@@ -41,9 +41,9 @@ public class SuperTable {
         }
     }
 
-    Map<String, MetaInfo> tables = new HashMap<String, MetaInfo>();
-    Bucket bucket;
-    IOHelper io;
+    private Map<String, MetaInfo> tables = new HashMap<String, MetaInfo>();
+    private Bucket bucket;
+    private IOHelper io;
 
     public void insertTable(String name, int block, int schema) {
         tables.put(name, new MetaInfo(name, block, schema));
@@ -117,6 +117,8 @@ public class SuperTable {
 
         if (bucket == null)
             bucket = Bucket.create(io, data, FreeList.reservedBlock);
+        else
+            bucket.setData(data);
         return bucket.save();
     }
 }
