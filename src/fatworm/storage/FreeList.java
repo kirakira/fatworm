@@ -10,6 +10,8 @@ class FreeList {
 
     private List<Integer> blocks;
 
+    public static final int reservedBlock = 3;
+
     public FreeList() {
         blocks = new LinkedList<Integer>();
 
@@ -22,6 +24,7 @@ class FreeList {
         setUse(1);
         blocks.add(new Integer(2));
         setUse(2);
+        setUse(reservedBlock);
     }
 
     private int leaves() {

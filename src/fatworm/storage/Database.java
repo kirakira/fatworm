@@ -14,6 +14,7 @@ import java.util.Random;
 public class Database implements IOHelper {
     private File file;
     private FreeList freeList;
+    private SuperTable superTable;
 
     public Database(String name) throws java.io.FileNotFoundException, java.io.IOException {
         load(name);
@@ -110,10 +111,13 @@ public class Database implements IOHelper {
         freeList = FreeList.load(file);
         if (freeList == null) {
             freeList = new FreeList();
-        }
+            superTable = SuperTable.create(this);
+        } else
+            superTable = SuperTable.load(this);
     }
 
     public void close() throws java.io.IOException {
+        superTable.save();
         freeList.save(file);
     }
 
@@ -139,5 +143,22 @@ public class Database implements IOHelper {
 
     public int getBlockSize() {
         return File.blockSize;
+    }
+
+    public Table getTable(String table) {
+        int relation = superTable.getRelation(table), schema = superTable.getSchema(table);
+        if (relation == 0 || schema == 0)
+            return null;
+        else
+            return Table.load(this, table, relation, schema);
+    }
+
+    // returns null if the table name already existed
+    public Table insertTable(String table, farworm.relation.Schema schema) {
+        Schema ss = Schema.create(this, schema);
+        int sBlock = ss.save();
+        Table st = Table.create(this);
+        int tBlock = st.save();
+        superTable.insertTable(table, tBlock, sBlock);
     }
 }
