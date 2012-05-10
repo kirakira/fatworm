@@ -1,7 +1,12 @@
 package fatworm.query;
 
-public class TablePlan {
+public class TablePlan implements QueryPlan{
     
     String tableName;
-    
+    public TablePlan(String name) {
+        tableName = name;
+    }
+    public Scan open() {
+        return new TableScan(tableName);
+    }
 }

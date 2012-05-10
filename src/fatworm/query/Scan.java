@@ -1,5 +1,7 @@
 package fatworm.query;
 
+import java.util.Collection;
+
 import fatworm.dataentity.DataEntity;
 /**
  * The interface will be implemented by each query scan.
@@ -20,10 +22,6 @@ public interface Scan {
     */
    public boolean  next();
    
-   /**
-    * Closes the scan and its subscans, if any. 
-    */
-   public void     close();
    
    // /**
    //  * Returns the value of the specified field in the current record.
@@ -39,15 +37,7 @@ public interface Scan {
     * @param fldname the name of the field
     * @return the field's integer value in the current record
     */
-   public int      getInt(String fldname);
-   
-   /**
-    * Returns the value of the specified string field 
-    * in the current record.
-    * @param fldname the name of the field
-    * @return the field's string value in the current record
-    */
-   public String   getString(String fldname);
+   public DataEntity   getField(String fldname);
    
    /**
     * Returns true if the scan has the specified field.
@@ -55,6 +45,25 @@ public interface Scan {
     * @return true if the scan has that field
     */
    public boolean  hasField(String fldname);
+
+   /**
+    * Returns true if the scan has the specified column, which may be table.field or field or FUNC(colname).
+    * @param colname the name of the field
+    * @return true if the scan has that field
+    */
+   public boolean  hasColumn(String colname);
+
+   /**
+    * Returns fields of the table.
+    * @return a collection contains the field.
+    */
+   public Collection<String>  fields();
+
+   /**
+    * Returns columns of the table. table.field or FUNC(table.field).
+    * @return a collection contains the columns.
+    */
+   public Collection<String>  columns();
 
     /**
      *Return the first column of the record, using for "in", "any", "all" comparision.
