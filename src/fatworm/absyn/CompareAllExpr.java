@@ -21,7 +21,7 @@ public class CompareAllExpr extends BoolExpr{
         Scan rightscan = Util.getQueryPlanner().createQueryPlan(query,env).open();
         rightscan.beforeFirst();
         while(rightscan.next()) {
-            if(!Compare.compare(left, rightscan.getFirstColumn(), cop))
+            if(!Compare.compare(left, rightscan.getColumnByIndex(0), cop))
                 return false;
         }
         return true;

@@ -59,6 +59,6 @@ public class Decimal extends DataEntity {
             if (op.equals("/"))
                 return new Float(value.doubleValue() / ((Float)t).value);
         }
-		return null;
+		return new NullDataEntity();
 	}
 }
