@@ -17,7 +17,7 @@ public class SuperTable {
             this.schema = schema;
         }
 
-        public MetaInfo(byte[] bytes, int offset, int length) {
+        public MetaInfo(byte[] bytes, int offset) {
             int slen = ByteLib.bytesToInt(bytes, offset);
             name = ByteLib.bytesToString(bytes, 4, slen);
             block = ByteLib.bytesToInt(bytes, slen + 4);
@@ -74,7 +74,7 @@ public class SuperTable {
         for (int i = 0; i < len; ++i) {
             int mlen = ByteLib.bytesToInt(data, s);
             s += 4;
-            MetaInfo mi = new MetaInfo(data, s, mlen);
+            MetaInfo mi = new MetaInfo(data, s);
             s += mlen;
             ret.tables.put(mi.name, mi);
         }

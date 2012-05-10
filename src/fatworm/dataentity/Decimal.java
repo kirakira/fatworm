@@ -1,12 +1,26 @@
 package fatworm.dataentity;
 
 import java.math.BigDecimal;
+import fatworm.util.ByteLib;
 
 public class Decimal extends DataEntity {
     
     BigDecimal value;
     public Decimal(BigDecimal v) {
         value = v;
+    }
+
+    public Decimal(byte[] data, int offset) {
+        int slen = ByteLib.bytesToInt(data, offset);
+        value = new BigDecimal(ByteLib.bytesToString(data, offset + 4, slen));
+    }
+
+    public byte[] getBytes() {
+        byte[] data = ByteLib.stringToBytes(value.toPlainString());
+        byte[] ret = new byte[data.length + 4];
+        ByteLib.intToBytes(data.length, ret, 0);
+        System.arraycopy(data, 0, ret, 4, data.length);
+        return ret;
     }
     
     public int compareTo(DataEntity t) {

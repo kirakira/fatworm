@@ -6,6 +6,23 @@ public class Bool extends DataEntity
     public Bool(boolean v) {
         value = v;
     }
+
+    public Bool(byte[] data, int offset) {
+        if (data[offset] == 0)
+            value = false;
+        else
+            value = true;
+    }
+
+    public byte[] getBytes() {
+        byte[] ret = new byte[1];
+        if (value)
+            ret[0] = 1;
+        else
+            ret[0] = 0;
+        return ret;
+    }
+
     public int compareTo(DataEntity t) {
         if (t instanceof Bool) {
         	if (value == ((Bool)t).value)

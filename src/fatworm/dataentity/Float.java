@@ -1,11 +1,24 @@
 package fatworm.dataentity;
 
+import fatworm.util.ByteLib;
+
 public class Float extends DataEntity
 {
     double value;
     public Float(double v) {
         value = v;
     }
+
+    public Float(byte[] data, int offset) {
+        value = ByteLib.bytesToDouble(data, offset);
+    }
+
+    public byte[] getBytes() {
+        byte[] ret = new byte[8];
+        ByteLib.doubleToBytes(value, ret, 0);
+        return ret;
+    }
+
     public int compareTo(DataEntity t) {
         if(t instanceof Float) {
             double anotherv = ((Float)t).value;

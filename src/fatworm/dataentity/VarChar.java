@@ -1,10 +1,26 @@
 package fatworm.dataentity;
 
+import fatworm.util.ByteLib;
+
 public class VarChar extends DataEntity {
     String value;
     public VarChar(String v) {
         value = v;
     }
+
+    public VarChar(byte[] data, int offset) {
+        int slen = ByteLib.bytesToInt(data, offset);
+        value = ByteLib.bytesToString(data, offset + 4, slen);
+    }
+
+    public byte[] getBytes() {
+        byte[] data = ByteLib.stringToBytes(value);
+        byte[] ret = new byte[data.length + 4];
+        ByteLib.intToBytes(data.length, ret, 0);
+        System.arraycopy(data, 0, ret, 4, data.length);
+        return ret;
+    }
+
     public int compareTo(DataEntity t){
     	if (t instanceof FixChar) {
     		return value.compareTo(((FixChar) t).value);

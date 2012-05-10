@@ -1,5 +1,7 @@
 package fatworm.dataentity;
 
+import fatworm.util.ByteLib;
+
 public class FixChar extends DataEntity{
     String value;
     int length;
@@ -7,6 +9,22 @@ public class FixChar extends DataEntity{
         value = s;
         length = l;
     }
+
+    public FixChar(byte[] data, int offset) {
+        length = ByteLib.bytesToInt(data, offset);
+        int slen = ByteLib.bytesToInt(data, offset + 4);
+        value = ByteLib.bytesToString(data, offset + 8, slen);
+    }
+
+    public byte[] getBytes() {
+        byte[] data = ByteLib.stringToBytes(value);
+        byte[] ret = new byte[data.length + 8];
+        ByteLib.intToBytes(length, ret, 0);
+        ByteLib.intToBytes(data.length, ret, 4);
+        System.arraycopy(data, 0, ret, 8, data.length);
+        return ret;
+    }
+
     public int compareTo(DataEntity t){
     	if (t instanceof FixChar) {
     		return value.compareTo(((FixChar) t).value);

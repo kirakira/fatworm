@@ -1,5 +1,6 @@
 package fatworm.dataentity;
 
+import fatworm.util.ByteLib;
 
 public class DateTime extends DataEntity
 {
@@ -7,6 +8,17 @@ public class DateTime extends DataEntity
     public DateTime(java.sql.Timestamp v) {
         value = v;
     }
+
+    public DateTime(byte[] data, int offset) {
+        value = new java.sql.Timestamp(ByteLib.bytesToLong(data, offset));
+    }
+
+    public byte[] getBytes() {
+        byte[] ret = new byte[8];
+        ByteLib.longToBytes(value.getTime(), ret, 0);
+        return ret;
+    }
+
     public int compareTo(DataEntity t) {
         if(t instanceof DateTime) {
             return value.compareTo(((DateTime)t).value);

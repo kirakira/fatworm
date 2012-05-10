@@ -2,12 +2,25 @@ package fatworm.dataentity;
 
 import java.math.BigDecimal;
 
+import fatworm.util.ByteLib;
+
 public class Int extends DataEntity
 {
     int value;
     public Int(int v) {
         value = v;
     }
+
+    public Int(byte[] data, int offset) {
+        value = ByteLib.bytesToInt(data, offset);
+    }
+
+    public byte[] getBytes() {
+        byte[] data = new byte[4];
+        ByteLib.intToBytes(value, data, 0);
+        return data;
+    }
+
     public int compareTo(DataEntity t) {
         if(t instanceof Int) {
             int anotherv = ((Int)t).value;

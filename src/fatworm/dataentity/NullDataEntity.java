@@ -6,6 +6,11 @@ public class NullDataEntity extends DataEntity
     public boolean isNull(){
         return true;
     }
+
+    public byte[] getBytes() {
+        return null;
+    }
+
 	@Override
 	public int compareTo(DataEntity o) {
 		return 0;

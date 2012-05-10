@@ -7,4 +7,6 @@ public abstract class DataEntity
     public boolean isNull() {
         return false;
     }
+
+    public abstract byte[] getBytes();
 }

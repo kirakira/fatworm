@@ -6,6 +6,7 @@ import fatworm.record.Schema;
 import fatworm.util.ByteLib;
 import fatworm.dataentity.*;
 
+import static java.sql.Types.*;
 import java.util.Map;
 
 public class Table implements RecordFile {
@@ -17,6 +18,10 @@ public class Table implements RecordFile {
 
     private int front, rear;
     private int capacity;
+
+    private Cell currentCell;
+    private int currentIndex = -1;
+    private boolean removed = false;
     
     private Table(IOHelper io, String name, int schema) {
         this.io = io;
@@ -25,13 +30,17 @@ public class Table implements RecordFile {
         front = 0;
         rear = 0;
         capacity = 0;
+
+        currentCell = null;
+        currentIndex = 0;
+        removed = false;
     }
 
     public static Table create(IOHelper io, String name, int schemaBlock) {
         Table ret = new Table(io, name, schemaBlock);
         ret.front = Cell.create(io).save();
         ret.rear = ret.front;
-        ret.capacity = (io.getBlockSize() - 8) / (4 + ret.schema.estimatedTupleSize());
+        ret.capacity = (io.getBlockSize() - 16) / (4 + ret.schema.estimatedTupleSize());
         if (ret.capacity == 0)
             ret.capacity = 1;
 
@@ -62,7 +71,7 @@ public class Table implements RecordFile {
 
     public boolean insert(Map<String, DataEntity> map) {
         Cell cell = Cell.load(io, rear);
-        Tuple tuple = Tuple.create(map, getSchema());
+        Tuple tuple = Tuple.create(getSchema(), map);
         if (tuple == null)
             return false;
         cell.insert(tuple);
@@ -73,7 +82,79 @@ public class Table implements RecordFile {
         }
     }
 
+    public boolean update(Map<String, DataEntity> map) {
+        if (!removed && currentCell != null && currentIndex >= 0 && currentIndex < currentCell.tupleCount()) {
+            Tuple tuple = Tuple.create(getSchema(), map);
+            if (tuple == null)
+                return false;
+            currentCell.set(currentIndex, tuple);
+            currentCell.save();
+        } else
+            return false;
+    }
+
     public Schema getSchema() {
         return schema.schema();
+    }
+
+    public void beforeFirst() {
+        currentCell = Cell.load(io, front);
+        currentIndex = -1;
+        removed = false;
+    }
+
+    public boolean next() {
+        int t = currentIndex + 1;
+        if (t > currentCell.tupleCount()) {
+            do {
+                int nextCell = currentCell.next();
+                if (nextCell == 0)
+                    return false;
+                currentCell = Cell.load(io, nextCell);
+            } while (currentCell.tupleCount() == 0);
+
+            currentIndex = 0;
+            removed = false;
+            return true;
+        } else {
+            currentIndex = t;
+            removed = false;
+            return true;
+        }
+    }
+
+    public void delete() {
+        if (!removed && currentCell != null && currentIndex >= 0 && currentIndex < currentCell.tupleCount()) {
+            currentCell.remove(currentIndex);
+            currentCell.save();
+            removed = true;
+        }
+    }
+
+    private Tuple getTuple() {
+        if (!removed && currentCell != null && currentIndex >= 0 && currentIndex < currentCell.tupleCount())
+            return currentCell.get(currentIndex);
+        else
+            return null;
+    }
+
+    public boolean hasField(String name) {
+        return getSchema().hasField(name);
+    }
+
+    public DataEntity getFieldByIndex(int index) {
+        Tuple tuple = getTuple();
+        if (tuple == null)
+            return null;
+        else
+            return tuple.get(index);
+    }
+
+    public DataEntity getField(String name) {
+        int i = getSchema().index(name);
+        if (i == -1)
+            return null;
+        else
+            return getFieldByIndex(i);
     }
 }

@@ -1,17 +1,30 @@
 package fatworm.util;
 
+import java.nio.ByteBuffer;
+
 public class ByteLib {
     public static int bytesToInt(byte[] data, int offset) {
-        return (int) ((((int) data[offset + 0] & 0xFF) << 0)
-                | (((int) data[offset + 1] & 0xFF) << 8)
-                | (((int) data[offset + 2] & 0xFF) << 16) | (((int) data[offset + 3] & 0xFF) << 24));
+        ByteBuffer.wrap(data, offset, data.length - offset).getInt();
     }
 
     public static void intToBytes(int value, byte[] data, int offset) {
-        data[offset + 0] = (byte) ((value >> 0) & 0xFF);
-        data[offset + 1] = (byte) ((value >> 8) & 0xFF);
-        data[offset + 2] = (byte) ((value >> 16) & 0xFF);
-        data[offset + 3] = (byte) ((value >> 24) & 0xFF);
+        ByteBuffer.wrap(data, offset, data.length - offset).putInt(value);
+    }
+
+    public static long bytesToLong(byte[] data, int offset) {
+        ByteBuffer.wrap(data, offset, data.length - offset).getLong();
+    }
+
+    public static void longToBytes(long value, byte[] data, int offset) {
+        ByteBuffer.wrap(data, offset, data.length - offset).putLong(value);
+    }
+
+    public static double bytesToDouble(byte[] data, int offset) {
+        ByteBuffer.wrap(data, offset, data.length - offset).getDouble();
+    }
+
+    public static void doubleToBytes(double value, byte[] data, int offset) {
+        ByteBuffer.wrap(data, offset, data.length - offset).putDouble(value);
     }
 
     public static String bytesToString(byte[] data, int offset, int len) {

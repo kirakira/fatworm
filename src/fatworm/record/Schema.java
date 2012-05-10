@@ -33,6 +33,10 @@ public class Schema {
         return info.get(index).name;
     }
 
+    public int index(String name) {
+        return indexOf(name);
+    }
+
     public int type(int index) {
         return info.get(index).type;
     }
@@ -122,5 +126,12 @@ public class Schema {
                 tot += field.length;
         }
         return tot;
+    }
+
+    public Collection<String> fields() {
+        Collection<String> ret = new LinkedList<String>();
+        for (int i = 0; i < info.size(); ++i)
+            ret.add(info.get(i).name);
+        return ret;
     }
 }

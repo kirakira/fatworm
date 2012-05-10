@@ -9,6 +9,7 @@ public class Cell {
     private IOHelper io;
     private Bucket bucket;
     private ArrayList<Tuple> tuples;
+    private int next;
 
     private Cell(IOHelper io) {
         this.io = io;
@@ -28,13 +29,16 @@ public class Cell {
         ret.bucket = Bucket.load(io, block);
 
         byte[] data = ret.bucket.getData();
-        int len = ByteLib.bytesToInt(data, 0);
-        int s = 4;
+        int s = 0;
+        ret.next = ByteLib.bytesToInt(data, s);
+        s += 4;
+        int len = ByteLib.bytesToInt(data, s);
+        s += 4;
         for (int i = 0; i < len; ++i) {
             int tlen = ByteLib.bytesToInt(data, s);
             s += 4;
 
-            ret.tuples.add(new Tuple(data, s, tlen));
+            ret.tuples.add(new Tuple(data, s));
             s += tlen;
         }
 
@@ -42,7 +46,7 @@ public class Cell {
     }
 
     private byte[] getBytes() {
-        int len = 4;
+        int len = 8;
         byte[][] buffer = new byte[tuples.size()][];
         for (int i = 0; i < tuples.size(); ++i) {
             buffer[i] = tuples.get(i).getBytes();
@@ -80,8 +84,20 @@ public class Cell {
         tuples.add(tuple);
     }
 
+    public void remove(int index) {
+        tuples.remove(index);
+    }
+
     public int save() {
         bucket.setData(getBytes());
         return bucket.save();
+    }
+
+    public int next() {
+        return next;
+    }
+
+    public void setNext(int next) {
+        this.next = next;
     }
 }
