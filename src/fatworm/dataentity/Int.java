@@ -71,6 +71,6 @@ public class Int extends DataEntity
             if (op.equals("%"))
                 return new Decimal((new BigDecimal(value)).remainder(((Decimal)t).value));
         }
-		return null;
+		return new NullDataEntity();
 	}
 }

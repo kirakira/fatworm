@@ -24,7 +24,6 @@ public class TimeStamp extends DataEntity
     }
 	@Override
     public DataEntity opWith(DataEntity o, String op) {
-		// TODO Auto-generated method stub
-		return null;
+		return new NullDataEntity();
 	}
 }

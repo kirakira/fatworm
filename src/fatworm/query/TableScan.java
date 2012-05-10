@@ -40,6 +40,24 @@ public class TableScan implements Scan{
         return false;
     }
 
+	@Override
+	public DataEntity getField(String fldname) {
+		return iter.getField(fldname);
+	}
+
+
+    public DataEntity getColumn(String column) {
+        if (Util.isFieldSuffix(column)) {
+
+            if ( tableName.equals(Util.getColumnTableName(column)))
+                return getField(Util.getColumnFieldName(column));
+        }
+        if (Util.isSimpleColumn(column)) {
+            return schema.hasField(column);
+        }
+        return null;
+    }
+
     public Collection<String> fields() {
         return schema.fields();
     }
@@ -52,14 +70,12 @@ public class TableScan implements Scan{
         return result;
     }
 
-	@Override
-	public DataEntity getField(String fldname) {
-		return iter.getField(fldname);
-	}
 
 	@Override
-	public DataEntity getFirstColumn() {
-		// TODO Auto-generated method stub
-		return null;
+	public DataEntity getColumnByIndex(int index) {
+        for (String f: fields()) {
+            if (schema.getFieldIndex(f) == index)
+                return getField(f);
+        }
 	}
 }

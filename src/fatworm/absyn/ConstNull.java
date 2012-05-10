@@ -2,6 +2,7 @@ package fatworm.absyn;
 
 
 import fatworm.dataentity.DataEntity;
+import fatworm.dataentity.NullDataEntity;
 import fatworm.query.Env;
 
 public class ConstNull extends ConstValue{
@@ -9,6 +10,6 @@ public class ConstNull extends ConstValue{
         super(val);
 	}
     public DataEntity getValue(Env env) {
-        return null;
+        return new NullDataEntity();
     }
 } 

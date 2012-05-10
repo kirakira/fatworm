@@ -60,7 +60,7 @@ public class Float extends DataEntity
             if (op.equals("/"))
                 return new Float(value/anotherv);
         }
-		return null;
+		return new NullDataEntity();
 
 	}
 }

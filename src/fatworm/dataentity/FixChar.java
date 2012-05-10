@@ -24,7 +24,7 @@ public class FixChar extends DataEntity{
     }
 	@Override
 	public DataEntity opWith(DataEntity o, String op) {
-		return null;
+		return new NullDataEntity();
 	}
 
 }
