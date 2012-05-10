@@ -76,4 +76,8 @@ public class Float extends DataEntity
 		return new NullDataEntity();
 
 	}
+
+    public String toString() {
+        return new Double(value).toString();
+    }
 }

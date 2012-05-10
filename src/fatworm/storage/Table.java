@@ -38,7 +38,7 @@ public class Table implements RecordFile {
 
     public static Table create(IOHelper io, String name, int schemaBlock) throws java.io.IOException {
         Table ret = new Table(io, name, schemaBlock);
-        ret.front = Cell.create(io).save();
+        ret.front = Cell.create(io, ret.getSchema()).save();
         ret.rear = ret.front;
         ret.capacity = (io.getBlockSize() - 16) / (4 + ret.schema.estimatedTupleSize());
         if (ret.capacity == 0)
@@ -72,14 +72,14 @@ public class Table implements RecordFile {
     }
 
     public boolean insert(Map<String, DataEntity> map) throws java.io.IOException {
-        Cell cell = Cell.load(io, rear);
+        Cell cell = Cell.load(io, getSchema(), rear);
         Tuple tuple = Tuple.create(getSchema(), map);
         if (tuple == null)
             return false;
         cell.insert(tuple);
         cell.save();
         if (cell.tupleCount() >= capacity) {
-            rear = Cell.create(io).save();
+            rear = Cell.create(io, getSchema()).save();
             save();
         }
         return true;
@@ -102,19 +102,19 @@ public class Table implements RecordFile {
     }
 
     public void beforeFirst() {
-        currentCell = Cell.load(io, front);
+        currentCell = Cell.load(io, getSchema(), front);
         currentIndex = -1;
         removed = false;
     }
 
     public boolean next() {
         int t = currentIndex + 1;
-        if (t > currentCell.tupleCount()) {
+        if (t >= currentCell.tupleCount()) {
             do {
                 int nextCell = currentCell.next();
                 if (nextCell == 0)
                     return false;
-                currentCell = Cell.load(io, nextCell);
+                currentCell = Cell.load(io, getSchema(), nextCell);
             } while (currentCell.tupleCount() == 0);
 
             currentIndex = 0;

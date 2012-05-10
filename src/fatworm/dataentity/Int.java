@@ -86,4 +86,8 @@ public class Int extends DataEntity
         }
 		return new NullDataEntity();
 	}
+
+    public String toString() {
+        return new Integer(value).toString();
+    }
 }

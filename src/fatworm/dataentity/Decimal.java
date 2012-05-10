@@ -75,4 +75,8 @@ public class Decimal extends DataEntity {
         }
 		return new NullDataEntity();
 	}
+
+    public String toString() {
+        return value.toString();
+    }
 }

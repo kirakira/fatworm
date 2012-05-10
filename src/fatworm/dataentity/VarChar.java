@@ -37,4 +37,8 @@ public class VarChar extends DataEntity {
 	public DataEntity opWith(DataEntity o, String op) {
 		return new NullDataEntity();
 	}
+
+    public String toString() {
+        return value;
+    }
 }

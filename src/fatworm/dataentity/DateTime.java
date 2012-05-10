@@ -39,4 +39,8 @@ public class DateTime extends DataEntity
 		// TODO Auto-generated method stub
 		return new NullDataEntity();
 	}
+
+    public String toString() {
+        return value.toString();
+    }
 }

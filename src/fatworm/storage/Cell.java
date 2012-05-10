@@ -2,30 +2,34 @@ package fatworm.storage;
 
 import fatworm.storage.bucket.Bucket;
 import fatworm.util.ByteLib;
+import fatworm.record.Schema;
 
 import java.util.ArrayList;
 
 public class Cell {
     private IOHelper io;
+    private Schema schema;
     private Bucket bucket;
     private ArrayList<Tuple> tuples;
     private int next;
 
-    private Cell(IOHelper io) {
+    private Cell(IOHelper io, Schema schema) {
         this.io = io;
+        this.schema = schema;
         bucket = null;
         tuples = new ArrayList<Tuple>();
+        next = 0;
     }
 
-    public static Cell create(IOHelper io) {
-        Cell ret = new Cell(io);
+    public static Cell create(IOHelper io, Schema schema) {
+        Cell ret = new Cell(io, schema);
 
         ret.bucket = Bucket.create(io, null);
         return ret;
     }
 
-    public static Cell load(IOHelper io, int block) {
-        Cell ret = new Cell(io);
+    public static Cell load(IOHelper io, Schema schema, int block) {
+        Cell ret = new Cell(io, schema);
         ret.bucket = Bucket.load(io, block);
 
         byte[] data = ret.bucket.getData();
@@ -38,7 +42,7 @@ public class Cell {
             int tlen = ByteLib.bytesToInt(data, s);
             s += 4;
 
-            ret.tuples.add(new Tuple(data, s));
+            ret.tuples.add(new Tuple(ret.schema, data, s));
             s += tlen;
         }
 
@@ -55,6 +59,8 @@ public class Cell {
 
         byte[] data = new byte[len];
         int s = 0;
+        ByteLib.intToBytes(next, data, s);
+        s += 4;
         ByteLib.intToBytes(tuples.size(), data, s);
         s += 4;
         for (int i = 0; i < tuples.size(); ++i) {

@@ -18,6 +18,8 @@ public class StorageManager implements IOHelper {
     private FreeList freeList;
     private SuperTable superTable;
 
+    long readCount = 0, writeCount = 0;
+
     public StorageManager(String name) throws java.io.FileNotFoundException, java.io.IOException {
         load(name);
     }
@@ -132,8 +134,6 @@ public class StorageManager implements IOHelper {
         ++writeCount;
         file.writeBlock(block, data, offset);
     }
-
-    long readCount = 0, writeCount = 0;
 
     public int occupy() {
         return freeList.occupy();

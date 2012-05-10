@@ -35,7 +35,9 @@ public class Tuple {
         return ret;
     }
 
-    public Tuple(byte[] data, int offset) {
+    public Tuple(Schema schema, byte[] data, int offset) {
+        this(schema);
+
         int s = offset;
         int count = ByteLib.bytesToInt(data, s);
         s += 4;
@@ -76,6 +78,14 @@ public class Tuple {
 
                     case TIMESTAMP:
                         values[i] = new TimeStamp(data, s);
+                        break;
+
+                    case DECIMAL:
+                        values[i] = new Decimal(data, s);
+                        break;
+
+                    default:
+                        System.err.println("Unsupported data type: " + schema.type(i) + "; ignored");
                         break;
                 }
 

@@ -34,4 +34,8 @@ public class Bool extends DataEntity
 	public DataEntity opWith(DataEntity o, String op) {
 		return new NullDataEntity();
 	}
+
+    public String toString() {
+        return new Boolean(value).toString();
+    }
 }

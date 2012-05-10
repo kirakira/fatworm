@@ -45,4 +45,8 @@ public class FixChar extends DataEntity{
 		return new NullDataEntity();
 	}
 
+    public String toString() {
+        return value;
+    }
+
 }
