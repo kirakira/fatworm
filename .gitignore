@@ -1,4 +1,5 @@
 *.class
 sources.txt
 *.swp
+*.swo
 *.db

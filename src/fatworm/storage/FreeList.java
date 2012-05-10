@@ -3,6 +3,7 @@ package fatworm.storage;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import fatworm.util.ByteLib;
 
 class FreeList {
     private byte[] data;

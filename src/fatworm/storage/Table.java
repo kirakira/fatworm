@@ -1,12 +1,14 @@
 package fatworm.storage;
 
-import fatworm.record.TableInfo;
+import fatworm.record.RecordFile;
 import fatworm.storage.bucket.Bucket;
+import fatworm.record.Schema;
+import fatworm.util.ByteLib;
 
-public class Table implements TableInfo {
+public class Table implements RecordFile {
     private IOHelper io;
     private String name;
-    private Schema schema;
+    private SchemaOnDisk schema;
 
     private Bucket head;
 
@@ -16,17 +18,17 @@ public class Table implements TableInfo {
     private Table(IOHelper io, String name, int schema) {
         this.io = io;
         this.name = name;
-        this.schema = Schema.load(io, schema);
+        this.schema = SchemaOnDisk.load(io, schema);
         front = 0;
         rear = 0;
         capacity = 0;
     }
 
-    public static Table create(IOHelper io, String name, int schema) {
-        Table ret = new Table(io, name, schema);
+    public static Table create(IOHelper io, String name, int schemaBlock) {
+        Table ret = new Table(io, name, schemaBlock);
         ret.front = Cell.create(io).save();
         ret.rear = ret.front;
-        ret.capacity = (io.getBlockSize() - 8) / schema.estimatedTupleSize();
+        ret.capacity = (io.getBlockSize() - 8) / ret.schema.estimatedTupleSize();
         if (ret.capacity == 0)
             ret.capacity = 1;
 
@@ -63,5 +65,9 @@ public class Table implements TableInfo {
             rear = Cell.create(io).save();
             save();
         }
+    }
+
+    public Schema getSchema() {
+        return schema.schema();
     }
 }

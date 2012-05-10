@@ -2,6 +2,7 @@ package fatworm.storage.bucket;
 
 import java.util.LinkedList;
 import fatworm.storage.*;
+import fatworm.util.ByteLib;
 
 public class Bucket {
     private int block;

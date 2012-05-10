@@ -1,6 +1,6 @@
 package fatworm.storage.bplustree;
 
-import fatworm.storage.ByteLib;
+import fatworm.util.ByteLib;
 import java.util.Comparator;
 
 public class IntegerComparator implements Comparator<byte[]> {

@@ -3,6 +3,8 @@ package fatworm.storage;
 import java.io.RandomAccessFile;
 import fatworm.storage.bplustree.*;
 import fatworm.storage.bucket.Bucket;
+import fatworm.util.ByteLib;
+import fatworm.record.Schema;
 
 import java.util.List;
 import java.util.LinkedList;
@@ -11,12 +13,12 @@ import java.util.Set;
 import java.util.Arrays;
 import java.util.Random;
 
-public class Database implements IOHelper {
+public class StorageManager implements IOHelper {
     private File file;
     private FreeList freeList;
     private SuperTable superTable;
 
-    public Database(String name) throws java.io.FileNotFoundException, java.io.IOException {
+    public StorageManager(String name) throws java.io.FileNotFoundException, java.io.IOException {
         load(name);
     }
 
@@ -154,8 +156,8 @@ public class Database implements IOHelper {
     }
 
     // returns null if the table name already existed
-    public Table insertTable(String table, farworm.relation.Schema schema) {
-        Schema ss = Schema.create(this, schema);
+    public Table insertTable(String table, Schema schema) {
+        SchemaOnDisk ss = SchemaOnDisk.create(this, schema);
         int sBlock = ss.save();
         Table st = Table.create(this, table, sBlock);
         int tBlock = st.save();

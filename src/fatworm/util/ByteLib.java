@@ -1,4 +1,4 @@
-package fatworm.storage;
+package fatworm.util;
 
 public class ByteLib {
     public static int bytesToInt(byte[] data, int offset) {

@@ -3,6 +3,7 @@ package fatworm.storage;
 import java.util.Map;
 import java.util.HashMap;
 import fatworm.storage.bucket.Bucket;
+import fatworm.util.ByteLib;
 
 public class SuperTable {
     private static class MetaInfo {
