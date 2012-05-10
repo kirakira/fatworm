@@ -39,6 +39,6 @@ public class SchemaOnDisk {
     }
 
     public int estimatedTupleSize() {
-        return schema.estimatedLength();
+        return schema.estimatedLength() + 4 * schema.columnCount();
     }
 }

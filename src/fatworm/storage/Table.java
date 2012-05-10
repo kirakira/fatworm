@@ -31,7 +31,7 @@ public class Table implements RecordFile {
         Table ret = new Table(io, name, schemaBlock);
         ret.front = Cell.create(io).save();
         ret.rear = ret.front;
-        ret.capacity = (io.getBlockSize() - 8) / ret.schema.estimatedTupleSize();
+        ret.capacity = (io.getBlockSize() - 8) / (4 + ret.schema.estimatedTupleSize());
         if (ret.capacity == 0)
             ret.capacity = 1;
 
