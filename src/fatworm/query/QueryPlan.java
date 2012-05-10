@@ -1,5 +1,8 @@
 package fatworm.query;
 
+import java.util.HashSet;
+import java.util.Set;
+
 //import fatworm.record.Schema;
 
 /**
@@ -8,15 +11,23 @@ package fatworm.query;
  * @author Edward Sciore
  *
  */
-public interface QueryPlan {
+public abstract class QueryPlan {
    
-   /**
-    * Opens a scan corresponding to this plan.
-    * The scan will be positioned before its first record.
-    * @return a scan
-    */
-   public Scan   open();
-   
+	Set<String> funcSet = new HashSet<String>();
+    /**
+     * Opens a scan corresponding to this plan.
+     * The scan will be positioned before its first record.
+     * @return a scan
+     */
+    abstract public Scan   open();
+
+    /**
+     *
+     */   
+    public void setFunctionsToCalc(Set<String> funcs){
+    	funcSet.clear();
+    	funcSet.addAll(funcs);
+    }
    // /**
    //  * Returns an estimate of the number of block accesses
    //  * that will occur when the scan is read to completion.

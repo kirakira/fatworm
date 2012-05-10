@@ -1,6 +1,8 @@
 package fatworm.plantree;
 
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Set;
 
 public class Node {
 	public LinkedList<Node> childList = new LinkedList<Node>();
@@ -19,4 +21,13 @@ public class Node {
 	public String toString(){
 		return "mustn't be echoed, something wrong@Node";
 	}
+	
+    public Set<String> dumpUsefulColumns() {
+    	Set<String> result = new HashSet<String>();
+    	for(Node node: childList) {
+    		result.addAll(node.dumpUsefulColumns());
+    	}
+    	return result;
+    }	
+	
 }

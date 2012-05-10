@@ -1,6 +1,6 @@
 package fatworm.query;
 
-public class TablePlan implements QueryPlan{
+public class TablePlan extends QueryPlan{
     
     String tableName;
     public TablePlan(String name) {
