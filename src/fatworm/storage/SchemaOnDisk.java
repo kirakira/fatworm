@@ -29,7 +29,7 @@ public class SchemaOnDisk {
         return ret;
     }
 
-    public int save() {
+    public int save() throws java.io.IOException {
         bucket.setData(schema.getBytes());
         return bucket.save();
     }

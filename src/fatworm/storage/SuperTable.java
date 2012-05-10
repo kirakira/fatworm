@@ -98,7 +98,7 @@ public class SuperTable {
             return mi.schema;
     }
 
-    public int save() {
+    public int save() throws java.io.IOException {
         int len = 0;
         for (MetaInfo mi: tables.values())
             len += 4 + mi.getBytesLen();

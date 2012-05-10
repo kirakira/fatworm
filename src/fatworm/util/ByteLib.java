@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 
 public class ByteLib {
     public static int bytesToInt(byte[] data, int offset) {
-        ByteBuffer.wrap(data, offset, data.length - offset).getInt();
+        return ByteBuffer.wrap(data, offset, data.length - offset).getInt();
     }
 
     public static void intToBytes(int value, byte[] data, int offset) {
@@ -12,7 +12,7 @@ public class ByteLib {
     }
 
     public static long bytesToLong(byte[] data, int offset) {
-        ByteBuffer.wrap(data, offset, data.length - offset).getLong();
+        return ByteBuffer.wrap(data, offset, data.length - offset).getLong();
     }
 
     public static void longToBytes(long value, byte[] data, int offset) {
@@ -20,7 +20,7 @@ public class ByteLib {
     }
 
     public static double bytesToDouble(byte[] data, int offset) {
-        ByteBuffer.wrap(data, offset, data.length - offset).getDouble();
+        return ByteBuffer.wrap(data, offset, data.length - offset).getDouble();
     }
 
     public static void doubleToBytes(double value, byte[] data, int offset) {

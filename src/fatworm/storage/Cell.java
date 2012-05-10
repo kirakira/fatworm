@@ -72,7 +72,7 @@ public class Cell {
         return tuples.get(index);
     }
 
-    public Tuple set(int index, Tuple t) {
+    public void set(int index, Tuple t) {
         tuples.set(index, t);
     }
 
@@ -88,7 +88,7 @@ public class Cell {
         tuples.remove(index);
     }
 
-    public int save() {
+    public int save() throws java.io.IOException {
         bucket.setData(getBytes());
         return bucket.save();
     }
