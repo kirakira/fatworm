@@ -1,5 +1,8 @@
 package fatworm.absyn;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import fatworm.plantree.Node;
 import fatworm.query.Env;
 import fatworm.query.Scan;
@@ -26,4 +29,13 @@ public class CompareAllExpr extends BoolExpr{
         }
         return true;
     }
+    
+    public Set<String> dumpUsefulColumns() {
+    	Set<String> result = new HashSet<String>();
+    	result.addAll(val.dumpUsefulColumns());
+    	result.addAll(query.dumpUsefulColumns());
+    	return result;
+    }
+
+
 }

@@ -1,5 +1,8 @@
 package fatworm.absyn;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import fatworm.dataentity.DataEntity;
 import fatworm.query.Env;
 
@@ -20,4 +23,11 @@ public class OpValue extends Value{
 	public DataEntity getValue(Env env) {
 		return  left.getValue(env).opWith(right.getValue(env),op);
 	}
+	
+	public Set<String> dumpUsefulColumns() {
+    	Set<String> result = new HashSet<String>();
+    	result.addAll(left.dumpUsefulColumns());
+    	result.addAll(right.dumpUsefulColumns());
+    	return result;
+    }
 }

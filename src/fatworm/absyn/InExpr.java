@@ -1,5 +1,8 @@
 package fatworm.absyn;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import fatworm.dataentity.DataEntity;
 import fatworm.plantree.Node;
 import fatworm.query.Env;
@@ -34,5 +37,12 @@ public class InExpr extends BoolExpr{
         		return true;
         }
         return false;
+    }
+    
+    public Set<String> dumpUsefulColumns() {
+    	Set<String> result = new HashSet<String>();
+    	result.addAll(val.dumpUsefulColumns());
+    	result.addAll(query.dumpUsefulColumns());
+    	return result;
     }
 }

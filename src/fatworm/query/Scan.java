@@ -35,7 +35,7 @@ public interface Scan {
     * Returns the value of the specified integer field 
     * in the current record.
     * @param fldname the name of the field
-    * @return the field's integer value in the current record
+    * @return the field's  value in the current record
     */
    public DataEntity   getField(String fldname);
    
@@ -45,6 +45,15 @@ public interface Scan {
     * @return true if the scan has that field
     */
    public boolean  hasField(String fldname);
+
+
+   /**
+    * Returns the value of the specified integer column
+    * in the current record.
+    * @param colname the name of the field
+    * @return the column's  value in the current record
+    */
+   public DataEntity   getColumn(String colname);
 
    /**
     * Returns true if the scan has the specified column, which may be table.field or field or FUNC(colname).
@@ -75,5 +84,4 @@ public interface Scan {
      * Return the number of columns of this scan
      */
     public int getNumberOfColumns();
-
 }

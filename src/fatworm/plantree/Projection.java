@@ -1,6 +1,7 @@
 package fatworm.plantree;
 
 import java.util.LinkedList;
+import java.util.Set;
 
 import fatworm.absyn.ProjectionValue;
 import fatworm.absyn.SelectExprList;
@@ -17,5 +18,12 @@ public class Projection extends Node{
 			values = values+"\t"+v.toString();
 		}
 		return values;
+	}
+	
+	public Set<String> dumpUsefulColumns(){
+		Set<String> result = super.dumpUsefulColumns();
+		for (ProjectionValue val: valList)
+			result.addAll(val.dumpUsefulColumns());
+		return result;
 	}
 }

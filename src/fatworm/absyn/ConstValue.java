@@ -1,5 +1,8 @@
 package fatworm.absyn;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import fatworm.dataentity.DataEntity;
 import fatworm.query.Env;
 
@@ -16,4 +19,10 @@ public class ConstValue extends Value{
 	public DataEntity getValue(Env env) {
 		return null;
 	}
+	
+	
+    public Set<String> dumpUsefulColumns() {
+    	Set<String> result = new HashSet<String>();
+    	return result;
+    }
 }
