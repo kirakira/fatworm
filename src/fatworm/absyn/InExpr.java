@@ -14,27 +14,25 @@ public class InExpr extends BoolExpr{
 		this.val = val;
 		this.query = query;
 	}
-    public InExpr(Value val, Node query, boolean notin) {
-        this(val, query);
-        this.notin = notin;
-    }
+//    public InExpr(Value val, Node query, boolean notin) {
+//        this(val, query);
+//        this.notin = notin;
+//    }
     public boolean satisfiedBy(Env env) {
         DataEntity left = val.getValue(env);
         Scan rightscan = Util.getQueryPlanner().createQueryPlan(query,env).open();
         rightscan.beforeFirst();
-        if (notin) {
-            while(rightscan.next()) {
-                if(left.compareTo(rightscan.getFirstColumn()) == 0)
-                    return false;
-            }
-            return true;
+//        if (notin) {
+//            while(rightscan.next()) {
+//                if(Compare.compare(left, rightscan.getColumnByIndex(0),"="))
+//                    return false;
+//            }
+//            return true;
+//        }
+        while(rightscan.next()) {
+        	if(Compare.compare(left,rightscan.getColumnByIndex(0), "="))
+        		return true;
         }
-        else { 
-            while(rightscan.next()) {
-                if(left.compareTo(rightscan.getFirstColumn()) == 0)
-                    return true;
-            }
-            return false;
-        }
+        return false;
     }
 }

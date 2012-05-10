@@ -69,5 +69,11 @@ public interface Scan {
      *Return the first column of the record, using for "in", "any", "all" comparision.
      */
     
-    public DataEntity getFirstColumn();
+    public DataEntity getColumnByIndex(int index);
+    
+    /**
+     * Return the number of columns of this scan
+     */
+    public int getNumberOfColumns();
+
 }

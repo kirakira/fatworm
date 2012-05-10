@@ -104,4 +104,9 @@ public class Schema {
          this.length = length;
       }
    }
+   
+   public int getTypeByIndex(String f) {
+	   //TODO  wmh please look at this
+	   return 0;
+   }
 }

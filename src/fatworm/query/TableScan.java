@@ -53,7 +53,7 @@ public class TableScan implements Scan{
                 return getField(Util.getColumnFieldName(column));
         }
         if (Util.isSimpleColumn(column)) {
-            return schema.hasField(column);
+            return getField(column);
         }
         return null;
     }
@@ -73,9 +73,10 @@ public class TableScan implements Scan{
 
 	@Override
 	public DataEntity getColumnByIndex(int index) {
-        for (String f: fields()) {
-            if (schema.getFieldIndex(f) == index)
-                return getField(f);
-        }
+		return iter.getFieldByIndex(index);
+	}
+	
+	public int getNumberOfColumns() {
+		return fields().size();
 	}
 }
