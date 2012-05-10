@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
-public class Node {
+public class Node extends SqlStatement{
 	public LinkedList<Node> childList = new LinkedList<Node>();
 	public Node parent;
 	public int getChildCount() {

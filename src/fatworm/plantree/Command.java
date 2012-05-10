@@ -1,6 +1,6 @@
 package fatworm.plantree;
 
-abstract public class Command {
+abstract public class Command extends SqlStatement{
 	public String name;
 	
 	public Command(String name) {
