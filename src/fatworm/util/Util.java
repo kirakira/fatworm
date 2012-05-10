@@ -4,6 +4,8 @@ import fatworm.planner.QueryPlanner;
 import fatworm.query.Env;
 import fatworm.query.SimpleEnv;
 import fatworm.record.RecordFile;
+import fatworm.record.Schema;
+import fatworm.storagemanager.StorageManagerInterface;
 import fatworm.database.*;
 
 public class Util
@@ -13,13 +15,23 @@ public class Util
     }
 
 	public static RecordFile getTable(String name) {
-		return Database.getInstance().getStorageManager().openTable(name);
+		return Database.getInstance().getStorageManager().getTable(name);
 	}
 
 	public static boolean isFieldSuffix(String column) {
-		return (!column.contains("(") && column.contains("."));
+		for (int i = 0; i < column.length(); i++) {
+			if (!legalCharInColName(column.charAt(i)))
+				return false;
+		}
+		//return (!column.contains("(") && column.contains("."));
+		return column.contains(".");
 	}
 
+	static boolean legalCharInColName(char ch) {
+		if (ch == '.' || (ch >='A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z'))
+			return true;
+		return false;
+	}
 	public static Object getColumnTableName(String column) {
 		return column.substring(0, column.indexOf("."));
 	}
@@ -43,4 +55,39 @@ public class Util
 				|| column.startsWith("MIN(") 
 				|| column.startsWith("SUM(");
 	}
+
+	public static String makeColumnName(String table, String field) {
+		return table + "." + field;
+	}
+
+	public static boolean hasField(String string, String fldname) {
+		if (Util.isFieldSuffix(string)) {
+			return Util.getColumnFieldName(string).equals(fldname);
+        }
+        if (Util.isSimpleColumn(string)) {
+        	return string.equals(fldname);
+        }
+		return false;
+	}
+
+	public static String getFuncVariable(String s) {
+		return s.substring(s.indexOf('(')+1, s.indexOf(')'));
+	}
+	
+	public static String getFuncName(String s) {
+		return s.substring(0, s.indexOf("("));
+	}
+
+	public static void dropTable(String name) {
+		Database.getInstance().getStorageManager().dropTable(name);			
+	}
+	
+	public static void createTable(String name, Schema schema) {
+		Database.getInstance().getStorageManager().insertTable(name, schema);
+	}
+
+	public static StorageManagerInterface getStorageManager() {
+		return Database.getInstance().getStorageManager();
+	}
+
 }

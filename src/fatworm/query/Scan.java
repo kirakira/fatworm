@@ -3,6 +3,7 @@ package fatworm.query;
 import java.util.Collection;
 
 import fatworm.dataentity.DataEntity;
+import fatworm.record.RecordFile;
 /**
  * The interface will be implemented by each query scan.
  * There is a Scan class for each relational
@@ -84,4 +85,17 @@ public interface Scan {
      * Return the number of columns of this scan
      */
     public int getNumberOfColumns();
+    
+    
+    public int indexOf(String colname);
+    
+    public int type(String colname);
+    
+    public int type(int index);
+    
+    public String fieldName(int index);
+    
+    public String columnName(int index);
+    
+    public RecordFile getRecordFile();
 }

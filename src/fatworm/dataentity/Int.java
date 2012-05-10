@@ -57,7 +57,7 @@ public class Int extends DataEntity
             if (op.equals("*"))
                 return new Int(value*anotherv);
             if (op.equals("/"))
-                return new Int(value/anotherv);
+                return new Float(value*1.0/anotherv);
             if (op.equals("%"))
                 return new Int(value%anotherv);
         }
@@ -85,5 +85,14 @@ public class Int extends DataEntity
                 return new Decimal((new BigDecimal(value)).remainder(((Decimal)t).value));
         }
 		return new NullDataEntity();
+	}
+
+	public DataEntity toType(int type) {
+		if (type == java.sql.Types.FLOAT)
+			return new Float((int)value);
+		else if (type == java.sql.Types.DECIMAL)
+			return new Decimal(new BigDecimal(value));
+		else 
+			return this;
 	}
 }

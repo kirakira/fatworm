@@ -9,4 +9,8 @@ public abstract class DataEntity
     }
 
     public abstract byte[] getBytes();
+    
+    public DataEntity toType(int type){
+    	return this;
+    }
 }

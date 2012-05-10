@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import fatworm.dataentity.DataEntity;
+import fatworm.record.RecordFile;
 
 public class JoinScan implements Scan{
 
@@ -94,4 +95,62 @@ public class JoinScan implements Scan{
         }
 		return null;
 	}
+	
+	@Override
+	public int indexOf(String colname) {
+		int result = 0;
+		for (Scan scan: scanList) {
+			if (scan.indexOf(colname) >= 0)
+				return result + scan.indexOf(colname);
+			else 
+				return result += scan.getNumberOfColumns();
+		}
+		return -1;
+	}
+	@Override
+	public int type(String colname) {
+		return type(indexOf(colname));
+	}
+	@Override
+	public int type(int index) {
+		if (index < 0)
+			return -1;
+		for (Scan scan: scanList) {
+			if (index >= scan.getNumberOfColumns())
+				index -= scan.getNumberOfColumns();
+			else 
+				return scan.type(index);
+		}
+		return -1;
+	}
+	@Override
+	public String fieldName(int index) {
+		if (index < 0)
+			return null;
+		for (Scan scan: scanList) {
+			if (index >= scan.getNumberOfColumns())
+				index -= scan.getNumberOfColumns();
+			else 
+				return scan.fieldName(index);
+		}
+		return null;
+	}
+	@Override
+	public String columnName(int index) {
+		if (index < 0)
+			return null;
+		for (Scan scan: scanList) {
+			if (index >= scan.getNumberOfColumns())
+				index -= scan.getNumberOfColumns();
+			else 
+				return scan.fieldName(index);
+		}
+		return null;
+	}
+	@Override
+	public RecordFile getRecordFile() {
+		return null;
+	}
+	
+	
 }

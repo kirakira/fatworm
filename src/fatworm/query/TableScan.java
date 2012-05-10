@@ -65,7 +65,7 @@ public class TableScan implements Scan{
     public Collection<String> columns() {
         LinkedList<String> result = new LinkedList<String>();
         for(String f:schema.fields()) {
-            result.add(tableName + f);
+            result.add(Util.makeColumnName(tableName,f));
         }
         return result;
     }
@@ -79,4 +79,43 @@ public class TableScan implements Scan{
 	public int getNumberOfColumns() {
 		return fields().size();
 	}
+
+	@Override
+	public int indexOf(String colname) {
+		if (Util.isFieldSuffix(colname)) {
+            if ( tableName.equals(Util.getColumnTableName(colname)))
+                return schema.index(Util.getColumnFieldName(colname));
+        }
+        if (Util.isSimpleColumn(colname)) {
+            return schema.index(colname);
+        }
+		return -1;
+	}
+
+	@Override
+	public int type(String colname) {
+		return type(indexOf(colname));
+	}
+
+	@Override
+	public int type(int index) {
+		return schema.type(index);
+	}
+
+	@Override
+	public String fieldName(int index) {
+		return schema.name(index);
+	}
+
+	@Override
+	public String columnName(int index) {
+		return tableName + "." + fieldName(index);
+	}
+
+	@Override
+	public RecordFile getRecordFile() {
+		return iter;
+	}
+	
+	
 }
