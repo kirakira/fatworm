@@ -87,7 +87,7 @@ public class Schema {
         return data;
     }
 
-    public Schema(byte[] data, int offset, int len) {
+    public Schema(byte[] data, int offset) {
         int s = offset;
         int count = ByteLib.bytesToInt(data, s);
         s += 4;

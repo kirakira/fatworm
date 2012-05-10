@@ -18,7 +18,7 @@ public class SchemaOnDisk {
         if (ret.bucket == null)
             return null;
         byte[] data = ret.bucket.getData();
-        ret.schema = new Schema(data, 0, data.length);
+        ret.schema = new Schema(data, 0);
         return ret;
     }
 

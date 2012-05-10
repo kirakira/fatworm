@@ -147,7 +147,7 @@ public class StorageManager implements IOHelper {
         return File.blockSize;
     }
 
-    public Table getTable(String table) {
+    public Table getTable(String table) throws java.io.IOException {
         int relation = superTable.getRelation(table), schema = superTable.getSchema(table);
         if (relation == 0 || schema == 0)
             return null;

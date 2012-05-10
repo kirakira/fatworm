@@ -19,9 +19,9 @@ public class SuperTable {
 
         public MetaInfo(byte[] bytes, int offset) {
             int slen = ByteLib.bytesToInt(bytes, offset);
-            name = ByteLib.bytesToString(bytes, 4, slen);
-            block = ByteLib.bytesToInt(bytes, slen + 4);
-            schema = ByteLib.bytesToInt(bytes, slen + 8);
+            name = ByteLib.bytesToString(bytes, offset + 4, slen);
+            block = ByteLib.bytesToInt(bytes, offset + slen + 4);
+            schema = ByteLib.bytesToInt(bytes, offset + slen + 8);
         }
 
         public byte[] getBytes() {
@@ -31,7 +31,7 @@ public class SuperTable {
             ByteLib.intToBytes(s.length, ret, 0);
             System.arraycopy(s, 0, ret, 4, s.length);
             ByteLib.intToBytes(block, ret, 4 + s.length);
-            ByteLib.intToBytes(block, ret, 8 + s.length);
+            ByteLib.intToBytes(schema, ret, 8 + s.length);
 
             return ret;
         }
