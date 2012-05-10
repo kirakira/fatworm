@@ -4,6 +4,9 @@ import fatworm.record.RecordFile;
 import fatworm.storage.bucket.Bucket;
 import fatworm.record.Schema;
 import fatworm.util.ByteLib;
+import fatworm.dataentity.*;
+
+import java.util.Map;
 
 public class Table implements RecordFile {
     private IOHelper io;
@@ -57,8 +60,11 @@ public class Table implements RecordFile {
         return head.save();
     }
 
-    public void insert(Tuple tuple) {
+    public boolean insert(Map<String, DataEntity> map) {
         Cell cell = Cell.load(io, rear);
+        Tuple tuple = Tuple.create(map, getSchema());
+        if (tuple == null)
+            return false;
         cell.insert(tuple);
         cell.save();
         if (cell.tupleCount() >= capacity) {
