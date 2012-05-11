@@ -25,6 +25,7 @@ import fatworm.plantree.Command;
 import fatworm.plantree.Node;
 import fatworm.plantree.SqlStatement;
 import fatworm.query.Scan;
+import fatworm.storage.Storage;
 import fatworm.storagemanager.MemoryStorageManager;
 import fatworm.storagemanager.StorageManagerInterface;
 
@@ -37,7 +38,8 @@ public class Database {
     public Database() {
     	queryPlanner = new BasicQueryPlanner();
     	executor = new BasicExecutor();
-    	storageManager = new MemoryStorageManager();
+    	//storageManager = new MemoryStorageManager();
+    	storageManager = new Storage();
     	instance = this;
     	
     }

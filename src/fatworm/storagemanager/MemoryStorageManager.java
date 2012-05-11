@@ -8,46 +8,60 @@ import fatworm.record.Schema;
 
 public class MemoryStorageManager implements StorageManagerInterface {
 
+	static Map<String, MemoryStorageManager> dbms = new HashMap<String, MemoryStorageManager>();
+	static MemoryStorageManager now;
 	Map<String, InMemoryTable> database = new HashMap<String, InMemoryTable>();
+	
 	
 	@Override
 	public RecordFile getTable(String tablename) {
-		return database.get(tablename);
+		if (this == now)
+			return database.get(tablename);
+		else 
+			return now.getTable(tablename);
 	}
 
 	@Override
 	public RecordFile insertTable(String tablename, Schema schema) {
-		database.put(tablename, new InMemoryTable(schema));
-		return database.get(tablename);
+		if (this == now) {
+			database.put(tablename, new InMemoryTable(schema));
+			return database.get(tablename);
+		}
+		else 
+			return now.insertTable(tablename, schema);
+			
 	}
 
 	@Override
 	public void dropTable(String name) {
-		database.remove(name);
+		if (this == now)
+			database.remove(name);
+		else
+			now.dropDatabase(name);
 	}
 
 	@Override
 	public boolean useDatabase(String name) {
-		// TODO Auto-generated method stub
-		return false;
+		now = dbms.get(name);
+		return now != null;
 	}
 
 	@Override
 	public boolean dropDatabase(String name) {
-		// TODO Auto-generated method stub
-		return false;
+		return dbms.remove(name) == null;
 	}
 
 	@Override
 	public boolean createDatabase(String name) {
-		// TODO Auto-generated method stub
+		if (dbms.get(name) == null) {
+			dbms.put(name, new MemoryStorageManager());
+			return true;
+		}
 		return false;
 	}
 
 	@Override
 	public void save() {
-		// TODO Auto-generated method stub
-		
 	}
 
 }
