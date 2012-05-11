@@ -78,6 +78,10 @@ public class Float extends DataEntity
 		return new NullDataEntity();
 
 	}
+
+    public String toString() {
+        return new Double(value).toString();
+    }
 	
 	public DataEntity toType(int type) {
 		if (type == java.sql.Types.INTEGER)
@@ -87,5 +91,4 @@ public class Float extends DataEntity
 		else 
 			return this;
 	}
-	
 }

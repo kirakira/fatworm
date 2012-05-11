@@ -45,6 +45,10 @@ public class FixChar extends DataEntity{
 		return new NullDataEntity();
 	}
 
+    public String toString() {
+        return value;
+    }
+
 	public DataEntity toType(int type) {
 		if (type == java.sql.Types.VARCHAR)
 			return new VarChar(value);
@@ -52,5 +56,4 @@ public class FixChar extends DataEntity{
 			return new TimeStamp(java.sql.Timestamp.valueOf(value));
 		return this;
 	}
-
 }

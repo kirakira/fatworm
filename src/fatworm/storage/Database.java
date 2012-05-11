@@ -5,6 +5,7 @@ import fatworm.storage.bplustree.*;
 import fatworm.storage.bucket.Bucket;
 import fatworm.util.ByteLib;
 import fatworm.record.Schema;
+import fatworm.storagemanager.*;
 
 import java.util.List;
 import java.util.LinkedList;
@@ -13,12 +14,14 @@ import java.util.Set;
 import java.util.Arrays;
 import java.util.Random;
 
-public class StorageManager implements IOHelper {
+public class Database implements IOHelper {
     private File file;
     private FreeList freeList;
     private SuperTable superTable;
 
-    public StorageManager(String name) throws java.io.FileNotFoundException, java.io.IOException {
+    long readCount = 0, writeCount = 0;
+
+    public Database(String name) throws java.io.FileNotFoundException, java.io.IOException {
         load(name);
     }
 
@@ -118,7 +121,7 @@ public class StorageManager implements IOHelper {
             superTable = SuperTable.load(this);
     }
 
-    public void close() throws java.io.IOException {
+    public void save() throws java.io.IOException {
         superTable.save();
         freeList.save(file);
     }
@@ -133,8 +136,6 @@ public class StorageManager implements IOHelper {
         file.writeBlock(block, data, offset);
     }
 
-    long readCount = 0, writeCount = 0;
-
     public int occupy() {
         return freeList.occupy();
     }
@@ -147,7 +148,7 @@ public class StorageManager implements IOHelper {
         return File.blockSize;
     }
 
-    public Table getTable(String table) {
+    public Table getTable(String table) throws java.io.IOException {
         int relation = superTable.getRelation(table), schema = superTable.getSchema(table);
         if (relation == 0 || schema == 0)
             return null;
@@ -163,5 +164,13 @@ public class StorageManager implements IOHelper {
         int tBlock = st.save();
         superTable.insertTable(table, tBlock, sBlock);
         return st;
+    }
+
+    public void dropTable(String tablename) throws java.io.IOException {
+        Table table = getTable(tablename);
+        if (table != null) {
+            table.remove();
+            superTable.removeTable(tablename);
+        }
     }
 }

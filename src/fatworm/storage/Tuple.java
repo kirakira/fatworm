@@ -35,7 +35,9 @@ public class Tuple {
         return ret;
     }
 
-    public Tuple(byte[] data, int offset) {
+    public Tuple(Schema schema, byte[] data, int offset) {
+        this(schema);
+
         int s = offset;
         int count = ByteLib.bytesToInt(data, s);
         s += 4;
@@ -48,37 +50,7 @@ public class Tuple {
 
                 int len = ByteLib.bytesToInt(data, s);
                 s += 4;
-
-                switch (schema.type(i)) {
-                    case INTEGER:
-                        values[i] = new Int(data, s);
-                        break;
-
-                    case FLOAT:
-                        values[i] = new fatworm.dataentity.Float(data, s);
-                        break;
-
-                    case BOOLEAN:
-                        values[i] = new Bool(data, s);
-                        break;
-
-                    case CHAR:
-                        values[i] = new FixChar(data, s);
-                        break;
-
-                    case VARCHAR:
-                        values[i] = new VarChar(data, s);
-                        break;
-
-                    case DATE:
-                        values[i] = new DateTime(data, s);
-                        break;
-
-                    case TIMESTAMP:
-                        values[i] = new TimeStamp(data, s);
-                        break;
-                }
-
+                values[i] = DataEntity.fromBytes(schema.type(i), data, s);
                 s += len;
             } else {
                 ++s;

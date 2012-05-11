@@ -18,7 +18,7 @@ public class SchemaOnDisk {
         if (ret.bucket == null)
             return null;
         byte[] data = ret.bucket.getData();
-        ret.schema = new Schema(data, 0, data.length);
+        ret.schema = new Schema(data, 0);
         return ret;
     }
 
@@ -27,6 +27,10 @@ public class SchemaOnDisk {
         ret.schema = schema;
         ret.bucket = Bucket.create(io, null);
         return ret;
+    }
+
+    public void remove() {
+        bucket.remove();
     }
 
     public int save() throws java.io.IOException {

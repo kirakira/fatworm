@@ -38,6 +38,10 @@ public class TimeStamp extends DataEntity
     public DataEntity opWith(DataEntity o, String op) {
 		return new NullDataEntity();
 	}
+
+    public String toString() {
+        return value.toString();
+    }
 	
 	public DataEntity toType(int type) {
 		if (type == java.sql.Types.CHAR)

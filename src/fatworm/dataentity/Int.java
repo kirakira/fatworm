@@ -87,6 +87,10 @@ public class Int extends DataEntity
 		return new NullDataEntity();
 	}
 
+    public String toString() {
+        return new Integer(value).toString();
+    }
+
 	public DataEntity toType(int type) {
 		if (type == java.sql.Types.FLOAT)
 			return new Float((int)value);

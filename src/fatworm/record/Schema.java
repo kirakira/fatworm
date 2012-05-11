@@ -2,17 +2,21 @@ package fatworm.record;
 
 import static java.sql.Types.*;
 import java.util.*;
+
 import fatworm.util.ByteLib;
+import fatworm.dataentity.*;
 
 public class Schema {
     private ArrayList<FieldInfo> info = new ArrayList<FieldInfo>();
 
     public Schema() {}
 
-    public boolean addField(String fldname, int type, int length) {
+    public boolean addField(String fldname, int type, int length, boolean notNull, boolean autoIncrement, boolean primaryKey, DataEntity defaultValue) {
         if (indexOf(fldname) != -1)
             return false;
-        info.add(new FieldInfo(fldname, type, length));
+        if (defaultValue == null)
+            defaultValue = new NullDataEntity();
+        info.add(new FieldInfo(fldname, type, length, notNull, autoIncrement, primaryKey, defaultValue));
         return true;
     }
 
@@ -54,16 +58,95 @@ public class Schema {
         return length(indexOf(fldname));
     }
 
+    public boolean notNull(int index) {
+        return info.get(index).notNull;
+    }
+
+    public boolean notNull(String fldname) {
+        return notNull(indexOf(fldname));
+    }
+
+    public boolean autoIncrement(int index) {
+        return info.get(index).autoIncrement;
+    }
+
+    public boolean autoIncrement(String fldname) {
+        return autoIncrement(indexOf(fldname));
+    }
+
+    public boolean primaryKey(int index) {
+        return info.get(index).primaryKey;
+    }
+
+    public boolean primaryKey(String fldname) {
+        return primaryKey(indexOf(fldname));
+    }
+
+    public DataEntity defaultValue(int index) {
+        return info.get(index).defaultValue;
+    }
+
+    public DataEntity defaultValue(String fldname) {
+        return defaultValue(indexOf(fldname));
+    }
+
     public int columnCount() {
         return info.size();
     }
 
     public byte[] getBytes() {
+        byte[][] buffer = new byte[info.size()][];
         int len = 4;
         for (int i = 0; i < info.size(); ++i) {
-            len += 4;
-            len += ByteLib.stringToBytes(info.get(i).name).length;
-            len += 8;
+            FieldInfo field = info.get(i);
+            byte[] stringBuffer = ByteLib.stringToBytes(field.name);
+            byte[] valueBuffer = null;
+            int bufferSize;
+            if (field.defaultValue.isNull())
+                bufferSize = 4 + stringBuffer.length + 8 + 4;
+            else {
+                valueBuffer = field.defaultValue.getBytes();
+                bufferSize = 4 + stringBuffer.length + 8 + 4 + 4 + valueBuffer.length;
+            }
+
+            buffer[i] = new byte[bufferSize];
+            len += bufferSize;
+
+            int s = 0;
+            ByteLib.intToBytes(stringBuffer.length, buffer[i], s);
+            s += 4;
+            System.arraycopy(stringBuffer, 0, buffer[i], s, stringBuffer.length);
+            s += stringBuffer.length;
+            ByteLib.intToBytes(field.type, buffer[i], s);
+            s += 4;
+            ByteLib.intToBytes(field.length, buffer[i], s);
+            s += 4;
+            if (field.notNull)
+                buffer[i][s] = 1;
+            else
+                buffer[i][s] = 0;
+            ++s;
+            if (field.autoIncrement)
+                buffer[i][s] = 1;
+            else
+                buffer[i][s] = 0;
+            ++s;
+            if (field.primaryKey)
+                buffer[i][s] = 1;
+            else
+                buffer[i][s] = 0;
+            ++s;
+            if (field.defaultValue.isNull()) {
+                buffer[i][s] = 1;
+                ++s;
+            } else {
+                buffer[i][s] = 0;
+                ++s;
+                ByteLib.intToBytes(valueBuffer.length, buffer[i], s);
+                s += 4;
+                System.arraycopy(valueBuffer, 0, buffer[i], s, valueBuffer.length);
+                s += valueBuffer.length;
+            }
         }
 
         byte[] data = new byte[len];
@@ -71,23 +154,14 @@ public class Schema {
         ByteLib.intToBytes(info.size(), data, s);
         s += 4;
         for (int i = 0; i < info.size(); ++i) {
-            FieldInfo field = info.get(i);
-            byte[] tmp = ByteLib.stringToBytes(field.name);
-            ByteLib.intToBytes(tmp.length, data, s);
-            s += 4;
-            System.arraycopy(tmp, 0, data, s, tmp.length);
-            s += tmp.length;
-
-            ByteLib.intToBytes(field.type, data, s);
-            s += 4;
-            ByteLib.intToBytes(field.length, data, s);
-            s += 4;
+            System.arraycopy(buffer[i], 0, data, s, buffer[i].length);
+            s += buffer[i].length;
         }
 
         return data;
     }
 
-    public Schema(byte[] data, int offset, int len) {
+    public Schema(byte[] data, int offset) {
         int s = offset;
         int count = ByteLib.bytesToInt(data, s);
         s += 4;
@@ -100,18 +174,52 @@ public class Schema {
             s += 4;
             int length = ByteLib.bytesToInt(data, s);
             s += 4;
+            boolean notNull, autoIncrement, primaryKey;
+            if (data[s] == 0)
+                notNull = false;
+            else
+                notNull = true;
+            ++s;
+            if (data[s] == 0)
+                autoIncrement = false;
+            else
+                autoIncrement = true;
+            ++s;
+            if (data[s] == 0)
+                primaryKey = false;
+            else
+                primaryKey = true;
+            ++s;
+            DataEntity defaultValue;
+            if (data[s] == 0) {
+                ++s;
+                slen = ByteLib.bytesToInt(data, s);
+                s += 4;
+                defaultValue = DataEntity.fromBytes(type, data, s);
+                s += 4;
+            } else {
+                ++s;
+                defaultValue = new NullDataEntity();
+            }
 
-            addField(name, type, length);
+            addField(name, type, length, notNull, autoIncrement, primaryKey, defaultValue);
         }
     }
 
     class FieldInfo {
         String name;
         int type, length;
-        public FieldInfo(String name, int type, int length) {
+        boolean notNull, autoIncrement, primaryKey;
+        DataEntity defaultValue;
+        public FieldInfo(String name, int type, int length, boolean notNull, boolean autoIncrement,
+                boolean primaryKey, DataEntity defaultValue) {
             this.name = name;
             this.type = type;
             this.length = length;
+            this.notNull = notNull;
+            this.autoIncrement = autoIncrement;
+            this.primaryKey = primaryKey;
+            this.defaultValue = defaultValue;
         }
     }
 

@@ -37,8 +37,11 @@ public class VarChar extends DataEntity {
 	public DataEntity opWith(DataEntity o, String op) {
 		return new NullDataEntity();
 	}
+
+    public String toString() {
+        return value;
+    }
 	
-		
 	public DataEntity toType(int type) {
 		if (type == java.sql.Types.CHAR)
 			return new FixChar(value, value.length());
@@ -46,6 +49,4 @@ public class VarChar extends DataEntity {
 			return new TimeStamp(java.sql.Timestamp.valueOf(value));
 		return this;
 	}
-
-
 }
