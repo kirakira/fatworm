@@ -19,4 +19,8 @@ public class NullDataEntity extends DataEntity
 	public DataEntity opWith(DataEntity o, String op) {
 		return new NullDataEntity();
 	}
+	
+	public String toString() {
+		return "null";
+	}
 }

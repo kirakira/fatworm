@@ -98,4 +98,8 @@ public interface Scan {
     public String columnName(int index);
     
     public RecordFile getRecordFile();
+    
+    public DataEntity getFunctionValue(String func);
+    
+    public boolean hasFunctionValue(String func);
 }

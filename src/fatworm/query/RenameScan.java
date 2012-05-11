@@ -106,5 +106,13 @@ public class RenameScan implements Scan{
 		// TODO Auto-generated method stub
 		return null;
 	}
+	@Override
+	public DataEntity getFunctionValue(String func) {
+		return scan.getFunctionValue(func);
+	}
+	
+	public boolean hasFunctionValue(String func) {
+		return scan.hasFunctionValue(func);
+	}		
 	
 }

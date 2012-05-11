@@ -19,9 +19,11 @@ public class SelectScan implements Scan{
         this.env = env;
         usefulColumn = pred.dumpUsefulColumns();
         Iterator<String> iter = usefulColumn.iterator();
-        while (iter.hasNext()) 
-        	if (!scan.hasColumn(iter.next()))
+        while (iter.hasNext()) {
+        	String c = iter.next();
+        	if (!scan.hasColumn(c) && scan.getFunctionValue(c) == null)
         		iter.remove();
+        }
     }
 
 	@Override
@@ -34,7 +36,10 @@ public class SelectScan implements Scan{
 		while(scan.next()) {
 			env.beginScope();
 			for(String column: usefulColumn) {
-				env.putValue(column, scan.getField(column));
+				if (scan.hasColumn(column))
+					env.putValue(column, scan.getColumn(column));
+				else if (scan.getFunctionValue(column) != null)
+					env.putValue(column, scan.getFunctionValue(column));
 			}
 			if (pred.satisfiedBy(env))
 				return true;
@@ -112,4 +117,13 @@ public class SelectScan implements Scan{
 	public RecordFile getRecordFile() {
 		return scan.getRecordFile();
 	}
+
+	@Override
+	public DataEntity getFunctionValue(String func) {
+		return scan.getFunctionValue(func);
+	}
+	
+	public boolean hasFunctionValue(String func) {
+		return scan.hasFunctionValue(func);
+	}		
 }

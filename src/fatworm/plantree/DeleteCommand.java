@@ -1,5 +1,7 @@
 package fatworm.plantree;
 
+import java.io.IOException;
+
 import fatworm.absyn.BoolExpr;
 import fatworm.query.SelectScan;
 import fatworm.query.TableScan;
@@ -15,8 +17,12 @@ public class DeleteCommand extends Command{
 
 	public BoolExpr condition;
 
-	void delete(RecordFile rf) {
-		rf.delete();
+	void delete(RecordFile rf)  {
+		try {
+			rf.delete();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void execute() {

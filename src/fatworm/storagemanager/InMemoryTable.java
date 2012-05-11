@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import fatworm.dataentity.DataEntity;
+import fatworm.dataentity.NullDataEntity;
 import fatworm.record.RecordFile;
 import fatworm.record.Schema;
 
@@ -65,6 +66,8 @@ public class InMemoryTable implements RecordFile {
 	@Override
 	public boolean insert(Map<String, DataEntity> tuple) {
 		DataEntity[] x = new DataEntity[schema.columnCount()];
+		for (int i = 0; i < x.length; i++)
+			x[i] = new NullDataEntity();
 		for(Entry<String, DataEntity> newdata: tuple.entrySet()) {
 			if (schema.index(newdata.getKey()) >= 0)
 				x[schema.index(newdata.getKey())] = newdata.getValue();

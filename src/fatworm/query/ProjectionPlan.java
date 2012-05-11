@@ -1,5 +1,6 @@
 package fatworm.query;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -15,6 +16,7 @@ public class ProjectionPlan extends QueryPlan{
         this.plan = plan;
         this.projections = projection;
         this.env = env;
+        funcSet = new HashSet<String>();
         for (ProjectionValue proj: projections)
         	funcSet.addAll(proj.dumpUsefulFunctions());
         plan.addFunctionsToCalc(this.funcSet);
