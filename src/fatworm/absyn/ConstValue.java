@@ -16,6 +16,7 @@ public class ConstValue extends Value{
 	public String toString(){
 		return val;
 	}
+	
 	@Override
 	public DataEntity getValue(Env env) {
 		return null;

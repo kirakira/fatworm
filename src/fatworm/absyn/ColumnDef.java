@@ -9,8 +9,9 @@ public class ColumnDef {
 	public int length = 0;
 	public boolean isNull = false,isNotNull = false;
 	public boolean autoIncrement = false;
-	public boolean hasDefaultValue = false;
-	public Value defaultValue;
+	public boolean primary = false;
+	public ConstValue defaultValue = null;
+	
 	public ColumnDef(CommonTree tree){
 		this.colName = tree.getChild(0).getText();
 		this.dataType = tree.getChild(1).getText();
@@ -31,8 +32,7 @@ public class ColumnDef {
 	public void setIsNotNull(){
 		isNotNull = true;
 	}
-	public void setDefaultValue(Value d){
-		this.hasDefaultValue = true;
+	public void setDefaultValue(ConstValue d){
 		this.defaultValue = d;
 	}
 	public void setAutoIncrement(){

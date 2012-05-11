@@ -382,6 +382,7 @@ public class PlanGen {
 		if (t.getText().startsWith("CreateTable")){
 			String tableName = t.getChild(0).getText();
 			//System.out.println(tableName);
+			LinkedList<ColumnDef> columnDefList = new LinkedList<ColumnDef>();
 			LinkedList<String> primaryKeyList = new LinkedList<String>();
 			Schema schema = new Schema();
 			CommonTree tree = (CommonTree)t.getChild(1);
@@ -390,12 +391,25 @@ public class PlanGen {
 				CommonTree childJ = (CommonTree)tree.getChild(j);
 				if (childJ.getText().startsWith("ColumnDef")){
 					ColumnDef columnDef = getColumnDef(childJ);
+					columnDefList.add(columnDef);
 					//System.out.println(childJ.getText());
-					schema.addField(columnDef.colName, columnDef.type, columnDef.length);
+					//schema.addField(columnDef.colName, columnDef.type, columnDef.length, columnDef.isNotNull, columnDef.autoIncrement, columnDef.defaultValue.getValue(null));
 				} else {
 					//System.out.println(childJ.getText()+" "+childJ.getChild(0).getText());
 					primaryKeyList.add(childJ.getChild(0).getText());
 				}
+			}
+			for (int p = 0; p < primaryKeyList.size(); p++){
+				String primaryKey = primaryKeyList.get(p);
+				for (int q = 0; q < columnDefList.size(); q++){
+					if (columnDefList.get(q).colName == primaryKey){
+						columnDefList.get(q).primary = true;
+					}
+				}
+			}
+			for (int j = 0; j < columnDefList.size(); j++){
+				ColumnDef c = columnDefList.get(j);
+				schema.addField(c.colName, c.type, c.length, c.isNotNull, c.autoIncrement, c.primary, c.defaultValue.getValue(null));
 			}
 			current = new CreateTable(tableName,schema);
 		}
