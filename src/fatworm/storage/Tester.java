@@ -2,6 +2,7 @@ package fatworm.storage;
 
 import fatworm.storage.bplustree.*;
 import fatworm.record.Schema;
+import fatworm.record.RecordFile;
 import fatworm.dataentity.*;
 
 import java.util.Random;
@@ -25,8 +26,10 @@ public class Tester {
         schema.addField("weight", DECIMAL, 5, false, false, false, new NullDataEntity());
         schema.addField("height", FLOAT, 8, false, false, false, new NullDataEntity());
 
-        StorageManager db = new StorageManager("test/1.db");
-        Table table = db.insertTable("loli", schema);
+        Storage storage = new Storage();
+        storage.createDatabase("lichking");
+        storage.useDatabase("lichking");
+        RecordFile table = storage.insertTable("loli", schema);
         for (int i = 0; i < 10; ++i) {
             Map<String, DataEntity> row = new HashMap<String, DataEntity>();
             row.put("name", new VarChar("Alice " + i));
@@ -40,13 +43,15 @@ public class Tester {
             row.put("height", new fatworm.dataentity.Float(rand.nextDouble() * 100));
             table.insert(row);
         }
-        System.out.println("Read count: " + db.readCount + ", write count: " + db.writeCount);
-        db.close();
+        storage.save();
 
-        db = new StorageManager("test/1.db");
-        table = db.getTable("loli");
+        storage = new Storage();
+        storage.useDatabase("lichking");
+        table = storage.getTable("loli");
         if (table == null)
             System.out.println("Table not found");
+        if (table.getSchema() == null)
+            System.out.println("Schema not found");
         for (String field: table.getSchema().fields())
             System.out.print(field + "\t");
         System.out.println();
@@ -56,8 +61,6 @@ public class Tester {
                 System.out.print(table.getFieldByIndex(i) + "\t");
             System.out.println();
         }
-        db.close();
-
-        System.out.println("Read count: " + db.readCount + ", write count: " + db.writeCount);
+        storage.save();
     }
 }

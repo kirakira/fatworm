@@ -74,6 +74,10 @@ public class Cell {
         return data;
     }
 
+    public void remove() {
+        bucket.remove();
+    }
+
     public Tuple get(int index) {
         return tuples.get(index);
     }

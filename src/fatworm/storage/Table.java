@@ -71,6 +71,17 @@ public class Table implements RecordFile {
         return head.save();
     }
 
+    public void remove() {
+        schema.remove();
+        int next = front;
+        do {
+            Cell cell = Cell.load(io, getSchema(), next);
+            cell.remove();
+            next = cell.next();
+        } while (next != 0);
+        head.remove();
+    }
+
     public boolean insert(Map<String, DataEntity> map) throws java.io.IOException {
         Cell cell = Cell.load(io, getSchema(), rear);
         Tuple tuple = Tuple.create(getSchema(), map);

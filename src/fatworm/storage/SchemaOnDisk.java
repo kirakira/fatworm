@@ -29,6 +29,10 @@ public class SchemaOnDisk {
         return ret;
     }
 
+    public void remove() {
+        bucket.remove();
+    }
+
     public int save() throws java.io.IOException {
         bucket.setData(schema.getBytes());
         return bucket.save();
