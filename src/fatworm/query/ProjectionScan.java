@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+
 import fatworm.absyn.ProjectionAllColumnValue;
 import fatworm.absyn.ProjectionRenameValue;
 import fatworm.absyn.ProjectionSimpleValue;
@@ -25,7 +26,7 @@ public class ProjectionScan implements Scan {
     List<ProjectionValue> projections;
     List<Set<String>> usefulColumnList;
     Map<String, DataEntity> oneGroupFunctionValue;
-    Map<String, Integer> oneGroupFunctionType;
+
     int[] typeArray;
     boolean iterTable = true;
     boolean startOne = true;
@@ -58,7 +59,7 @@ public class ProjectionScan implements Scan {
 	        	}
 	        }
         }
-        oneGroupFunctionType = new HashMap<String, Integer>();
+        //oneGroupFunctionType = new HashMap<String, Integer>();
         oneGroupFunctionValue = new HashMap<String, DataEntity>();
         for (String s: oneGroupFunction) {
             oneGroupFunctionValue.put(s, calcFunction(s,scan));
@@ -66,12 +67,21 @@ public class ProjectionScan implements Scan {
         calcType();
     }
     
+    int calcType(String func, int varType) {
+    	func = Util.getFuncName(func).toUpperCase();
+    	if (func.startsWith("COUNT"))
+    		return java.sql.Types.INTEGER;
+    	else if (func.startsWith("AVG"))
+    		return java.sql.Types.FLOAT;
+    	else return varType;
+    }
+    
     DataEntity calcFunction(String s, Scan scan) {
     	String column = Util.getFuncVariable(s);
     	String func = Util.getFuncName(s);
     	scan.beforeFirst();
     	if (func.compareToIgnoreCase("COUNT") == 0) {
-    		oneGroupFunctionType.put(s, new Integer(java.sql.Types.INTEGER));
+    		//oneGroupFunctionType.put(s, new Integer(java.sql.Types.INTEGER));
     		int count = 0;
     		while(scan.next()) {
     			if (!scan.getColumn(column).isNull())
@@ -80,7 +90,7 @@ public class ProjectionScan implements Scan {
     		return new Int(count);
     	}
     	else if (func.compareToIgnoreCase("AVG") == 0) { 
-    		oneGroupFunctionType.put(s, new Integer(java.sql.Types.FLOAT));
+    		//oneGroupFunctionType.put(s, new Integer(java.sql.Types.FLOAT));
     		int count = 0;
     		Float sum = new Float(0);    		    		
     		while(scan.next()) {
@@ -94,7 +104,7 @@ public class ProjectionScan implements Scan {
     			return sum.opWith(new Int(count), "/");
     	}
     	else {
-    		oneGroupFunctionType.put(s, new Integer(scan.type(column)));
+    		//oneGroupFunctionType.put(s, new Integer(scan.type(column)));
     		DataEntity result = new NullDataEntity();
     		if (func.compareToIgnoreCase("SUM") == 0) {
 	    		while(scan.next()) {
@@ -362,10 +372,14 @@ public class ProjectionScan implements Scan {
 				continue;
 			Map<String, Integer> typemap = new HashMap<String, Integer>();
 			for (String column: usefulColumnList.get(i)) {
-				if (oneGroupFunctionType.get(column) != null)
-					typemap.put(column, oneGroupFunctionType.get(column));
-				else 
+				if (Util.isFunction(column)) {
+					typemap.put(column, calcType(column, scan.type(Util.getFuncVariable(column))));
+				}
+//				if (oneGroupFunctionType.get(column) != null)
+//					typemap.put(column, oneGroupFunctionType.get(column));
+				else {
 					typemap.put(column, new Integer(scan.type(column)));
+				}
 			}
 			typeArray[i] = proj.getType(typemap);
 			i++;

@@ -16,7 +16,7 @@ public class MemoryStorageManager implements StorageManagerInterface {
 	@Override
 	public RecordFile getTable(String tablename) {
 		if (this == now)
-			return database.get(tablename);
+			return new InMemoryTableWithIter(database.get(tablename));
 		else 
 			return now.getTable(tablename);
 	}
@@ -25,7 +25,7 @@ public class MemoryStorageManager implements StorageManagerInterface {
 	public RecordFile insertTable(String tablename, Schema schema) {
 		if (this == now) {
 			database.put(tablename, new InMemoryTable(schema));
-			return database.get(tablename);
+			return new InMemoryTableWithIter(database.get(tablename));
 		}
 		else 
 			return now.insertTable(tablename, schema);

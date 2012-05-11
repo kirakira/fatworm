@@ -1,7 +1,11 @@
 package fatworm.util;
 
+import java.util.Set;
+
 import fatworm.planner.QueryPlanner;
 import fatworm.query.Env;
+import fatworm.query.GroupContainer;
+import fatworm.query.MemoryGroupContainer;
 import fatworm.query.SimpleEnv;
 import fatworm.record.RecordFile;
 import fatworm.record.Schema;
@@ -88,6 +92,11 @@ public class Util
 
 	public static StorageManagerInterface getStorageManager() {
 		return Database.getInstance().getStorageManager();
+	}
+
+	public static GroupContainer getGroupContainer(String keyName,
+			Set<String> funcSet) {
+		return new MemoryGroupContainer(keyName, funcSet);
 	}
 
 }

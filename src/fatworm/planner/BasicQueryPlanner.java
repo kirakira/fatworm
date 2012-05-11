@@ -5,11 +5,13 @@ import java.util.List;
 
 import fatworm.plantree.Join;
 import fatworm.plantree.Node;
+import fatworm.plantree.GroupBy;
 import fatworm.plantree.Projection;
 import fatworm.plantree.Rename;
 import fatworm.plantree.Select;
 import fatworm.plantree.Table;
 import fatworm.query.Env;
+import fatworm.query.GroupPlan;
 import fatworm.query.JoinPlan;
 import fatworm.query.ProjectionPlan;
 import fatworm.query.QueryPlan;
@@ -26,6 +28,9 @@ public class BasicQueryPlanner implements QueryPlanner {
 		}
 		else if (query instanceof Select) {
 			return new SelectPlan(createQueryPlan(query.childList.getFirst()), ((Select) query).boolValue);
+		}
+		else if (query instanceof GroupBy) {
+			return new GroupPlan(createQueryPlan(query.childList.getFirst()), ((GroupBy) query).colName.toString());
 		}
 		else if (query instanceof Join) {
 			List<QueryPlan>  joinlist = new ArrayList<QueryPlan>();
@@ -51,6 +56,9 @@ public class BasicQueryPlanner implements QueryPlanner {
 		else if (query instanceof Select) {
 			return new SelectPlan(createQueryPlan(query.childList.getFirst(), env), ((Select) query).boolValue, env);
 		}
+		else if (query instanceof GroupBy) {
+			return new GroupPlan(createQueryPlan(query.childList.getFirst(), env), ((GroupBy) query).colName.toString());
+		}		
 		else if (query instanceof Join) {
 			List<QueryPlan>  joinlist = new ArrayList<QueryPlan>();
 			for (Node node: query.childList) {
