@@ -143,6 +143,7 @@ public class Table implements RecordFile {
             currentCell.remove(currentIndex);
             currentCell.save();
             removed = true;
+            --currentIndex;
         }
     }
 
