@@ -18,6 +18,7 @@ import fatworm.absyn.*;
 import fatworm.parser.FatwormLexer;
 import fatworm.parser.FatwormParser;
 import fatworm.plantree.*;
+import fatworm.record.Schema;
 
 public class PlanGen {
 	public static void printTree(CommonTree t){
@@ -82,7 +83,7 @@ public class PlanGen {
 				 */
 				CommonTree temp = (CommonTree)childJ.getChild(0); 
 				Rename r = new Rename(childJ.getChild(1).getText());  							
-				r.childList.add(planGen(temp));
+				r.childList.add((Node)planGen(temp));
 				join.childList.add(r);
 			} else if (childJ.getText().startsWith("RenameRef")){
 				/**
@@ -247,13 +248,19 @@ public class PlanGen {
 	 * @return
 	 */
 	public static Value getValue(CommonTree tree){
-		if (tree.getText().startsWith("AllColumn")){
+		/*if (tree.getText().startsWith("AllColumn")){
+			System.out.println("bazinga");
 			return new ConstDefault("AllColumn");
 		}
 		if (tree.getText().startsWith("RenameValue")){
-			return null;//new ProjectionRenameValue(getValue((CommonTree)tree.getChild(0)), tree.getChild(1).getText());
+			System.out.println("bazinga");
+			return null;//RenameValue(getValue((CommonTree)tree.getChild(0)), tree.getChild(1).getText());
 		}
 		if (tree.getText().startsWith("SimpleValue")){
+			System.out.println("bazinga");
+			return getValue((CommonTree)tree.getChild(0));
+		}*/
+		if (tree.getText().startsWith("ConstValue")) {
 			return getValue((CommonTree)tree.getChild(0));
 		}
 		String root = tree.getText();
@@ -324,7 +331,7 @@ public class PlanGen {
 		}
 		if (tree.getText().startsWith("In")){
 			Value val = getValue((CommonTree)tree.getChild(0));
-			Node query = planGen((CommonTree)tree.getChild(1));
+			Node query = (Node)planGen((CommonTree)tree.getChild(1));
 			printNode(writer,0,query);
 			return new InExpr(val, query);
 		}
@@ -336,13 +343,13 @@ public class PlanGen {
 		}
 		if (tree.getText()=="CompareAny"){
 			Value val = getValue((CommonTree)tree.getChild(0));
-			Node query = planGen((CommonTree)tree.getChild(1));
+			Node query = (Node)planGen((CommonTree)tree.getChild(1));
 			String cop = tree.getChild(2).getText();
 			return new CompareAnyExpr(val, query, cop);
 		}
 		if (tree.getText()=="CompareAll"){
 			Value val = getValue((CommonTree)tree.getChild(0));
-			Node query = planGen((CommonTree)tree.getChild(1));
+			Node query = (Node)planGen((CommonTree)tree.getChild(1));
 			String cop = tree.getChild(2).getText();
 			return new CompareAllExpr(val, query, cop);
 		}
@@ -354,18 +361,163 @@ public class PlanGen {
 	 * @param t   the parse result 
 	 * @return	the logical query plan tree
 	 */
-	public static Node planGen(CommonTree t) {
-		Node current = null;
+	public static SqlStatement planGen(CommonTree t) {
+		SqlStatement current = null;
+		
 		if (t.getText().startsWith("Query")) {
-			current = processFrom(t, current);
-			current = processGroupBy(t, current);
-			current = processOrderBy(t, current);
-			current = processDistinct(t, current);
-			current = processWhereCondition(t, current);
-			current = processHavingCondition(t, current);
-			current = processSelectColumn(t, current);
+			current = processFrom(t, (Node)current);
+			current = processGroupBy(t, (Node)current);
+			current = processOrderBy(t, (Node)current);
+			current = processDistinct(t, (Node)current);
+			current = processWhereCondition(t, (Node)current);
+			current = processHavingCondition(t, (Node)current);
+			current = processSelectColumn(t, (Node)current);
 		}
+		if (t.getText().startsWith("CreateDatabase")){
+			current = new CreateDatabase(t.getChild(0).getText());
+		}
+		if (t.getText().startsWith("UseDatabase")){
+			current = new UseDatabase(t.getChild(0).getText());
+		}
+		if (t.getText().startsWith("CreateTable")){
+			String tableName = t.getChild(0).getText();
+			//System.out.println(tableName);
+			LinkedList<String> primaryKeyList = new LinkedList<String>();
+			Schema schema = new Schema();
+			CommonTree tree = (CommonTree)t.getChild(1);
+			//System.out.println(tree.getText());
+			for (int j = 0; j < tree.getChildCount(); j++){
+				CommonTree childJ = (CommonTree)tree.getChild(j);
+				if (childJ.getText().startsWith("ColumnDef")){
+					ColumnDef columnDef = getColumnDef(childJ);
+					//System.out.println(childJ.getText());
+					schema.addField(columnDef.colName, columnDef.type, columnDef.length);
+				} else {
+					//System.out.println(childJ.getText()+" "+childJ.getChild(0).getText());
+					primaryKeyList.add(childJ.getChild(0).getText());
+				}
+			}
+			current = new CreateTable(tableName,schema);
+		}
+		if (t.getText().startsWith("InsertStmt")){
+			String tableName = t.getChild(0).getText();
+			LinkedList<ConstValue> valueList = null;
+			LinkedList<ColName> colNameList = null;
+			Node query = null;
+			for (int i = 1; i < t.getChildCount(); i++){
+				CommonTree tree = (CommonTree)t.getChild(i);
+				if (tree.getText().startsWith("ColNameList")){
+					colNameList = new LinkedList<ColName>();
+					for (int j = 0; j < tree.getChildCount(); j++){
+						if (tree.getChild(j).getChild(0).getText().startsWith("SimpleColumn")){
+							SimpleCol simpleCol = new SimpleCol((CommonTree)tree.getChild(j).getChild(0));
+							colNameList.add(simpleCol);
+						} else {
+							FieldCol fieldCol = new FieldCol((CommonTree)tree.getChild(j).getChild(0));
+							colNameList.add(fieldCol);
+						}
+					}
+					continue;
+				}
+				if (tree.getText().startsWith("Query")){
+					query = (Node)planGen(tree);
+					continue;
+				}
+				if (tree.getText().startsWith("ValueList")){
+					valueList = new LinkedList<ConstValue>();
+					for (int j = 0; j < tree.getChildCount(); j++){
+						Value value = getValue((CommonTree)tree.getChild(j));
+						valueList.add((ConstValue)value);
+					}
+					continue;
+				}
+			}
+			if (colNameList != null){
+				//FieldInsert
+				FieldInsert fieldInsert = new FieldInsert(tableName);
+				for (int i = 0; i < colNameList.size(); i++){
+					fieldInsert.assigns.put(colNameList.get(i).toString(), (ConstValue)valueList.get(i));
+				}
+				current = fieldInsert;
+			} else 
+			if (query != null){
+				//QueryInsert
+				QueryInsert queryInsert = new QueryInsert(tableName);
+				queryInsert.query = query;
+				current = queryInsert;
+			} else {
+				//SimpleInsert
+				SimpleInsert simpleInsert = new SimpleInsert(tableName);
+				simpleInsert.values = valueList;
+				current = simpleInsert;
+			}
+		}
+		if (t.getText().startsWith("DeleteStmt")){
+			String tableName = t.getChild(0).getText();
+			BoolExpr condition = null;
+			if (t.getChildCount() > 1)
+				condition = getBoolExpr((CommonTree)t.getChild(1).getChild(0));
+			current = new DeleteCommand(tableName);
+			((DeleteCommand)current).condition = condition;
+		}
+		if (t.getText().startsWith("UpdateStmt")){
+			String tableName = t.getChild(0).getText();
+			
+			current = new UpdateCommand(tableName);
+			
+			for (int i = 1; i < t.getChildCount(); i++){
+				if (t.getChild(i).getText().startsWith("Condition")){
+					((UpdateCommand)current).condition = getBoolExpr((CommonTree)t.getChild(i).getChild(0));
+					continue;
+				}
+				if (t.getChild(i).getText().startsWith("Assign")){
+					CommonTree tree = (CommonTree)t.getChild(i);
+					for (int j = 0; j < tree.getChildCount(); j++){
+						((UpdateCommand)current).assigns.put(tree.getChild(j).getChild(0).getText(), getValue((CommonTree)tree.getChild(j).getChild(1)));
+					}
+				}
+			}
+		}
+		if (t.getText().startsWith("DropTable")){
+			DropTable dropTable = new DropTable(t.getChild(0).getText());
+			dropTable.tableList.add(t.getChild(0).getText());
+			for (int i = 0; i < t.getChild(0).getChildCount(); i++){
+				dropTable.tableList.add(t.getChild(0).getChild(i).getText());
+			}
+			//System.out.println(dropTable.tableList.get(1));
+			//dropTable.tableList.add(e)
+			current = dropTable;
+		}
+		if (t.getText().startsWith("DropDatabase")){
+			DropDatabase dropDatabase = new DropDatabase(t.getChild(0).getText());
+			current = dropDatabase;
+		}
+		//System.out.println(t);
 		return current;
+	}
+	public static ColumnDef getColumnDef(CommonTree childJ) {
+		ColumnDef columnDef = new ColumnDef(childJ);
+		for (int i = 2; i < childJ.getChildCount(); i++){
+			CommonTree columnDes = (CommonTree)childJ.getChild(i);
+			//NULL
+			if (columnDes.getChild(0).getText().startsWith("NULL")){
+				columnDef.setIsNull();
+				continue;
+			}
+			//AUTO_INCREMENT
+			if (columnDes.getChild(0).getText().startsWith("AUTO")){
+				columnDef.setAutoIncrement();
+				continue;
+			}
+			//NOT NULL
+			if (columnDes.getChild(0).getText().startsWith("NOT") && columnDes.getChild(1).getText().startsWith("NULL")){
+				columnDef.setIsNotNull();
+				continue;
+			}
+			Value defaultValue = getValue((CommonTree)columnDes.getChild(1));
+			//System.out.println("defaultValue=\t"+defaultValue.toString());
+		}
+		return columnDef;
 	}
 	static PrintWriter writer = null;
 	public static void main(String[] args) throws Exception {
@@ -383,13 +535,17 @@ public class PlanGen {
         FatwormParser.prog_return r= parser.prog();
         CommonTree t = (CommonTree)r.getTree();
         CommonTreeNodeStream ns = new CommonTreeNodeStream(t);
-        writer.println(t.toStringTree());
-        
+        System.out.println(t.toStringTree());
+        //System.out.println(t.getChildCount());
         //logical query plan/ relation algebra tree
-        Node tree = planGen(t);
+        LinkedList<SqlStatement> nodeList = new LinkedList<SqlStatement>();
+        for (int i = 0; i < t.getChildCount(); i++){
+        	SqlStatement sqlStatement = planGen((CommonTree)t.getChild(i));
+        	nodeList.add(sqlStatement);
+        }
         
         //output
-        printNode(writer, 0, tree);
+        //printNode(writer, 0, nodeList.getLast());
         writer.flush();
     }
 }

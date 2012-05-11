@@ -39,6 +39,17 @@ public class InExpr extends BoolExpr{
         return false;
     }
     
+    public String toString(){
+    	String ans = "";
+    	ans += val.toString();
+    	if (notin) {
+    		ans += " not";
+    	}
+    	ans += " in ";
+    	ans += query.toString();
+    	return ans;
+    }
+    
     public Set<String> dumpUsefulColumns() {
     	Set<String> result = new HashSet<String>();
     	result.addAll(val.dumpUsefulColumns());

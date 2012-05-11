@@ -14,7 +14,7 @@ public class FieldInsert extends InsertCommand {
 		super(name);
 		// TODO Auto-generated constructor stub
 	}
-	Map<String, ConstValue> assigns;
+	public Map<String, ConstValue> assigns = new HashMap<String, ConstValue>();
 	@Override
 	public Map<String, DataEntity> getTupleMap(Schema schema) {
 		Map<String, DataEntity> result = new HashMap<String, DataEntity>();

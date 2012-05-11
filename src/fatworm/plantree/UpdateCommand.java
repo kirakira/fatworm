@@ -23,7 +23,7 @@ public class UpdateCommand extends Command{
 	}
 
 	public BoolExpr condition;
-	Map<String, Value> assigns;
+	public Map<String, Value> assigns = new HashMap<String, Value>();
 	
 	void update(RecordFile rf) {
 		Map<String, DataEntity> result = new HashMap<String, DataEntity> ();

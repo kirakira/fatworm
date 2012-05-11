@@ -1,6 +1,7 @@
 package fatworm.plantree;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -14,7 +15,7 @@ public class SimpleInsert extends InsertCommand {
 		super(name);
 		// TODO Auto-generated constructor stub
 	}
-	List<ConstValue> values;
+	public LinkedList<ConstValue> values;
 	@Override
 	public Map<String, DataEntity> getTupleMap(Schema schema) {
 		Map<String, DataEntity> result = new HashMap<String, DataEntity>();
