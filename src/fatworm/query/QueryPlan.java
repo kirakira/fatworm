@@ -24,8 +24,7 @@ public abstract class QueryPlan {
     /**
      *
      */   
-    public void setFunctionsToCalc(Set<String> funcs){
-    	funcSet.clear();
+    public void addFunctionsToCalc(Set<String> funcs){
     	funcSet.addAll(funcs);
     }
    // /**

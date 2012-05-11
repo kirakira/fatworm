@@ -75,4 +75,13 @@ public class Decimal extends DataEntity {
         }
 		return new NullDataEntity();
 	}
+	
+	public DataEntity toType(int type) {
+		if (type == java.sql.Types.INTEGER)
+			return new Int(value.intValue());
+		else if (type == java.sql.Types.FLOAT)
+			return new Float(value.doubleValue());
+		else 
+			return this;
+	}
 }

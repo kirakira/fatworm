@@ -13,6 +13,7 @@ public class Schema {
         if (indexOf(fldname) != -1)
             return false;
         info.add(new FieldInfo(fldname, type, length));
+        return true;
     }
 
     public boolean hasField(String fldname) {

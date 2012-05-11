@@ -36,7 +36,7 @@ public class Table implements RecordFile {
         removed = false;
     }
 
-    public static Table create(IOHelper io, String name, int schemaBlock) {
+    public static Table create(IOHelper io, String name, int schemaBlock) throws java.io.IOException {
         Table ret = new Table(io, name, schemaBlock);
         ret.front = Cell.create(io).save();
         ret.rear = ret.front;
@@ -45,6 +45,7 @@ public class Table implements RecordFile {
             ret.capacity = 1;
 
         ret.head = Bucket.create(io, ret.getHeadBytes());
+        return ret;
     }
 
     private byte[] getHeadBytes() {
@@ -55,21 +56,22 @@ public class Table implements RecordFile {
         return data;
     }
 
-    public static Table load(IOHelper io, int block, String name, int schema) {
+    public static Table load(IOHelper io, int block, String name, int schema) throws java.io.IOException {
         Table ret = new Table(io, name, schema);
         ret.head = Bucket.load(io, block);
         byte[] data = ret.head.getData();
         ret.front = ByteLib.bytesToInt(data, 0);
         ret.rear = ByteLib.bytesToInt(data, 4);
         ret.capacity = ByteLib.bytesToInt(data, 8);
+        return ret;
     }
 
-    public int save() {
+    public int save() throws java.io.IOException {
         head.setData(getHeadBytes());
         return head.save();
     }
 
-    public boolean insert(Map<String, DataEntity> map) {
+    public boolean insert(Map<String, DataEntity> map) throws java.io.IOException {
         Cell cell = Cell.load(io, rear);
         Tuple tuple = Tuple.create(getSchema(), map);
         if (tuple == null)
@@ -80,15 +82,17 @@ public class Table implements RecordFile {
             rear = Cell.create(io).save();
             save();
         }
+        return true;
     }
 
-    public boolean update(Map<String, DataEntity> map) {
+    public boolean update(Map<String, DataEntity> map) throws java.io.IOException {
         if (!removed && currentCell != null && currentIndex >= 0 && currentIndex < currentCell.tupleCount()) {
             Tuple tuple = Tuple.create(getSchema(), map);
             if (tuple == null)
                 return false;
             currentCell.set(currentIndex, tuple);
             currentCell.save();
+            return true;
         } else
             return false;
     }
@@ -123,7 +127,7 @@ public class Table implements RecordFile {
         }
     }
 
-    public void delete() {
+    public void delete() throws java.io.IOException {
         if (!removed && currentCell != null && currentIndex >= 0 && currentIndex < currentCell.tupleCount()) {
             currentCell.remove(currentIndex);
             currentCell.save();

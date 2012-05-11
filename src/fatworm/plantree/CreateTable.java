@@ -3,14 +3,22 @@ package fatworm.plantree;
 import java.util.LinkedList;
 
 import fatworm.absyn.ColumnDef;
+import fatworm.record.Schema;
+import fatworm.util.Util;
 
-public class CreateTable extends Node {
-	String tableName;
-	LinkedList<ColumnDef> columnDefList = new LinkedList<ColumnDef>();
-	LinkedList<String> primaryKeyList = new LinkedList<String>();
-	public CreateTable(String tableName, LinkedList<ColumnDef> columnDefList, LinkedList<String> primaryKeyList){
-		this.tableName = tableName;
-		this.columnDefList = columnDefList;
-		this.primaryKeyList = primaryKeyList;
+public class CreateTable extends Command{
+	Schema schema;
+	
+	public CreateTable(String name) {
+		super(name);
+	}
+
+	public CreateTable(String tableName, Schema schema){
+		super(tableName);
+		this.schema = schema;
+	}
+	
+	public void execute() {
+		Util.createTable(name, schema);
 	}
 }

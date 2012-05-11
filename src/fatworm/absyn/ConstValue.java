@@ -1,6 +1,7 @@
 package fatworm.absyn;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import fatworm.dataentity.DataEntity;
@@ -25,4 +26,10 @@ public class ConstValue extends Value{
     	Set<String> result = new HashSet<String>();
     	return result;
     }
+
+	@Override
+	public int getType(Map<String, Integer> typemap) {
+		return 0;
+	}
+	
 }

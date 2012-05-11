@@ -1,6 +1,7 @@
 package fatworm.absyn;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import fatworm.dataentity.DataEntity;
@@ -30,4 +31,17 @@ public class OpValue extends Value{
     	result.addAll(right.dumpUsefulColumns());
     	return result;
     }
+
+	@Override
+	public int getType(Map<String, Integer> typemap) {
+		int l = left.getType(typemap);
+		int r= right.getType(typemap);
+		if (op.equals("/"))
+			return java.sql.Types.FLOAT;
+		if (l == r)
+			return l;
+		else 
+			return java.sql.Types.FLOAT;
+		
+	}
 }
