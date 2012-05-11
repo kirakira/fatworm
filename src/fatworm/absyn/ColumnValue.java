@@ -1,6 +1,7 @@
 package fatworm.absyn;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import fatworm.dataentity.DataEntity;
@@ -28,5 +29,10 @@ public class ColumnValue extends Value{
     public Set<String> dumpUsefulColumns() {
     	return colName.dumpUsefulColumn();
     }
+
+	@Override
+	public int getType(Map<String, Integer> typemap) {
+		return typemap.get(colName.toString());
+	}
 
 }

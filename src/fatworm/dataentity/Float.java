@@ -1,5 +1,7 @@
 package fatworm.dataentity;
 
+import java.math.BigDecimal;
+
 import fatworm.util.ByteLib;
 
 public class Float extends DataEntity
@@ -80,4 +82,13 @@ public class Float extends DataEntity
     public String toString() {
         return new Double(value).toString();
     }
+	
+	public DataEntity toType(int type) {
+		if (type == java.sql.Types.INTEGER)
+			return new Int((int)value);
+		else if (type == java.sql.Types.DECIMAL)
+			return new Decimal(new BigDecimal(value));
+		else 
+			return this;
+	}
 }

@@ -1,6 +1,7 @@
 package fatworm.absyn;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import fatworm.dataentity.DataEntity;
@@ -20,4 +21,6 @@ abstract public class Value {
         }
         return result;
     }
+	abstract public int getType(Map<String, Integer> typemap);
+
 }

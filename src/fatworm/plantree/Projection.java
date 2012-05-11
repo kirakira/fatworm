@@ -8,7 +8,7 @@ import fatworm.absyn.SelectExprList;
 import fatworm.absyn.Value;
 
 public class Projection extends Node{
-	LinkedList<ProjectionValue> valList;
+	public LinkedList<ProjectionValue> valList;
 	public Projection(LinkedList<ProjectionValue> valList){
 		this.valList = valList;
 	}

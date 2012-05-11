@@ -42,4 +42,13 @@ public class TimeStamp extends DataEntity
     public String toString() {
         return value.toString();
     }
+	
+	public DataEntity toType(int type) {
+		if (type == java.sql.Types.CHAR)
+			return new FixChar(value.toString(), value.toString().length());
+		else if (type == java.sql.Types.VARCHAR)
+			return new VarChar(value.toString());
+		return this;
+	}
+
 }

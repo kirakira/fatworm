@@ -1,5 +1,7 @@
 package fatworm.query;
 
+import java.util.Set;
+
 import fatworm.absyn.BoolExpr;
 import fatworm.util.Util;
 
@@ -12,7 +14,7 @@ public class SelectPlan extends QueryPlan{
         this.pred = pred;
         this.env = env;
         funcSet.addAll(pred.dumpUsefulFunctions());
-        plan.setFunctionsToCalc(this.funcSet);
+        plan.addFunctionsToCalc(this.funcSet);
     }
 
     public SelectPlan(QueryPlan plan, BoolExpr pred) {
@@ -22,4 +24,10 @@ public class SelectPlan extends QueryPlan{
     public Scan open() {
         return new SelectScan(plan.open(), pred, env);
     }
+
+    public void addFunctionsToCalc(Set<String> funcs){
+    	funcSet.addAll(funcs);
+        plan.addFunctionsToCalc(funcs);
+    }
+
 }

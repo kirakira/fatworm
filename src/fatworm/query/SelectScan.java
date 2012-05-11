@@ -6,6 +6,7 @@ import java.util.Set;
 
 import fatworm.absyn.BoolExpr;
 import fatworm.dataentity.DataEntity;
+import fatworm.record.RecordFile;
 
 public class SelectScan implements Scan{
     Scan scan;
@@ -80,5 +81,35 @@ public class SelectScan implements Scan{
 	@Override
 	public DataEntity getColumn(String colname) {
 		return scan.getColumn(colname);
+	}
+
+	@Override
+	public int indexOf(String colname) {
+		return scan.indexOf(colname);
+	}
+
+	@Override
+	public int type(String colname) {
+		return scan.type(colname);
+	}
+
+	@Override
+	public int type(int index) {
+		return scan.type(index);
+	}
+
+	@Override
+	public String fieldName(int index) {
+		return fieldName(index);
+	}
+
+	@Override
+	public String columnName(int index) {
+		return columnName(index);
+	}
+
+	@Override
+	public RecordFile getRecordFile() {
+		return scan.getRecordFile();
 	}
 }

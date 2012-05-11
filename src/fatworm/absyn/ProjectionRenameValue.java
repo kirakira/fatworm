@@ -9,4 +9,8 @@ public class ProjectionRenameValue extends ProjectionValue{
 	public String toString(){
 		return "ProjectionRename "+val.toString()+" as "+alias;
 	}
+	
+	public String getAlias() {
+		return alias;
+	}
 }

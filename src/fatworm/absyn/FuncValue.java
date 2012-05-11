@@ -1,6 +1,7 @@
 package fatworm.absyn;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import fatworm.dataentity.DataEntity;
@@ -26,8 +27,9 @@ public class FuncValue extends Value{
     	result.add(this.toString());
     	return result;
     }
+	@Override
+	public int getType(Map<String, Integer> typemap) {
+		return typemap.get(toString());
+	}
 	
-
-
-
 }

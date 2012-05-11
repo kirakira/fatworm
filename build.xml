@@ -15,7 +15,31 @@
     <mkdir dir="${build}"/>
   </target>
 
-  <target name="compile" depends="init"
+  <target name="tar0" depends="init"
+        description="compile the source " >
+    <!-- Compile the java code from ${src} into ${build} -->
+    <javac destdir="${build}" classpathref="classpath" debug="true" debuglevel="lines,source" includeantruntime="false">src/fatworm/util/ByteLib.java</javac>
+  </target>
+
+  <target name="tar1" depends="tar0"
+        description="compile the source " >
+    <!-- Compile the java code from ${src} into ${build} -->
+    <javac srcdir="${src}/fatworm/dataentity" destdir="${build}" classpathref="classpath" debug="true" debuglevel="lines,source" includeantruntime="false"/>
+  </target>
+
+  <target name="tar2" depends="tar1"
+        description="compile the source " >
+    <!-- Compile the java code from ${src} into ${build} -->
+    <javac srcdir="${src}/fatworm/record" destdir="${build}" classpathref="classpath" debug="true" debuglevel="lines,source" includeantruntime="false"/>
+  </target>
+
+  <target name="tar3" depends="tar2"
+        description="compile the source " >
+    <!-- Compile the java code from ${src} into ${build} -->
+    <javac srcdir="${src}/fatworm/storage" destdir="${build}" classpathref="classpath" debug="true" debuglevel="lines,source" includeantruntime="false"/>
+  </target>
+
+  <target name="compile" depends="tar3"
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
     <javac srcdir="${src}" destdir="${build}" classpathref="classpath" debug="true" debuglevel="lines,source" includeantruntime="false"/>
