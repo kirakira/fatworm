@@ -61,6 +61,7 @@ public class Bucket {
     public static Bucket create(IOHelper io, byte[] data, int block) {
         Bucket ret = Bucket.create(io, data);
         ret.block = block;
+        return ret;
     }
 
     public static Bucket create(IOHelper io, byte[] data) {

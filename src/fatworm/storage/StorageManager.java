@@ -156,11 +156,12 @@ public class StorageManager implements IOHelper {
     }
 
     // returns null if the table name already existed
-    public Table insertTable(String table, Schema schema) {
+    public Table insertTable(String table, Schema schema) throws java.io.IOException {
         SchemaOnDisk ss = SchemaOnDisk.create(this, schema);
         int sBlock = ss.save();
         Table st = Table.create(this, table, sBlock);
         int tBlock = st.save();
         superTable.insertTable(table, tBlock, sBlock);
+        return st;
     }
 }
