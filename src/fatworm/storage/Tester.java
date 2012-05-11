@@ -15,15 +15,15 @@ public class Tester {
         Random rand = new Random();
 
         Schema schema = new Schema();
-        schema.addField("id", INTEGER, 4);
-        schema.addField("name", VARCHAR, 20);
-        schema.addField("age", INTEGER, 4);
-        schema.addField("school", CHAR, 40);
-        schema.addField("young_pioneer", BOOLEAN, 1);
-        schema.addField("birth_date", DATE, 8);
-        schema.addField("last_showup", TIMESTAMP, 8);
-        schema.addField("weight", DECIMAL, 5);
-        schema.addField("height", FLOAT, 8);
+        schema.addField("id", INTEGER, 4, true, true, true, new NullDataEntity());
+        schema.addField("name", VARCHAR, 20, true, false, false, new NullDataEntity());
+        schema.addField("age", INTEGER, 4, true, false, false, new NullDataEntity());
+        schema.addField("school", CHAR, 40, false, false, false, new NullDataEntity());
+        schema.addField("young_pioneer", BOOLEAN, 1, false, false, false, new NullDataEntity());
+        schema.addField("birth_date", DATE, 8, false, false, false, new NullDataEntity());
+        schema.addField("last_showup", TIMESTAMP, 8, false, false, false, new NullDataEntity());
+        schema.addField("weight", DECIMAL, 5, false, false, false, new NullDataEntity());
+        schema.addField("height", FLOAT, 8, false, false, false, new NullDataEntity());
 
         StorageManager db = new StorageManager("test/1.db");
         Table table = db.insertTable("loli", schema);
