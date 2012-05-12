@@ -98,7 +98,7 @@ public class Table implements RecordFile {
 
     public boolean update(Map<String, DataEntity> map) throws java.io.IOException {
         if (!removed && currentCell != null && currentIndex >= 0 && currentIndex < currentCell.tupleCount()) {
-            Tuple tuple = Tuple.create(getSchema(), map);
+            Tuple tuple = Tuple.create(getSchema(), map, getTuple());
             if (tuple == null)
                 return false;
             currentCell.set(currentIndex, tuple);

@@ -3,6 +3,10 @@ JC = javac -d bin/ -cp bin:lib/antlr-3.4-complete.jar
 
 .PHONY: init parser base dataentity schema storage all
 
+all: init
+	find src -name "*.java"  > sources.txt
+	$(JC) @sources.txt
+
 init:
 	mkdir -p bin
 
@@ -23,10 +27,6 @@ storage: schema
 	$(JC) src/fatworm/record/RecordFile.java
 	$(JC) src/fatworm/storagemanager/StorageManagerInterface.java
 	find src/fatworm/storage -name "*.java" > sources.txt
-	$(JC) @sources.txt
-
-all: storage
-	find src -name "*.java"  > sources.txt
 	$(JC) @sources.txt
 
 clean:
