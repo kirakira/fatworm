@@ -24,8 +24,12 @@ public class Tuple {
         int count = 0;
         for (int i = 0; i < len; ++i) {
             DataEntity de = map.get(schema.name(i));
-            if (de == null)
-                de = schema.defaultValue(i);
+            if (de == null) {
+                if (schema.type(i) == TIMESTAMP)
+                    de = new TimeStamp();
+                else
+                    de = schema.defaultValue(i);
+            }
             ++count;
             ret.values[i] = de;
         }

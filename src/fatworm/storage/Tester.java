@@ -32,26 +32,30 @@ public class Tester {
         schema.addField("height", FLOAT, 8, false, false, false, new NullDataEntity());
 
         Storage storage = Storage.getInstance();
-        storage.createDatabase("lichking");
+        if (!storage.createDatabase("lichking"))
+            System.out.println("Create database failed");
         storage.useDatabase("lichking");
         RecordFile table = storage.insertTable("loli", schema);
-        for (int i = 0; i < 100000; ++i) {
-            Map<String, DataEntity> row = new HashMap<String, DataEntity>();
-            row.put("name", new VarChar("Alice_" + i));
-            row.put("id", new Int(i));
-            row.put("age", new Int(rand.nextInt(7) + 7));
-            row.put("school", new FixChar("Dalaran Higher School of Magic", 40));
-            row.put("young_pioneer", new Bool(rand.nextBoolean()));
-            row.put("birth_date", new DateTime(new java.sql.Timestamp(rand.nextLong())));
-            row.put("last_showup", new DateTime(new java.sql.Timestamp(rand.nextLong())));
-            row.put("height", new fatworm.dataentity.Float(rand.nextDouble() * 100));
-            table.insert(row);
+        if (table == null) {
+            System.out.println("Table already existed");
+            table = storage.getTable("loli");
+        } else {
+            for (int i = 0; i < 10; ++i) {
+                Map<String, DataEntity> row = new HashMap<String, DataEntity>();
+                row.put("name", new VarChar("Alice_" + i));
+                row.put("id", new Int(i));
+                row.put("age", new Int(rand.nextInt(7) + 7));
+                row.put("school", new FixChar("Dalaran Higher School of Magic", 40));
+                row.put("young_pioneer", new Bool(rand.nextBoolean()));
+                row.put("birth_date", new DateTime(new java.sql.Timestamp(rand.nextLong())));
+                row.put("height", new fatworm.dataentity.Float(rand.nextDouble() * 100));
+                table.insert(row);
+            }
         }
         storage.save();
 
         printTable("lichking", "loli");
 
-        /*
         table.beforeFirst();
         while (table.next()) {
             if (table.getField("id").equals(new Int(1)))
@@ -68,7 +72,7 @@ public class Tester {
 
         storage.save();
 
-        printTable("lichking", "loli");*/
+        printTable("lichking", "loli");
     }
 
     public void printTable(String db, String tablename) {
