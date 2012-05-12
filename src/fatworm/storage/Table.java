@@ -41,6 +41,7 @@ public class Table implements RecordFile {
         ret.front = Cell.create(io, ret.getSchema()).save();
         ret.rear = ret.front;
         ret.capacity = (io.getBlockSize() - 16) / (4 + ret.schema.estimatedTupleSize());
+        System.out.println("Table capacity: " + ret.capacity);
         if (ret.capacity == 0)
             ret.capacity = 1;
 
@@ -77,7 +78,7 @@ public class Table implements RecordFile {
         do {
             Cell cell = Cell.load(io, getSchema(), next);
             cell.remove();
-            next = cell.next();
+            next = cell.getNext();
         } while (next != 0);
         head.remove();
     }
@@ -91,6 +92,8 @@ public class Table implements RecordFile {
         cell.save();
         if (cell.tupleCount() >= capacity) {
             rear = Cell.create(io, getSchema()).save();
+            cell.setNext(rear);
+            cell.save();
             save();
         }
         return true;
@@ -122,7 +125,7 @@ public class Table implements RecordFile {
         int t = currentIndex + 1;
         if (t >= currentCell.tupleCount()) {
             do {
-                int nextCell = currentCell.next();
+                int nextCell = currentCell.getNext();
                 if (nextCell == 0)
                     return false;
                 currentCell = Cell.load(io, getSchema(), nextCell);

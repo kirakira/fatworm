@@ -106,7 +106,7 @@ public class Cell {
         return ret;
     }
 
-    public int next() {
+    public int getNext() {
         return next;
     }
 

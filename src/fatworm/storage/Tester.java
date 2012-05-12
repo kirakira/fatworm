@@ -35,7 +35,7 @@ public class Tester {
         storage.createDatabase("lichking");
         storage.useDatabase("lichking");
         RecordFile table = storage.insertTable("loli", schema);
-        for (int i = 0; i < 10; ++i) {
+        for (int i = 0; i < 100000; ++i) {
             Map<String, DataEntity> row = new HashMap<String, DataEntity>();
             row.put("name", new VarChar("Alice_" + i));
             row.put("id", new Int(i));
@@ -51,6 +51,7 @@ public class Tester {
 
         printTable("lichking", "loli");
 
+        /*
         table.beforeFirst();
         while (table.next()) {
             if (table.getField("id").equals(new Int(1)))
@@ -61,9 +62,13 @@ public class Tester {
                 table.update(map);
             }
         }
+        Map<String, DataEntity> map = new HashMap<String, DataEntity>();
+        map.put("name", new VarChar("Elly"));
+        table.insert(map);
+
         storage.save();
 
-        printTable("lichking", "loli");
+        printTable("lichking", "loli");*/
     }
 
     public void printTable(String db, String tablename) {
@@ -79,12 +84,14 @@ public class Tester {
             System.out.print(field + "\t");
         System.out.println();
         table.beforeFirst();
+        int count = 0;
         while (table.next()) {
+            ++count;
             for (int i = 0; i < table.getSchema().columnCount(); ++i)
                 System.out.print(table.getFieldByIndex(i) + "\t");
             System.out.println();
         }
-        System.out.println();
+        System.out.println(count + " tuples in total.");
         storage.save();
     }
 }

@@ -14,10 +14,23 @@ public class Schema {
     public boolean addField(String fldname, int type, int length, boolean notNull, boolean autoIncrement, boolean primaryKey, DataEntity defaultValue) {
         if (indexOf(fldname) != -1)
             return false;
+        if (primaryKey && hasPrimary())
+            return false;
+        if (autoIncrement && !primaryKey)
+            return false;
+        if (autoIncrement && type != INTEGER)
+            return false;
         if (defaultValue == null)
             defaultValue = new NullDataEntity();
         info.add(new FieldInfo(fldname, type, length, notNull, autoIncrement, primaryKey, defaultValue));
         return true;
+    }
+
+    private boolean hasPrimary() {
+        for (int i = 0; i < info.size(); ++i)
+            if (info.get(i).primaryKey)
+                return true;
+        return false;
     }
 
     public boolean hasField(String fldname) {
