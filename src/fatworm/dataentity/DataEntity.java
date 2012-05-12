@@ -68,4 +68,8 @@ public abstract class DataEntity
     public int hashCode() {
     	return this.toString().hashCode();
     }
+    
+    public Object toJavaType() {
+    	return null;
+    }
 }

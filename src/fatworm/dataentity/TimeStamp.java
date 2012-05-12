@@ -51,4 +51,7 @@ public class TimeStamp extends DataEntity
 		return this;
 	}
 
+    public Object toJavaType() {
+    	return value;
+    }	
 }

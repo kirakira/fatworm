@@ -49,4 +49,9 @@ public class VarChar extends DataEntity {
 			return new TimeStamp(java.sql.Timestamp.valueOf(value));
 		return this;
 	}
+
+	public Object toJavaType() {
+    	return value;
+    }	
+	
 }

@@ -50,4 +50,8 @@ public class DateTime extends DataEntity
 			return new VarChar(value.toString());
 		return this;
 	}
+	
+    public Object toJavaType() {
+    	return value;
+    }	
 }

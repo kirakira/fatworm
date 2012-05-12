@@ -23,4 +23,9 @@ public class NullDataEntity extends DataEntity
 	public String toString() {
 		return "null";
 	}
+	
+    public Object toJavaType() {
+    	return null;
+    }	
+	
 }
