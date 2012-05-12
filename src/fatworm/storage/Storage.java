@@ -14,6 +14,17 @@ public class Storage implements StorageManagerInterface {
     private Map<String, Database> map = new HashMap<String, Database>();
     private String path = "test" + java.io.File.separator;
 
+    private static Storage instance = null;
+
+    private Storage() {
+    }
+
+    public Storage getInstance() {
+        if (instance == null)
+            instance = new Storage();
+        return instance;
+    }
+
     private String fileName(String dbName) {
         return path + dbName + ".db";
     }
