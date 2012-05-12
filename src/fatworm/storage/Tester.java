@@ -13,6 +13,11 @@ import static java.sql.Types.*;
 
 public class Tester {
     public static final void main(String[] args) throws java.io.FileNotFoundException, java.io.IOException {
+        Tester tester = new Tester();
+        tester.test();
+    }
+
+    public void test() throws java.io.FileNotFoundException, java.io.IOException {
         Random rand = new Random();
 
         Schema schema = new Schema();
@@ -44,23 +49,10 @@ public class Tester {
         }
         storage.save();
 
-        storage = new Storage();
-        storage.useDatabase("lichking");
-        table = storage.getTable("loli");
-        if (table == null)
-            System.out.println("Table not found");
-        if (table.getSchema() == null)
-            System.out.println("Schema not found");
-        for (String field: table.getSchema().fields())
-            System.out.print(field + "\t");
-        System.out.println();
+        printTable("lichking", "loli");
 
         table.beforeFirst();
         while (table.next()) {
-            for (int i = 0; i < table.getSchema().columnCount(); ++i)
-                System.out.print(table.getFieldByIndex(i) + "\t");
-            System.out.println();
-
             if (table.getField("id").equals(new Int(1)))
                 table.delete();
             else if (table.getField("id").equals(new Int(5))) {
@@ -69,8 +61,23 @@ public class Tester {
                 table.update(map);
             }
         }
-        System.out.println();
+        storage.save();
 
+        printTable("lichking", "loli");
+    }
+
+    public void printTable(String db, String tablename) {
+        Storage storage = new Storage();
+        if (!storage.useDatabase(db))
+            System.out.println("Database " + db + " not found");
+        RecordFile table = storage.getTable(tablename);
+        if (table == null)
+            System.out.println("Table " + table + " not found");
+        if (table.getSchema() == null)
+            System.out.println("Schema not found");
+        for (String field: table.getSchema().fields())
+            System.out.print(field + "\t");
+        System.out.println();
         table.beforeFirst();
         while (table.next()) {
             for (int i = 0; i < table.getSchema().columnCount(); ++i)
@@ -78,7 +85,6 @@ public class Tester {
             System.out.println();
         }
         System.out.println();
-
         storage.save();
     }
 }
