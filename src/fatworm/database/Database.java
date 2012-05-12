@@ -38,8 +38,8 @@ public class Database {
     public Database() {
     	queryPlanner = new BasicQueryPlanner();
     	executor = new BasicExecutor();
-    	storageManager = new MemoryStorageManager();
-    	//storageManager = new Storage();
+    	//storageManager = new MemoryStorageManager();
+    	storageManager = new Storage();
     	instance = this;
     	
     }

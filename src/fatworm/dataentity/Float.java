@@ -91,4 +91,9 @@ public class Float extends DataEntity
 		else 
 			return this;
 	}
+	
+    public Object toJavaType() {
+    	return value;
+    }	
+	
 }

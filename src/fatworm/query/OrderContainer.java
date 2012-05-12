@@ -5,15 +5,18 @@ import java.util.List;
 import fatworm.absyn.OrderByColumn;
 import fatworm.dataentity.DataEntity;
 
+
+
 abstract public class OrderContainer {
-	Scan scan;
-	//nList<OrderByColumn> order;
+
 	int[] orderKeyColNum;
 	String[] extraOrderKeyColName;
 	boolean[] orderKeyColDesc;
 	int extraOrderKeyNumber = 0;
 	int resultColumnNumber;
+	Scan scan;
 	public OrderContainer(Scan scan, List<OrderByColumn> order) {
+		this.scan = scan;		
 		int i = 0;
 		resultColumnNumber = scan.getNumberOfColumns();
 		orderKeyColNum = new int[order.size()];
@@ -32,11 +35,8 @@ abstract public class OrderContainer {
 		}
 	}
 	
-	abstract public void update(Scan scan);
-	abstract public void finish();
+	abstract public void sort();
 	abstract public DataEntity getColumnByIndex(int index);
 	abstract public boolean next();
 	abstract public void beforeFirst();
-
-
 }

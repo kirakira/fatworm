@@ -22,8 +22,15 @@ public class MemoryOrderContainer extends OrderContainer {
 		comparator = new TupleComparator(orderKeyColNum, orderKeyColDesc);
 	}
 	
-	@Override
-	public void update(Scan scan) {
+	public void sort() {
+		scan.beforeFirst();
+		while(scan.next()) {
+			update(scan);
+		}
+		finish();
+	}
+
+	private void update(Scan scan) {
 		DataEntity[] tuple  = new DataEntity[resultColumnNumber + extraOrderKeyNumber];
 		for (int i = 0; i < resultColumnNumber; i++) {
 			tuple[i] = scan.getColumnByIndex(i);
@@ -34,8 +41,7 @@ public class MemoryOrderContainer extends OrderContainer {
 		table.add(tuple);
 	}
 
-	@Override
-	public void finish() {
+	private void finish() {
 		Collections.sort(table, comparator);
 		iter = table.iterator();
 		current = null;

@@ -19,11 +19,7 @@ public class OrderScan implements Scan {
 		this.order = order;
 		container = Util.getOrderContainer(scan, order);
 		scan.beforeFirst();
-		while(scan.next()) {
-			container.update(scan);
-		}
-		container.finish();
-		
+		container.sort();
 	}
 	@Override
 	public void beforeFirst() {
