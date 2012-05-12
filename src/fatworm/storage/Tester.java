@@ -32,14 +32,13 @@ public class Tester {
         RecordFile table = storage.insertTable("loli", schema);
         for (int i = 0; i < 10; ++i) {
             Map<String, DataEntity> row = new HashMap<String, DataEntity>();
-            row.put("name", new VarChar("Alice " + i));
+            row.put("name", new VarChar("Alice_" + i));
             row.put("id", new Int(i));
             row.put("age", new Int(rand.nextInt(7) + 7));
             row.put("school", new FixChar("Dalaran Higher School of Magic", 40));
             row.put("young_pioneer", new Bool(rand.nextBoolean()));
             row.put("birth_date", new DateTime(new java.sql.Timestamp(rand.nextLong())));
             row.put("last_showup", new DateTime(new java.sql.Timestamp(rand.nextLong())));
-            row.put("weight", new Decimal(new BigDecimal("49.9999")));
             row.put("height", new fatworm.dataentity.Float(rand.nextDouble() * 100));
             table.insert(row);
         }
@@ -55,12 +54,31 @@ public class Tester {
         for (String field: table.getSchema().fields())
             System.out.print(field + "\t");
         System.out.println();
+
+        table.beforeFirst();
+        while (table.next()) {
+            for (int i = 0; i < table.getSchema().columnCount(); ++i)
+                System.out.print(table.getFieldByIndex(i) + "\t");
+            System.out.println();
+
+            if (table.getField("id").equals(new Int(1)))
+                table.delete();
+            else if (table.getField("id").equals(new Int(5))) {
+                Map<String, DataEntity> map = new HashMap<String, DataEntity>();
+                map.put("age", new Int(22));
+                table.update(map);
+            }
+        }
+        System.out.println();
+
         table.beforeFirst();
         while (table.next()) {
             for (int i = 0; i < table.getSchema().columnCount(); ++i)
                 System.out.print(table.getFieldByIndex(i) + "\t");
             System.out.println();
         }
+        System.out.println();
+
         storage.save();
     }
 }

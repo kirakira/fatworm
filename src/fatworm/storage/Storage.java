@@ -12,9 +12,10 @@ public class Storage implements StorageManagerInterface {
     private Database current = null;
     private String currentName = "";
     private Map<String, Database> map = new HashMap<String, Database>();
+    private String path = "test" + java.io.File.separator;
 
     private String fileName(String dbName) {
-        return "test/" + dbName + ".db";
+        return path + dbName + ".db";
     }
 
 	public boolean createDatabase(String name) {
@@ -107,5 +108,11 @@ public class Storage implements StorageManagerInterface {
             } catch (java.io.IOException e) {
             }
         }
+    }
+
+    public void setPath(String path) {
+        if (!path.endsWith(java.io.File.separator))
+            path += java.io.File.separator;
+        this.path = path;
     }
 }

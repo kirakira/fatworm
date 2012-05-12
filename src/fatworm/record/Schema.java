@@ -231,6 +231,16 @@ public class Schema {
                 tot += field.length / 3;
             else if (field.type == DECIMAL)
                 tot += field.length + 2;
+            else if (field.type == INTEGER)
+                tot += 4;
+            else if (field.type == BOOLEAN)
+                tot += 1;
+            else if (field.type == DATE)
+                tot += 8;
+            else if (field.type == TIMESTAMP)
+                tot += 8;
+            else if (field.type == FLOAT)
+                tot += 8;
             else
                 tot += field.length;
         }

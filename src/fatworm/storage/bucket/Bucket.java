@@ -14,6 +14,10 @@ public class Bucket {
     private Bucket() {
     }
 
+    public int blockCount() {
+        return 1 + blocks.size();
+    }
+
     public static Bucket load(IOHelper io, int block) {
         try {
             Bucket bucket = new Bucket();
