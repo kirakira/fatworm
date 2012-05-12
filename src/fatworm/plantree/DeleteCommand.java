@@ -3,6 +3,7 @@ package fatworm.plantree;
 import java.io.IOException;
 
 import fatworm.absyn.BoolExpr;
+import fatworm.query.Scan;
 import fatworm.query.SelectScan;
 import fatworm.query.TableScan;
 import fatworm.record.RecordFile;
@@ -26,11 +27,12 @@ public class DeleteCommand extends Command{
 	}
 	
 	public void execute() {
-		TableScan scan = new TableScan(name);
-		SelectScan select = new SelectScan(scan, condition, Util.getEmptyEnv());
-		select.beforeFirst();
-		while(select.next()){
-			delete(select.getRecordFile());
+		Scan scan = new TableScan(name);
+		if (condition != null)
+			scan = new SelectScan(scan, condition, Util.getEmptyEnv());
+		scan.beforeFirst();
+		while(scan.next()){
+			delete(scan.getRecordFile());
 		}
 	} 
 }

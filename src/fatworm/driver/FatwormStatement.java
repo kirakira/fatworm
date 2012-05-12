@@ -61,11 +61,7 @@ public class FatwormStatement implements Statement {
 	public boolean execute(String arg0) throws SQLException {
 		try {
 			result = Database.getInstance().execute(arg0);
-		} catch (RecognitionException e) {
-			e.printStackTrace();
-			return false;
-
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
 		}
@@ -182,6 +178,9 @@ public class FatwormStatement implements Statement {
 
 	@Override
 	public ResultSet getResultSet() throws SQLException {
+		
+		if (result == null)
+			return new FatwormResultSet();
 		return new FatwormResultSet(result);
 	}
 

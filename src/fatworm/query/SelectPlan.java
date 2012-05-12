@@ -14,7 +14,8 @@ public class SelectPlan extends QueryPlan{
         this.pred = pred;
         this.env = env;
         funcSet.addAll(pred.dumpUsefulFunctions());
-        plan.addFunctionsToCalc(this.funcSet);
+        if (plan != null)
+        	plan.addFunctionsToCalc(this.funcSet);
     }
 
     public SelectPlan(QueryPlan plan, BoolExpr pred) {
@@ -22,12 +23,15 @@ public class SelectPlan extends QueryPlan{
     }
 
     public Scan open() {
+    	if (plan == null)
+    		return new OneTimeScan(pred.satisfiedBy(env)); 
         return new SelectScan(plan.open(), pred, env);
     }
 
     public void addFunctionsToCalc(Set<String> funcs){
     	funcSet.addAll(funcs);
-        plan.addFunctionsToCalc(funcs);
+    	if (plan != null)
+    		plan.addFunctionsToCalc(funcs);
     }
 
 }

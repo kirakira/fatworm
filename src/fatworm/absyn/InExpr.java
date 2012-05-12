@@ -33,7 +33,7 @@ public class InExpr extends BoolExpr{
 //            return true;
 //        }
         while(rightscan.next()) {
-        	if(Compare.compare(left,rightscan.getColumnByIndex(0), "="))
+        	if(Compare.compare(left,rightscan.getColumnByIndex(0), "EQ"))
         		return true;
         }
         return false;

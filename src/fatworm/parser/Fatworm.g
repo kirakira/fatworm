@@ -72,6 +72,7 @@ tokens {
     Exit;
     Not;
     Exist;
+    NotExist;
     CompareAny;
     CompareAll;
     In;
@@ -292,7 +293,7 @@ and_bool_expr
 atom_bool_expr
     : compare
     | EXISTS '(' query ')'-> ^(Exist query)
-    | NOT EXISTS '(' query ')' -> ^(Not ^(Exist query))
+    | NOT EXISTS '(' query ')' -> ^(NotExist query)
     | value cop ANY '(' query ')' -> ^(CompareAny value query cop)
     | value cop ALL '(' query ')' -> ^(CompareAll value query cop)
     | value IN '(' query ')' -> ^(In value query)
@@ -501,17 +502,38 @@ fragment Z
 
        
 TIMESTAMP_LITERAL
-    :   '\'' DIGIT DIGIT DIGIT DIGIT'-'DIGIT DIGIT'-'DIGIT DIGIT '\'';
+    :   '\'' DIGIT DIGIT DIGIT DIGIT'-'DIGIT DIGIT'-'DIGIT DIGIT DIGIT DIGIT ':' DIGIT DIGIT '\'';
 
 fragment
 DIGIT
     :('0'..'9');
 
-INTEGER_LITERAL : ('0' | '1'..'9' ('0'..'9')*);
+INTEGER_LITERAL : ('-')? ('0' | '1'..'9' ('0'..'9')*);
+
+
+// STRING_LITERAL
+//     :   '"' (~('"'))* '"'
+//     | '\'' (~('\''))* '\'';
 
 STRING_LITERAL
-    :   '"' (~('"'))* '"'
-    | '\'' (~('\''))* '\'' ;
+@init { final StringBuilder buf = new StringBuilder(); }
+:
+    '\''
+    (
+    ESCAPE[buf]
+    | i = ~( '\\' | '\'' ) { buf.appendCodePoint(i); }
+    )*
+    '\''
+    { setText(buf.toString()); };
+
+fragment ESCAPE[StringBuilder buf] :
+    '\\'
+    ( 't' { buf.append('\t'); }
+    | 'n' { buf.append('\n'); }
+    | 'r' { buf.append('\r'); }
+    | '"' { buf.append('\"'); }
+    | '\\' { buf.append('\\'); }
+    );
 
 IDENTIFIER
 	:	LETTER (LETTER|'0'..'9')*

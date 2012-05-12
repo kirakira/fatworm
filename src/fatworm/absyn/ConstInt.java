@@ -15,7 +15,11 @@ public class ConstInt extends ConstValue{
 	}
 
 	public DataEntity getValue(Env env) {
-		return new Int(Integer.valueOf(val).intValue());
+		try {
+			return new Int(Integer.valueOf(val).intValue());
+		} catch (Exception e) {
+			return new Decimal(new BigDecimal(val));
+		}
 	}
 	
 	@Override

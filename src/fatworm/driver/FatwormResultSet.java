@@ -33,6 +33,11 @@ public class FatwormResultSet implements java.sql.ResultSet {
 		metadata = new FatwormResultSetMetaData(result);
 	}
 
+	public FatwormResultSet() {
+		this.result = null;
+		this.metadata = new FatwormResultSetMetaData();
+	}
+
 	@Override
 	public boolean isWrapperFor(Class<?> iface) throws SQLException {
 		// TODO Auto-generated method stub
@@ -375,7 +380,9 @@ public class FatwormResultSet implements java.sql.ResultSet {
 
 	@Override
 	public Object getObject(int columnIndex) throws SQLException {
-		DataEntity obj = result.getColumnByIndex(columnIndex);
+		if (result == null)
+			return null;
+		DataEntity obj = result.getColumnByIndex(columnIndex-1);
 		return obj.toJavaType();
 	}
 
@@ -613,7 +620,12 @@ public class FatwormResultSet implements java.sql.ResultSet {
 
 	@Override
 	public boolean next() throws SQLException {
-		return result.next();
+		try {
+			return result.next();
+		}catch (Exception e){
+			return false;
+		}
+		
 	}
 
 	@Override

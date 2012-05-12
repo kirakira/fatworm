@@ -13,7 +13,7 @@ public class ConstTimeStamp extends ConstValue{
         super(val);
 	}
     public DataEntity getValue(Env env){
-        return new TimeStamp(java.sql.Timestamp.valueOf(val));
+        return new TimeStamp(java.sql.Timestamp.valueOf(val.replaceAll("'", "")));
     }
     @Override
 	public int getType(Map<String, Integer> typemap) {

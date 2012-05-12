@@ -23,14 +23,19 @@ public class JoinScan implements Scan{
 	public void beforeFirst() {
 		for (Scan s: scanList)
 			s.beforeFirst();
+		for (int i =0; i <scanList.size() -1; i++)
+			scanList.get(i).next();
 	}
+	
 	@Override
 	public boolean next() {
         for (int i = scanList.size() - 1; i >0; i--) {
             if(scanList.get(i).next())
                 return true;
-            else 
+            else {
                 scanList.get(i).beforeFirst();
+                scanList.get(i).next();
+            }
         }
         return scanList.get(0).next();
 	}

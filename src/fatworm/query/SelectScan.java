@@ -21,7 +21,7 @@ public class SelectScan implements Scan{
         Iterator<String> iter = usefulColumn.iterator();
         while (iter.hasNext()) {
         	String c = iter.next();
-        	if (!scan.hasColumn(c) && scan.getFunctionValue(c) == null)
+        	if (!scan.hasColumn(c) && !scan.hasFunctionValue(c))
         		iter.remove();
         }
     }
@@ -38,7 +38,7 @@ public class SelectScan implements Scan{
 			for(String column: usefulColumn) {
 				if (scan.hasColumn(column))
 					env.putValue(column, scan.getColumn(column));
-				else if (scan.getFunctionValue(column) != null)
+				else if (scan.hasFunctionValue(column))
 					env.putValue(column, scan.getFunctionValue(column));
 			}
 			if (pred.satisfiedBy(env))

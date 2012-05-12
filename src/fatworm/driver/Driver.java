@@ -26,7 +26,8 @@ public class Driver implements java.sql.Driver {
 
 	@Override
 	public Connection connect(String url, Properties info) throws SQLException {
-		path = url;
+		path = url.substring(15);
+		System.out.println(path);
 		database.getStorageManager().setPath(path);
 		return new FatwormConnection(database);
 	}
