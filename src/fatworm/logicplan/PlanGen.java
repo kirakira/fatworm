@@ -136,11 +136,17 @@ public class PlanGen {
 		if (tree == null) {
 			return current;
 		}
-		LinkedList<ColName> cnl = new LinkedList<ColName>();
+		LinkedList<OrderByColumn> cnl = new LinkedList<OrderByColumn>();
 		CommonTree keyList = (CommonTree)tree.getChild(0);
 		for (int j = 0; j < keyList.getChildCount(); j++){
-			ColName colName = new ColName((CommonTree)keyList.getChild(j).getChild(0).getChild(0));						
-			cnl.add(colName);
+			ColName colName = new ColName((CommonTree)keyList.getChild(j).getChild(0).getChild(0));
+			String desc = keyList.getChild(j).getChild(1).getText();
+			boolean d = false;
+			if (desc.startsWith("DESC")){
+				d = true;
+			}
+			OrderByColumn orderByColumn = new OrderByColumn(colName,d);
+			cnl.add(orderByColumn);
 		}
 		OrderBy orderBy = new OrderBy(cnl);
 		orderBy.childList.add(current);

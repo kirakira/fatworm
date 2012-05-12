@@ -7,4 +7,12 @@ public class OrderByColumn {
 		this.col = col;
 		this.desc = desc;
 	}
+	public String toString(){
+		String ans = col.toString()+" ";
+		if (desc) 
+			ans += "DESC";
+		else
+			ans += "ASC";
+		return ans;
+	}
 }
