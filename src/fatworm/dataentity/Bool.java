@@ -38,4 +38,8 @@ public class Bool extends DataEntity
     public String toString() {
         return new Boolean(value).toString();
     }
+    
+    public Object toJavaType() {
+    	return value;
+    }
 }

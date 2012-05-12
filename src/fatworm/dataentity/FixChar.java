@@ -56,4 +56,7 @@ public class FixChar extends DataEntity{
 			return new TimeStamp(java.sql.Timestamp.valueOf(value));
 		return this;
 	}
+    public Object toJavaType() {
+    	return value;
+    }	
 }

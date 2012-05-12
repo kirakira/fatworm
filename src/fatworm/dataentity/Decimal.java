@@ -88,4 +88,8 @@ public class Decimal extends DataEntity {
 		else 
 			return this;
 	}
+	
+    public Object toJavaType() {
+    	return value;
+    }	
 }

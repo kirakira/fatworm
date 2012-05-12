@@ -11,4 +11,5 @@ public interface StorageManagerInterface {
 	public boolean dropDatabase(String name);
 	public boolean createDatabase(String name);
     public void save();
+    public void setPath(String path);
 }
