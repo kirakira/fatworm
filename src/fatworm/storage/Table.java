@@ -71,7 +71,7 @@ public class Table implements RecordFile {
         return head.save();
     }
 
-    public void remove() {
+    void remove() {
         schema.remove();
         int next = front;
         do {
