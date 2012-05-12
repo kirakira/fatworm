@@ -19,4 +19,5 @@ update first set a = a+1, b = b-1
 select * from first
 update first set a = a+1 where b = 2
 select * from first
-select avg(a) from first group by b
+select avg(a), b from first group by b
+

@@ -76,8 +76,8 @@ public class RenameScan implements Scan{
 	}
 	
 	@Override
-	public int indexOf(String colname) {
-		return scan.indexOf(colname);
+	public int indexOfField(String colname) {
+		return scan.indexOfField(colname);
 	}
 
 	@Override

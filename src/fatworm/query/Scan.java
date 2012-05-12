@@ -86,8 +86,9 @@ public interface Scan {
      */
     public int getNumberOfColumns();
     
+    public int indexOfColumn(String column);
     
-    public int indexOf(String colname);
+    public int indexOfField(String field);
     
     public int type(String colname);
     

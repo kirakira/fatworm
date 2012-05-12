@@ -97,19 +97,33 @@ public class JoinScan implements Scan{
 	}
 	
 	@Override
-	public int indexOf(String colname) {
+	public int indexOfField(String field) {
 		int result = 0;
 		for (Scan scan: scanList) {
-			if (scan.indexOf(colname) >= 0)
-				return result + scan.indexOf(colname);
+			if (scan.indexOfField(field) >= 0)
+				return result + scan.indexOfField(field);
 			else 
-				return result += scan.getNumberOfColumns();
+				result += scan.getNumberOfColumns();
 		}
 		return -1;
 	}
+	
+	@Override
+	public int indexOfColumn(String column) {
+		int result = 0;
+		for (Scan scan: scanList) {
+			if (scan.indexOfColumn(column) >= 0)
+				return result + scan.indexOfColumn(column);
+			else 
+				result += scan.getNumberOfColumns();
+		}
+		return -1;
+	}
+	
+	
 	@Override
 	public int type(String colname) {
-		return type(indexOf(colname));
+		return type(indexOfField(colname));
 	}
 	@Override
 	public int type(int index) {

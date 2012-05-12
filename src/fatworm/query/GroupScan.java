@@ -93,8 +93,12 @@ public class GroupScan implements Scan {
 	}
 
 	@Override
-	public int indexOf(String colname) {
-		return scan.indexOf(colname);
+	public int indexOfField(String field) {
+		return scan.indexOfField(field);
+	}
+	
+	public int indexOfColumn(String column) {
+		return scan.indexOfColumn(column);
 	}
 
 	@Override

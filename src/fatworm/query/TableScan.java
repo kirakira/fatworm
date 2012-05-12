@@ -81,7 +81,7 @@ public class TableScan implements Scan{
 	}
 
 	@Override
-	public int indexOf(String colname) {
+	public int indexOfField(String colname) {
 		if (Util.isFieldSuffix(colname)) {
             if ( tableName.equals(Util.getColumnTableName(colname)))
                 return schema.index(Util.getColumnFieldName(colname));
@@ -94,7 +94,7 @@ public class TableScan implements Scan{
 
 	@Override
 	public int type(String colname) {
-		return type(indexOf(colname));
+		return type(indexOfField(colname));
 	}
 
 	@Override

@@ -308,10 +308,7 @@ public class ProjectionScan implements Scan {
 	}
 
 	@Override
-	public int indexOf(String column) {
-		String fldname = column;
-		if (Util.isFieldSuffix(column))
-			fldname = Util.getColumnFieldName(column);
+	public int indexOfField(String fldname){
 		
 		int count = 0;
 		int result = -1;
@@ -330,7 +327,7 @@ public class ProjectionScan implements Scan {
 			}
 			if (proj instanceof ProjectionAllColumnValue) {
 				if (scan.hasField(fldname))
-					result = count + scan.indexOf(fldname);
+					result = count + scan.indexOfField(fldname);
 				else 
 					count += scan.getNumberOfColumns();
 			}
@@ -340,7 +337,7 @@ public class ProjectionScan implements Scan {
 
 	@Override
 	public int type(String colname) {
-		return type(indexOf(colname));
+		return type(indexOfField(colname));
 	}
 
 	@Override
