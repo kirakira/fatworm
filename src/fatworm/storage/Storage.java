@@ -19,7 +19,7 @@ public class Storage implements StorageManagerInterface {
     private Storage() {
     }
 
-    public Storage getInstance() {
+    public static Storage getInstance() {
         if (instance == null)
             instance = new Storage();
         return instance;

@@ -31,7 +31,7 @@ public class Tester {
         schema.addField("weight", DECIMAL, 5, false, false, false, new NullDataEntity());
         schema.addField("height", FLOAT, 8, false, false, false, new NullDataEntity());
 
-        Storage storage = new Storage();
+        Storage storage = Storage.getInstance();
         storage.createDatabase("lichking");
         storage.useDatabase("lichking");
         RecordFile table = storage.insertTable("loli", schema);
@@ -72,7 +72,7 @@ public class Tester {
     }
 
     public void printTable(String db, String tablename) {
-        Storage storage = new Storage();
+        Storage storage = Storage.getInstance();
         if (!storage.useDatabase(db))
             System.out.println("Database " + db + " not found");
         RecordFile table = storage.getTable(tablename);
