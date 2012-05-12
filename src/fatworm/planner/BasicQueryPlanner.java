@@ -11,6 +11,8 @@ import fatworm.plantree.Rename;
 import fatworm.plantree.Select;
 import fatworm.plantree.Table;
 import fatworm.plantree.OrderBy;
+import fatworm.plantree.Distinct;
+import fatworm.query.DistinctPlan;
 import fatworm.query.Env;
 import fatworm.query.GroupPlan;
 import fatworm.query.JoinPlan;
@@ -25,7 +27,10 @@ public class BasicQueryPlanner implements QueryPlanner {
 
 	@Override
 	public QueryPlan createQueryPlan(Node query) {
-		if (query instanceof OrderBy) {
+		if (query instanceof Distinct) {
+			return new DistinctPlan(createQueryPlan(query.childList.getFirst()));
+		}
+		else if (query instanceof OrderBy) {
 			return new OrderPlan(createQueryPlan(query.childList.getFirst()), ((OrderBy)query).colNameList);
 		}
 		else if (query instanceof Projection) {
@@ -55,7 +60,10 @@ public class BasicQueryPlanner implements QueryPlanner {
 
 	@Override
 	public QueryPlan createQueryPlan(Node query, Env env) {
-		if (query instanceof OrderBy) {
+		if (query instanceof Distinct) {
+			return new DistinctPlan(createQueryPlan(query.childList.getFirst(), env));
+		}
+		else if (query instanceof OrderBy) {
 			return new OrderPlan(createQueryPlan(query.childList.getFirst(), env), ((OrderBy)query).colNameList);
 		}		
 		if (query instanceof Projection) {

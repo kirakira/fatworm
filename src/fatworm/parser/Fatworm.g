@@ -10,6 +10,7 @@ options {
 
 tokens {
     ConstValue;
+    Distinct;
     QueryValue;
     ConstInt;
     ConstFloat;
@@ -212,8 +213,10 @@ index_stmt
     ;
 
 query
-    :SELECT DISTINCT? select_expr_list (select_suffix)*
-        -> ^(Query ^(SelectColumn select_expr_list)  select_suffix*   DISTINCT?)
+    :SELECT DISTINCT select_expr_list (select_suffix)*
+        -> ^(Query ^(SelectColumn select_expr_list)  select_suffix*   ^(Distinct DISTINCT))
+    |SELECT  select_expr_list (select_suffix)*
+        -> ^(Query ^(SelectColumn select_expr_list)  select_suffix*  )
     ; 
 
 select_suffix

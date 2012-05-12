@@ -4,8 +4,10 @@ import java.util.List;
 import java.util.Set;
 
 import fatworm.planner.QueryPlanner;
+import fatworm.query.DistinctContainer;
 import fatworm.query.Env;
 import fatworm.query.GroupContainer;
+import fatworm.query.MemoryDistinctContainer;
 import fatworm.query.MemoryGroupContainer;
 import fatworm.query.MemoryOrderContainer;
 import fatworm.query.OrderContainer;
@@ -107,6 +109,10 @@ public class Util
 	public static OrderContainer getOrderContainer(Scan scan,
 			List<OrderByColumn> order) {
 		return new MemoryOrderContainer(scan, order);
+	}
+
+	public static DistinctContainer getDistinctContainer() {
+		return new MemoryDistinctContainer();
 	}
 
 }
