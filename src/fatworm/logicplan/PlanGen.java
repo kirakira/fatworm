@@ -1,11 +1,9 @@
 package fatworm.logicplan;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.LinkedList;
 
@@ -141,7 +139,7 @@ public class PlanGen {
 		for (int j = 0; j < keyList.getChildCount(); j++){
 			ColName colName = ColName.getColName((CommonTree)keyList.getChild(j).getChild(0).getChild(0));
 			String desc = keyList.getChild(j).getChild(1).getText();
-			desc.toUpperCase();
+			desc = desc.toUpperCase();
 			boolean d = false;
 			if (desc.startsWith("DESC")){
 				d = true;
@@ -377,11 +375,11 @@ public class PlanGen {
 		if (t.getText().startsWith("Query")) {
 			current = processFrom(t, (Node)current);
 			current = processGroupBy(t, (Node)current);
-			current = processOrderBy(t, (Node)current);
-			current = processDistinct(t, (Node)current);
 			current = processWhereCondition(t, (Node)current);
 			current = processHavingCondition(t, (Node)current);
 			current = processSelectColumn(t, (Node)current);
+			current = processOrderBy(t, (Node)current);
+			current = processDistinct(t, (Node)current);
 		}
 		if (t.getText().startsWith("CreateDatabase")){
 			current = new CreateDatabase(t.getChild(0).getText());

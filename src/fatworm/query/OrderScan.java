@@ -22,6 +22,7 @@ public class OrderScan implements Scan {
 		while(scan.next()) {
 			container.update(scan);
 		}
+		container.finish();
 		
 	}
 	@Override
