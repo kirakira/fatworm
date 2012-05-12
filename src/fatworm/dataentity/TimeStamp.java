@@ -1,10 +1,16 @@
 package fatworm.dataentity;
 
 import fatworm.util.ByteLib;
+import java.util.Date;
 
 public class TimeStamp extends DataEntity
 {
     java.sql.Timestamp value;
+
+    public TimeStamp() {
+        this(new java.sql.Timestamp(new Date().getTime()));
+    }
+
     public TimeStamp(java.sql.Timestamp v) {
         value = v;
     }

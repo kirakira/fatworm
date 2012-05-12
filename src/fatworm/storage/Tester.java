@@ -13,6 +13,11 @@ import static java.sql.Types.*;
 
 public class Tester {
     public static final void main(String[] args) throws java.io.FileNotFoundException, java.io.IOException {
+        Tester tester = new Tester();
+        tester.test();
+    }
+
+    public void test() throws java.io.FileNotFoundException, java.io.IOException {
         Random rand = new Random();
 
         Schema schema = new Schema();
@@ -26,41 +31,33 @@ public class Tester {
         schema.addField("weight", DECIMAL, 5, false, false, false, new NullDataEntity());
         schema.addField("height", FLOAT, 8, false, false, false, new NullDataEntity());
 
-        Storage storage = new Storage();
-        storage.createDatabase("lichking");
+        Storage storage = Storage.getInstance();
+        if (!storage.createDatabase("lichking"))
+            System.out.println("Create database failed");
         storage.useDatabase("lichking");
         RecordFile table = storage.insertTable("loli", schema);
-        for (int i = 0; i < 10; ++i) {
-            Map<String, DataEntity> row = new HashMap<String, DataEntity>();
-            row.put("name", new VarChar("Alice_" + i));
-            row.put("id", new Int(i));
-            row.put("age", new Int(rand.nextInt(7) + 7));
-            row.put("school", new FixChar("Dalaran Higher School of Magic", 40));
-            row.put("young_pioneer", new Bool(rand.nextBoolean()));
-            row.put("birth_date", new DateTime(new java.sql.Timestamp(rand.nextLong())));
-            row.put("last_showup", new DateTime(new java.sql.Timestamp(rand.nextLong())));
-            row.put("height", new fatworm.dataentity.Float(rand.nextDouble() * 100));
-            table.insert(row);
+        if (table == null) {
+            System.out.println("Table already existed");
+            table = storage.getTable("loli");
+        } else {
+            for (int i = 0; i < 10; ++i) {
+                Map<String, DataEntity> row = new HashMap<String, DataEntity>();
+                row.put("name", new VarChar("Alice_" + i));
+                row.put("id", new Int(i));
+                row.put("age", new Int(rand.nextInt(7) + 7));
+                row.put("school", new FixChar("Dalaran Higher School of Magic", 40));
+                row.put("young_pioneer", new Bool(rand.nextBoolean()));
+                row.put("birth_date", new DateTime(new java.sql.Timestamp(rand.nextLong())));
+                row.put("height", new fatworm.dataentity.Float(rand.nextDouble() * 100));
+                table.insert(row);
+            }
         }
         storage.save();
 
-        storage = new Storage();
-        storage.useDatabase("lichking");
-        table = storage.getTable("loli");
-        if (table == null)
-            System.out.println("Table not found");
-        if (table.getSchema() == null)
-            System.out.println("Schema not found");
-        for (String field: table.getSchema().fields())
-            System.out.print(field + "\t");
-        System.out.println();
+        printTable("lichking", "loli");
 
         table.beforeFirst();
         while (table.next()) {
-            for (int i = 0; i < table.getSchema().columnCount(); ++i)
-                System.out.print(table.getFieldByIndex(i) + "\t");
-            System.out.println();
-
             if (table.getField("id").equals(new Int(1)))
                 table.delete();
             else if (table.getField("id").equals(new Int(5))) {
@@ -69,16 +66,36 @@ public class Tester {
                 table.update(map);
             }
         }
-        System.out.println();
+        Map<String, DataEntity> map = new HashMap<String, DataEntity>();
+        map.put("name", new VarChar("Elly"));
+        table.insert(map);
 
+        storage.save();
+
+        printTable("lichking", "loli");
+    }
+
+    public void printTable(String db, String tablename) {
+        Storage storage = Storage.getInstance();
+        if (!storage.useDatabase(db))
+            System.out.println("Database " + db + " not found");
+        RecordFile table = storage.getTable(tablename);
+        if (table == null)
+            System.out.println("Table " + table + " not found");
+        if (table.getSchema() == null)
+            System.out.println("Schema not found");
+        for (String field: table.getSchema().fields())
+            System.out.print(field + "\t");
+        System.out.println();
         table.beforeFirst();
+        int count = 0;
         while (table.next()) {
+            ++count;
             for (int i = 0; i < table.getSchema().columnCount(); ++i)
                 System.out.print(table.getFieldByIndex(i) + "\t");
             System.out.println();
         }
-        System.out.println();
-
+        System.out.println(count + " tuples in total.");
         storage.save();
     }
 }

@@ -158,6 +158,8 @@ public class Database implements IOHelper {
 
     // returns null if the table name already existed
     public Table insertTable(String table, Schema schema) throws java.io.IOException {
+        if (getTable(table) != null)
+            return null;
         SchemaOnDisk ss = SchemaOnDisk.create(this, schema);
         int sBlock = ss.save();
         Table st = Table.create(this, table, sBlock);

@@ -100,13 +100,10 @@ public class Cell {
 
     public int save() throws java.io.IOException {
         bucket.setData(getBytes());
-        int ret = bucket.save();
-        if (bucket.blockCount() > 1)
-            System.out.println("Cell saved in more than 1 block");
-        return ret;
+        return bucket.save();
     }
 
-    public int next() {
+    public int getNext() {
         return next;
     }
 
