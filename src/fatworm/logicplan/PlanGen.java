@@ -247,6 +247,7 @@ public class PlanGen {
 	 * @param tree
 	 * @return
 	 */
+	static String regx = "-+/%*";
 	public static Value getValue(CommonTree tree){
 		/*if (tree.getText().startsWith("AllColumn")){
 			System.out.println("bazinga");
@@ -260,19 +261,19 @@ public class PlanGen {
 			System.out.println("bazinga");
 			return getValue((CommonTree)tree.getChild(0));
 		}*/
-		if (tree.getText().startsWith("ConstValue")) {
+		String text = tree.getText();
+		if (text.startsWith("ConstValue")) {
 			return getValue((CommonTree)tree.getChild(0));
 		}
-		String root = tree.getText();
-		if (root.indexOf("-+/%*") != -1){
+		if (regx.indexOf(text) != -1){
 			/**
 			 * a operator and two operands
 			 */
-			Value left = getValue((CommonTree)tree.getChild(1));
-			Value right = getValue((CommonTree)tree.getChild(2));
-			return new OpValue(root, left, right);
+			Value left = getValue((CommonTree)tree.getChild(0));
+			Value right = getValue((CommonTree)tree.getChild(1));
+			return new OpValue(text, left, right);
 		}
-		if (root.startsWith("ColumnName")){
+		if (text.startsWith("ColumnName")){
 			ColName colName;
 			CommonTree temp = (CommonTree)tree.getChild(0);
 			if (temp.getText().startsWith("SimpleColumn")){
@@ -282,26 +283,26 @@ public class PlanGen {
 			}
 			return new ColumnValue(colName);
 		}
-		if (root.startsWith("Func")){
-			root = root.substring(4);
-			root.trim();
+		if (text.startsWith("Func")){
+			text = text.substring(4);
+			text.trim();
 			String func = tree.getChild(0).getText();
 			Value val = getValue((CommonTree)tree.getChild(1));
 			return new FuncValue(func, val);
 		}
-		if (root.startsWith("ConstInt")) 
+		if (text.startsWith("ConstInt")) 
 			return new ConstInt(tree.getChild(0).getText());
-		if (root.startsWith("ConstFloat")) 
+		if (text.startsWith("ConstFloat")) 
 			return new ConstFloat(tree.getChild(0).getText());
-		if (root.startsWith("ConstTimeStamp")) 
+		if (text.startsWith("ConstTimeStamp")) 
 			return new ConstTimeStamp(tree.getChild(0).getText());
-		if (root.startsWith("ConstString")) 
+		if (text.startsWith("ConstString")) 
 			return new ConstString(tree.getChild(0).getText());
-		if (root.startsWith("ConstNull")) 
+		if (text.startsWith("ConstNull")) 
 			return new ConstNull(tree.getChild(0).getText());
-		if (root.startsWith("ConstDefault")) 
+		if (text.startsWith("ConstDefault")) 
 			return new ConstDefault(tree.getChild(0).getText());
-		if (root.startsWith("ConstBoolean"))
+		if (text.startsWith("ConstBoolean"))
 			return new ConstBoolean(tree.getChild(0).getText());
 		// must not be reached
 		return null;
@@ -402,14 +403,15 @@ public class PlanGen {
 			for (int p = 0; p < primaryKeyList.size(); p++){
 				String primaryKey = primaryKeyList.get(p);
 				for (int q = 0; q < columnDefList.size(); q++){
-					if (columnDefList.get(q).colName == primaryKey){
+					if (columnDefList.get(q).colName.startsWith(primaryKey)){	
 						columnDefList.get(q).primary = true;
 					}
 				}
 			}
 			for (int j = 0; j < columnDefList.size(); j++){
 				ColumnDef c = columnDefList.get(j);
-				schema.addField(c.colName, c.type, c.length, c.isNotNull, c.autoIncrement, c.primary, c.defaultValue.getValue(null));
+				System.out.println(c.toString());
+				schema.addField(c.colName, c.type, c.length, c.isNotNull, c.autoIncrement, c.primary, c.getDefaultDataEntity());
 			}
 			current = new CreateTable(tableName,schema);
 		}
@@ -486,6 +488,7 @@ public class PlanGen {
 				}
 				if (t.getChild(i).getText().startsWith("Assign")){
 					CommonTree tree = (CommonTree)t.getChild(i);
+					
 					for (int j = 0; j < tree.getChildCount(); j++){
 						((UpdateCommand)current).assigns.put(tree.getChild(j).getChild(0).getText(), getValue((CommonTree)tree.getChild(j).getChild(1)));
 					}

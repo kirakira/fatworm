@@ -2,6 +2,8 @@ package fatworm.absyn;
 
 import org.antlr.runtime.tree.CommonTree;
 
+import fatworm.dataentity.DataEntity;
+
 public class ColumnDef {
 	public String colName;
 	public String dataType;
@@ -17,13 +19,18 @@ public class ColumnDef {
 		this.dataType = tree.getChild(1).getText();
 		this.setLength(tree);
 	}
+	static String regx = "DecimalVarChar";
 	public void setLength(CommonTree tree){
 		this.init();
-		if (tree.getChild(1).getText().indexOf("DECIMALVARCHAR") != -1){
+		//System.out.println(tree.getChild(1).getText());
+		if (regx.indexOf(tree.getChild(1).getText()) != -1){
+			//System.out.println(tree.getChild(1).getChild(0).getText());
 			length += Integer.parseInt(tree.getChild(1).getChild(0).getText());
 		}
-		if (tree.getChild(1).getText().startsWith("DECIMAL") && tree.getChildCount() > 2){
-			length += Integer.parseInt(tree.getChild(2).getChild(0).getText());
+		//System.out.println("----"+length);
+		if (tree.getChild(1).getText().startsWith("Decimal") && tree.getChild(1).getChildCount() > 1){
+			//System.out.println(tree.getChild(1).getChild(1).getText());
+			length += Integer.parseInt(tree.getChild(1).getChild(1).getText());
 		}
 	}
 	public void setIsNull(){
@@ -68,5 +75,20 @@ public class ColumnDef {
 		if (dataType.startsWith("DECIMAL")){
 			type = java.sql.Types.DECIMAL;
 		}
+	}
+	public DataEntity getDefaultDataEntity(){
+		if (defaultValue == null)
+			return null;
+		else 
+			return defaultValue.getValue(null);
+	}
+	public String toString(){
+		String ans ="ColumnDef\t"+colName+"\t"+dataType+"\t"+length;
+		if (isNull) ans += "\tisNull";
+		if (isNotNull) ans += "\tisNotNull";
+		if (autoIncrement) ans += "\tautoInc";
+		if (primary) ans+= "\tprimary";
+		if (defaultValue!=null) ans+=("\tdefault="+defaultValue.toString());
+		return ans;
 	}
 }
