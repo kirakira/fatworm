@@ -80,8 +80,12 @@ public class TableScan implements Scan{
 		return fields().size();
 	}
 
+	public int indexOfField(String field) {
+		return schema.index(field);
+	}
+	
 	@Override
-	public int indexOfField(String colname) {
+	public int indexOfColumn(String colname) {
 		if (Util.isFieldSuffix(colname)) {
             if ( tableName.equals(Util.getColumnTableName(colname)))
                 return schema.index(Util.getColumnFieldName(colname));
@@ -126,5 +130,10 @@ public class TableScan implements Scan{
 	public boolean hasFunctionValue(String func) {
 		return false;
 	}	
+	
+	@Override
+	public DataEntity getOrderKey(String key) {
+		return getColumn(key);
+	}			
 	
 }

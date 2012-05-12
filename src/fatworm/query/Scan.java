@@ -103,4 +103,6 @@ public interface Scan {
     public DataEntity getFunctionValue(String func);
     
     public boolean hasFunctionValue(String func);
+
+	public DataEntity getOrderKey(String key);
 }

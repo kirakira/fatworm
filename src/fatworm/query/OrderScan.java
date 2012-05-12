@@ -1,68 +1,52 @@
 package fatworm.query;
 
 import java.util.Collection;
-import java.util.Set;
+import java.util.List;
 
+import fatworm.absyn.OrderByColumn;
 import fatworm.dataentity.DataEntity;
 import fatworm.record.RecordFile;
 import fatworm.util.Util;
 
-public class GroupScan implements Scan {
+public class OrderScan implements Scan {
 
-	GroupContainer container;
-	String keyName;
 	Scan scan;
-	Set<String> funcSet;
+	List<OrderByColumn> order;
+	OrderContainer container;
 	
-	public GroupScan (Scan scan, String keyName, Set<String> funcSet) {
-		this.funcSet = funcSet;
-		this.keyName = keyName; 
+	public OrderScan(Scan scan, List<OrderByColumn> order) {
 		this.scan = scan;
-		container = Util.getGroupContainer(keyName, funcSet);
+		this.order = order;
+		container = Util.getOrderContainer(scan, order);
 		scan.beforeFirst();
 		while(scan.next()) {
 			container.update(scan);
 		}
-		container.finish();
+		
 	}
 	@Override
 	public void beforeFirst() {
 		container.beforeFirst();
-		scan.beforeFirst();
 	}
 
 	@Override
 	public boolean next() {
-		if (container.next()) {
-			while(scan.next()) {
-				DataEntity keyValue = scan.getColumn(keyName);
-				if ( keyValue.toString().equals(container.getKeyValue().toString())
-						&& !keyValue.isNull() )
-					break;
-			}
-			return true;
-		}
-		return false;
+		return container.next();
 	}
 
 	@Override
 	public DataEntity getField(String fldname) {
-		if (keyName.equals(fldname) || Util.hasField(keyName, fldname))
-			return container.getKeyValue();
-		return scan.getField(fldname);
+		return container.getColumnByIndex(indexOfField(fldname));
 	}
 
 	@Override
 	public boolean hasField(String fldname) {
-		if (keyName.equals(fldname) || Util.hasField(keyName, fldname))
-			return true;
 		return scan.hasField(fldname);
-
 	}
 
 	@Override
 	public DataEntity getColumn(String colname) {
-		return scan.getColumn(colname);
+		return container.getColumnByIndex(indexOfColumn(colname));
 	}
 
 	@Override
@@ -84,7 +68,7 @@ public class GroupScan implements Scan {
 
 	@Override
 	public DataEntity getColumnByIndex(int index) {
-		return scan.getColumnByIndex(index);
+		return container.getColumnByIndex(index);
 	}
 
 	@Override
@@ -94,11 +78,7 @@ public class GroupScan implements Scan {
 
 	@Override
 	public int indexOfField(String field) {
-		return scan.indexOfField(field);
-	}
-	
-	public int indexOfColumn(String column) {
-		return scan.indexOfColumn(column);
+		return scan.indexOfColumn(field);
 	}
 
 	@Override
@@ -128,16 +108,21 @@ public class GroupScan implements Scan {
 
 	@Override
 	public DataEntity getFunctionValue(String func) {
-		return container.getFunctionValue(func);
+		return scan.getFunctionValue(func);
 	}
 
 	@Override
 	public boolean hasFunctionValue(String func) {
-		return funcSet.contains(func);
+		return scan.hasFunctionValue(func);
 	}
-	
-		@Override
+	@Override
+	public int indexOfColumn(String column) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	@Override
 	public DataEntity getOrderKey(String key) {
-		return getColumn(key);
-	}		
+		return scan.getOrderKey(key);
+	}
+
 }

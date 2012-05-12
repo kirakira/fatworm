@@ -1,15 +1,20 @@
 package fatworm.util;
 
+import java.util.List;
 import java.util.Set;
 
 import fatworm.planner.QueryPlanner;
 import fatworm.query.Env;
 import fatworm.query.GroupContainer;
 import fatworm.query.MemoryGroupContainer;
+import fatworm.query.MemoryOrderContainer;
+import fatworm.query.OrderContainer;
+import fatworm.query.Scan;
 import fatworm.query.SimpleEnv;
 import fatworm.record.RecordFile;
 import fatworm.record.Schema;
 import fatworm.storagemanager.StorageManagerInterface;
+import fatworm.absyn.OrderByColumn;
 import fatworm.database.*;
 
 public class Util
@@ -97,6 +102,11 @@ public class Util
 	public static GroupContainer getGroupContainer(String keyName,
 			Set<String> funcSet) {
 		return new MemoryGroupContainer(keyName, funcSet);
+	}
+
+	public static OrderContainer getOrderContainer(Scan scan,
+			List<OrderByColumn> order) {
+		return new MemoryOrderContainer(scan, order);
 	}
 
 }

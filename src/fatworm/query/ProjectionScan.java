@@ -334,6 +334,40 @@ public class ProjectionScan implements Scan {
 		}
 		return result;
 	}
+	
+	@Override
+	public int indexOfColumn(String column){
+		int count = 0;
+		int result = -1;
+		if (Util.isFieldSuffix(column)) {
+			for (ProjectionValue proj: projections) {
+				if (proj instanceof ProjectionSimpleValue) {
+					if (proj.toString().equals(column)) {
+						result = count;
+						return result;
+					}
+					else count++;
+				}
+				if (proj instanceof ProjectionRenameValue) {
+					count++;
+				}
+				if (proj instanceof ProjectionAllColumnValue) {
+					if (scan.hasColumn(column)) {
+						result = count + scan.indexOfField(column);
+						return result;
+					}
+					else 
+						count += scan.getNumberOfColumns();
+				}
+			}
+		}
+		if (result == -1) {
+			if (Util.isFieldSuffix(column))
+				column = Util.getColumnFieldName(column);
+			return indexOfField(column);
+		}
+		return -1;
+	}	
 
 	@Override
 	public int type(String colname) {
@@ -450,5 +484,10 @@ public class ProjectionScan implements Scan {
 	
 	public boolean hasFunctionValue(String func) {
 		return scan.hasFunctionValue(func);
+	}
+
+	@Override
+	public DataEntity getOrderKey(String key) {
+		return scan.getColumn(key);
 	}		
 }

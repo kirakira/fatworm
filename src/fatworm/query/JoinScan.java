@@ -174,4 +174,8 @@ public class JoinScan implements Scan{
 		return false;
 	}	
 	
+	@Override
+	public DataEntity getOrderKey(String key) {
+		return getColumn(key);
+	}			
 }

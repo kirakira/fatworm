@@ -10,6 +10,7 @@ import fatworm.plantree.Projection;
 import fatworm.plantree.Rename;
 import fatworm.plantree.Select;
 import fatworm.plantree.Table;
+import fatworm.plantree.OrderBy;
 import fatworm.query.Env;
 import fatworm.query.GroupPlan;
 import fatworm.query.JoinPlan;
@@ -18,12 +19,16 @@ import fatworm.query.QueryPlan;
 import fatworm.query.RenamePlan;
 import fatworm.query.SelectPlan;
 import fatworm.query.TablePlan;
+import fatworm.query.OrderPlan;
 
 public class BasicQueryPlanner implements QueryPlanner {
 
 	@Override
 	public QueryPlan createQueryPlan(Node query) {
-		if (query instanceof Projection) {
+		if (query instanceof OrderBy) {
+			return new OrderPlan(createQueryPlan(query.childList.getFirst()), ((OrderBy)query).colNameList);
+		}
+		else if (query instanceof Projection) {
 			return new ProjectionPlan(createQueryPlan(query.childList.getFirst()), ((Projection)query).valList);
 		}
 		else if (query instanceof Select) {
@@ -50,6 +55,9 @@ public class BasicQueryPlanner implements QueryPlanner {
 
 	@Override
 	public QueryPlan createQueryPlan(Node query, Env env) {
+		if (query instanceof OrderBy) {
+			return new OrderPlan(createQueryPlan(query.childList.getFirst(), env), ((OrderBy)query).colNameList);
+		}		
 		if (query instanceof Projection) {
 			return new ProjectionPlan(createQueryPlan(query.childList.getFirst(), env), ((Projection)query).valList, env);
 		}

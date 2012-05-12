@@ -5,6 +5,7 @@ create table second(a int, b int)
 insert into first values(1,2)
 insert into first values(2,3)
 insert into first (b) values(4)
+select * from first order by b 
 insert into second(select * from first where a = 1)
 select * from second
 select avg(a) , sum(a), max(a),min(a), count(a) from first

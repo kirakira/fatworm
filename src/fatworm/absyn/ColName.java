@@ -9,7 +9,7 @@ public class ColName {
 	public ColName(CommonTree t){
 		
 	}
-	public ColName getColName(CommonTree t){
+	public static ColName getColName(CommonTree t){
 		if (t.getText().startsWith("SimpleColumn")){
 			return new SimpleCol(t);
 		}

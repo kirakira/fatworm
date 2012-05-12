@@ -139,8 +139,9 @@ public class PlanGen {
 		LinkedList<OrderByColumn> cnl = new LinkedList<OrderByColumn>();
 		CommonTree keyList = (CommonTree)tree.getChild(0);
 		for (int j = 0; j < keyList.getChildCount(); j++){
-			ColName colName = new ColName((CommonTree)keyList.getChild(j).getChild(0).getChild(0));
+			ColName colName = ColName.getColName((CommonTree)keyList.getChild(j).getChild(0).getChild(0));
 			String desc = keyList.getChild(j).getChild(1).getText();
+			desc.toUpperCase();
 			boolean d = false;
 			if (desc.startsWith("DESC")){
 				d = true;

@@ -6,7 +6,7 @@ import fatworm.absyn.ColName;
 import fatworm.absyn.OrderByColumn;
 
 public class OrderBy extends Node{
-	LinkedList<OrderByColumn> colNameList;
+	public LinkedList<OrderByColumn> colNameList;
 	public OrderBy(LinkedList<OrderByColumn> colNameList){
 		this.colNameList = colNameList;
 	}

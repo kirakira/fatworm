@@ -76,10 +76,21 @@ public class RenameScan implements Scan{
 	}
 	
 	@Override
-	public int indexOfField(String colname) {
-		return scan.indexOfField(colname);
+	public int indexOfField(String field) {
+		return scan.indexOfField(field);
 	}
 
+	public int indexOfColumn(String colname) {
+		if (Util.isFieldSuffix(colname) ) {
+			if(Util.getColumnTableName(colname).equals(alias))
+				return indexOfColumn(Util.getColumnFieldName(colname));
+			else 
+				return -1;
+		}
+		else if(Util.isSimpleColumn(colname))
+			return indexOfField(colname);
+		return -1;
+	}
 	@Override
 	public int type(String colname) {
 		return scan.type(colname);
@@ -113,6 +124,10 @@ public class RenameScan implements Scan{
 	
 	public boolean hasFunctionValue(String func) {
 		return scan.hasFunctionValue(func);
+	}
+	@Override
+	public DataEntity getOrderKey(String key) {
+		return getColumn(key);
 	}		
 	
 }

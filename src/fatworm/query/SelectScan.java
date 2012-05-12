@@ -89,8 +89,13 @@ public class SelectScan implements Scan{
 	}
 
 	@Override
-	public int indexOfField(String colname) {
-		return scan.indexOfField(colname);
+	public int indexOfField(String field) {
+		return scan.indexOfField(field);
+	}
+
+	@Override
+	public int indexOfColumn(String colname) {
+		return scan.indexOfColumn(colname);
 	}
 
 	@Override
@@ -125,5 +130,10 @@ public class SelectScan implements Scan{
 	
 	public boolean hasFunctionValue(String func) {
 		return scan.hasFunctionValue(func);
-	}		
+	}
+	
+	@Override
+	public DataEntity getOrderKey(String key) {
+		return getColumn(key);
+	}			
 }
