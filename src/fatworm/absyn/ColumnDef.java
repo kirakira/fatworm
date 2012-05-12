@@ -16,7 +16,7 @@ public class ColumnDef {
 	
 	public ColumnDef(CommonTree tree){
 		this.colName = tree.getChild(0).getText();
-		this.dataType = tree.getChild(1).getText();
+		this.dataType = tree.getChild(1).getText().toUpperCase();
 		this.setLength(tree);
 	}
 	static String regx = "DecimalVarChar";

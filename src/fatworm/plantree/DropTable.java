@@ -15,7 +15,8 @@ public class DropTable extends Command{
 	
 	@Override
 	public void execute() {
-		Util.dropTable(name);
+		for (String table: tableList)
+			Util.dropTable(table);	
 	}
 
 }

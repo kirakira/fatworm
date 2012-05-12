@@ -1,61 +1,68 @@
 package fatworm.query;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Set;
 
-import fatworm.absyn.BoolExpr;
 import fatworm.dataentity.DataEntity;
 import fatworm.record.RecordFile;
+import fatworm.util.Util;
 
-public class SelectScan implements Scan{
-    Scan scan;
-    BoolExpr pred;
-    Env env;
-    Set<String> usefulColumn;
-    public SelectScan(Scan scan, BoolExpr pred, Env env) {
-        this.scan = scan;
-        this.pred = pred;
-        this.env = env;
-        usefulColumn = pred.dumpUsefulColumns();
-        Iterator<String> iter = usefulColumn.iterator();
-        while (iter.hasNext()) {
-        	String c = iter.next();
-        	if (!scan.hasColumn(c) && scan.getFunctionValue(c) == null)
-        		iter.remove();
-        }
-    }
+public class GroupScan implements Scan {
 
+	GroupContainer container;
+	String keyName;
+	Scan scan;
+	Set<String> funcSet;
+	
+	public GroupScan (Scan scan, String keyName, Set<String> funcSet) {
+		this.funcSet = funcSet;
+		this.keyName = keyName; 
+		this.scan = scan;
+		container = Util.getGroupContainer(keyName, funcSet);
+		scan.beforeFirst();
+		while(scan.next()) {
+			container.update(scan);
+		}
+		container.finish();
+	}
 	@Override
 	public void beforeFirst() {
-        scan.beforeFirst();
+		container.beforeFirst();
+		scan.beforeFirst();
 	}
 
 	@Override
 	public boolean next() {
-		while(scan.next()) {
-			env.beginScope();
-			for(String column: usefulColumn) {
-				if (scan.hasColumn(column))
-					env.putValue(column, scan.getColumn(column));
-				else if (scan.getFunctionValue(column) != null)
-					env.putValue(column, scan.getFunctionValue(column));
+		if (container.next()) {
+			while(scan.next()) {
+				DataEntity keyValue = scan.getColumn(keyName);
+				if ( keyValue.toString().equals(container.getKeyValue().toString())
+						&& !keyValue.isNull() )
+					break;
 			}
-			if (pred.satisfiedBy(env))
-				return true;
-			env.endScope();
+			return true;
 		}
 		return false;
 	}
 
 	@Override
 	public DataEntity getField(String fldname) {
+		if (keyName.equals(fldname) || Util.hasField(keyName, fldname))
+			return container.getKeyValue();
 		return scan.getField(fldname);
 	}
 
 	@Override
 	public boolean hasField(String fldname) {
+		if (keyName.equals(fldname) || Util.hasField(keyName, fldname))
+			return true;
 		return scan.hasField(fldname);
+
+	}
+
+	@Override
+	public DataEntity getColumn(String colname) {
+		return scan.getColumn(colname);
 	}
 
 	@Override
@@ -65,12 +72,14 @@ public class SelectScan implements Scan{
 
 	@Override
 	public Collection<String> fields() {
-		return scan.fields();
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public Collection<String> columns() {
-		return scan.columns();
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
@@ -81,11 +90,6 @@ public class SelectScan implements Scan{
 	@Override
 	public int getNumberOfColumns() {
 		return scan.getNumberOfColumns();
-	}
-
-	@Override
-	public DataEntity getColumn(String colname) {
-		return scan.getColumn(colname);
 	}
 
 	@Override
@@ -105,25 +109,26 @@ public class SelectScan implements Scan{
 
 	@Override
 	public String fieldName(int index) {
-		return fieldName(index);
+		return scan.fieldName(index);
 	}
 
 	@Override
 	public String columnName(int index) {
-		return columnName(index);
+		return scan.columnName(index);
 	}
 
 	@Override
 	public RecordFile getRecordFile() {
-		return scan.getRecordFile();
+		return null;
 	}
 
 	@Override
 	public DataEntity getFunctionValue(String func) {
-		return scan.getFunctionValue(func);
+		return container.getFunctionValue(func);
 	}
-	
+
+	@Override
 	public boolean hasFunctionValue(String func) {
-		return scan.hasFunctionValue(func);
-	}		
+		return funcSet.contains(func);
+	}
 }

@@ -58,4 +58,14 @@ public abstract class DataEntity
         }
         return ret;
     }
+    
+    public boolean equals(Object o) {
+    	if (o == null)
+    		return false;
+    	return this.toString().equals(o.toString());
+    }
+    
+    public int hashCode() {
+    	return this.toString().hashCode();
+    }
 }

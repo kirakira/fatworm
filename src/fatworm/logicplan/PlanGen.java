@@ -15,6 +15,7 @@ import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 
 import fatworm.absyn.*;
+import fatworm.dataentity.DataEntity;
 import fatworm.parser.FatwormLexer;
 import fatworm.parser.FatwormParser;
 import fatworm.plantree.*;
@@ -265,13 +266,14 @@ public class PlanGen {
 		if (text.startsWith("ConstValue")) {
 			return getValue((CommonTree)tree.getChild(0));
 		}
-		if (regx.indexOf(text) != -1){
+		String root = tree.getText();
+		if (root != null && "-+/%*".indexOf(root) != -1){
 			/**
 			 * a operator and two operands
 			 */
 			Value left = getValue((CommonTree)tree.getChild(0));
 			Value right = getValue((CommonTree)tree.getChild(1));
-			return new OpValue(text, left, right);
+			return new OpValue(root, left, right);
 		}
 		if (text.startsWith("ColumnName")){
 			ColName colName;
@@ -410,8 +412,10 @@ public class PlanGen {
 			}
 			for (int j = 0; j < columnDefList.size(); j++){
 				ColumnDef c = columnDefList.get(j);
-				System.out.println(c.toString());
-				schema.addField(c.colName, c.type, c.length, c.isNotNull, c.autoIncrement, c.primary, c.getDefaultDataEntity());
+				DataEntity defaultValue = null;
+				if(c.defaultValue != null)
+					defaultValue = c.defaultValue.getValue(null);
+				schema.addField(c.colName, c.type, c.length, c.isNotNull, c.autoIncrement, c.primary, defaultValue);
 			}
 			current = new CreateTable(tableName,schema);
 		}

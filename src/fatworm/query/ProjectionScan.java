@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+
 import fatworm.absyn.ProjectionAllColumnValue;
 import fatworm.absyn.ProjectionRenameValue;
 import fatworm.absyn.ProjectionSimpleValue;
@@ -25,9 +26,9 @@ public class ProjectionScan implements Scan {
     List<ProjectionValue> projections;
     List<Set<String>> usefulColumnList;
     Map<String, DataEntity> oneGroupFunctionValue;
-    Map<String, Integer> oneGroupFunctionType;
+
     int[] typeArray;
-    boolean iterTable = false;
+    boolean iterTable = true;
     boolean startOne = true;
     int width;
     Env env;
@@ -40,7 +41,6 @@ public class ProjectionScan implements Scan {
         for (ProjectionValue projection: projections) {
         	usefulColumnList.add(projection.dumpUsefulColumns());
         	if (projection instanceof ProjectionAllColumnValue) {
-        		iterTable = true;
         		width += scan.getNumberOfColumns();
         	}
         	else 
@@ -53,14 +53,13 @@ public class ProjectionScan implements Scan {
 	        Iterator<String> iter = usefulColumn.iterator();
 	        while (iter.hasNext()) {
 	            String column = iter.next();
-	        	if (!scan.hasColumn(column))
+	        	if (Util.isFunction(column) && !scan.hasFunctionValue((column)) ) {
 	                oneGroupFunction.add(column);
-	        	else {
-	        		iterTable = true;
+	                iterTable = false;
 	        	}
 	        }
         }
-        oneGroupFunctionType = new HashMap<String, Integer>();
+        //oneGroupFunctionType = new HashMap<String, Integer>();
         oneGroupFunctionValue = new HashMap<String, DataEntity>();
         for (String s: oneGroupFunction) {
             oneGroupFunctionValue.put(s, calcFunction(s,scan));
@@ -68,12 +67,21 @@ public class ProjectionScan implements Scan {
         calcType();
     }
     
+    int calcType(String func, int varType) {
+    	func = Util.getFuncName(func).toUpperCase();
+    	if (func.startsWith("COUNT"))
+    		return java.sql.Types.INTEGER;
+    	else if (func.startsWith("AVG"))
+    		return java.sql.Types.FLOAT;
+    	else return varType;
+    }
+    
     DataEntity calcFunction(String s, Scan scan) {
     	String column = Util.getFuncVariable(s);
     	String func = Util.getFuncName(s);
     	scan.beforeFirst();
     	if (func.compareToIgnoreCase("COUNT") == 0) {
-    		oneGroupFunctionType.put(s, new Integer(java.sql.Types.INTEGER));
+    		//oneGroupFunctionType.put(s, new Integer(java.sql.Types.INTEGER));
     		int count = 0;
     		while(scan.next()) {
     			if (!scan.getColumn(column).isNull())
@@ -82,30 +90,30 @@ public class ProjectionScan implements Scan {
     		return new Int(count);
     	}
     	else if (func.compareToIgnoreCase("AVG") == 0) { 
-    		oneGroupFunctionType.put(s, new Integer(java.sql.Types.FLOAT));
+    		//oneGroupFunctionType.put(s, new Integer(java.sql.Types.FLOAT));
     		int count = 0;
     		Float sum = new Float(0);    		    		
     		while(scan.next()) {
     			DataEntity entry = scan.getColumn(column); 
     			if (!entry.isNull()) {
     				count++;
-    				sum.opWith(entry, "+");
+    				sum = (Float) sum.opWith(entry, "+");
     			}
     		}
     		if (count > 0)
     			return sum.opWith(new Int(count), "/");
     	}
     	else {
-    		oneGroupFunctionType.put(s, new Integer(scan.type(column)));
-    		DataEntity result = null;
+    		//oneGroupFunctionType.put(s, new Integer(scan.type(column)));
+    		DataEntity result = new NullDataEntity();
     		if (func.compareToIgnoreCase("SUM") == 0) {
 	    		while(scan.next()) {
 	    			DataEntity entry = scan.getColumn(column); 
 	    			if (!entry.isNull()) {
-	    				if (result == null)
+	    				if (result.isNull())
 	    					result = entry;
 	    				else 
-	    					result.opWith(entry, "+");
+	    					result = result.opWith(entry, "+");
 	    			}
 	    		}
 	    	}
@@ -113,7 +121,7 @@ public class ProjectionScan implements Scan {
 	    		while(scan.next()) {
 	    			DataEntity entry = scan.getColumn(column); 
 	    			if (!entry.isNull()) {
-	    				if (result == null)
+	    				if (result.isNull())
 	    					result = entry;
 	    				else if (result.compareTo(entry) < 0)
 	    					result = entry;
@@ -124,7 +132,7 @@ public class ProjectionScan implements Scan {
 	    		while(scan.next()) {
 	    			DataEntity entry = scan.getColumn(column); 
 	    			if (!entry.isNull()) {
-	    				if (result == null)
+	    				if (result.isNull())
 	    					result = entry;
 	    				else if (result.compareTo(entry) > 0)
 	    					result = entry;
@@ -136,7 +144,7 @@ public class ProjectionScan implements Scan {
     		else 
     			return result;
     	}
-    	return null;
+    	return new NullDataEntity();
     }
 	@Override
 	public void beforeFirst() {
@@ -169,8 +177,12 @@ public class ProjectionScan implements Scan {
 					for (String colname: usefulColumnList.get(i)) {
 						if (oneGroupFunctionValue.get(colname) != null)
 							env.putValue(colname, oneGroupFunctionValue.get(colname));
-						else 
-							env.putValue(colname, scan.getColumn(colname));
+						else {
+							if (Util.isFunction(colname))
+								env.putValue(colname, scan.getFunctionValue(colname));
+							else 
+								env.putValue(colname, scan.getColumn(colname));
+						}
 					}
 					result = proj.getValue(env);
 					env.endScope();
@@ -182,8 +194,12 @@ public class ProjectionScan implements Scan {
 					for (String colname: usefulColumnList.get(i)) {
 						if (oneGroupFunctionValue.get(colname) != null)
 							env.putValue(colname, oneGroupFunctionValue.get(colname));
-						else 
-							env.putValue(colname, scan.getColumn(colname));
+						else {
+							if (Util.isFunction(colname))
+								env.putValue(colname, scan.getFunctionValue(colname));
+							else 
+								env.putValue(colname, scan.getColumn(colname));
+						}
 					}
 					result = proj.getValue(env);
 					env.endScope();
@@ -199,13 +215,31 @@ public class ProjectionScan implements Scan {
 	}
 	@Override
 	public boolean hasField(String fldname) {
-		return getField(fldname) != null;
+		for (ProjectionValue proj: projections) {
+			if (proj instanceof ProjectionSimpleValue) {
+				if (Util.hasField(proj.toString(), fldname)) {
+					return true;
+				}
+			}
+			if (proj instanceof ProjectionRenameValue) {
+				if (((ProjectionRenameValue)proj).getAlias().equals(fldname)) {
+					return true;
+				}
+			}
+			if (proj instanceof ProjectionAllColumnValue) {
+				if (scan.hasField(fldname))
+					return true;
+			}
+		}
+		return false;		
 	}
 	
 	@Override
 	public DataEntity getColumn(String colname) {
-		if (Util.isFieldSuffix(colname)) // it may not be reached, just for care.
-			return getField(Util.getColumnFieldName(colname));
+		if (Util.isFieldSuffix(colname)) {
+			return scan.getColumn(colname);
+			//(Util.getColumnFieldName(colname));
+		}
 		else if (Util.isSimpleColumn(colname)) {
 			return getField(colname);
 		}
@@ -214,7 +248,14 @@ public class ProjectionScan implements Scan {
 	
 	@Override
 	public boolean hasColumn(String colname) {
-		return getColumn(colname) != null;
+		if (Util.isFieldSuffix(colname)) {
+			return scan.hasColumn(colname);
+			//return hasField(Util.getColumnFieldName(colname));
+		}
+		else if (Util.isSimpleColumn(colname)) {
+			return hasField(colname);
+		}
+		return false;
 	}
 	
 	@Override
@@ -235,7 +276,7 @@ public class ProjectionScan implements Scan {
 				if (scan.getNumberOfColumns() <=index )
 					index -= scan.getNumberOfColumns();
 				else 
-					scan.getColumnByIndex(index);
+					return scan.getColumnByIndex(index);
 			}
 			else {
 				if(index == 0) {
@@ -243,8 +284,12 @@ public class ProjectionScan implements Scan {
 					for (String colname: usefulColumnList.get(i)) {
 						if (oneGroupFunctionValue.get(colname) != null)
 							env.putValue(colname, oneGroupFunctionValue.get(colname));
-						else 
-							env.putValue(colname, scan.getColumn(colname));
+						else {
+							if (Util.isFunction(colname))
+								env.putValue(colname, scan.getFunctionValue(colname));
+							else 
+								env.putValue(colname, scan.getColumn(colname));
+						}
 					}
 					DataEntity result = proj.getValue(env);
 					env.endScope();
@@ -327,10 +372,14 @@ public class ProjectionScan implements Scan {
 				continue;
 			Map<String, Integer> typemap = new HashMap<String, Integer>();
 			for (String column: usefulColumnList.get(i)) {
-				if (oneGroupFunctionType.get(column) != null)
-					typemap.put(column, oneGroupFunctionType.get(column));
-				else 
+				if (Util.isFunction(column)) {
+					typemap.put(column, calcType(column, scan.type(Util.getFuncVariable(column))));
+				}
+//				if (oneGroupFunctionType.get(column) != null)
+//					typemap.put(column, oneGroupFunctionType.get(column));
+				else {
 					typemap.put(column, new Integer(scan.type(column)));
+				}
 			}
 			typeArray[i] = proj.getType(typemap);
 			i++;
@@ -393,7 +442,16 @@ public class ProjectionScan implements Scan {
 
 	@Override
 	public RecordFile getRecordFile() {
-		// TODO Auto-generated method stub
 		return null;
 	}
+
+	@Override
+	public DataEntity getFunctionValue(String func) {
+		return scan.getFunctionValue(func);
+	}
+	
+	
+	public boolean hasFunctionValue(String func) {
+		return scan.hasFunctionValue(func);
+	}		
 }

@@ -151,6 +151,13 @@ public class JoinScan implements Scan{
 	public RecordFile getRecordFile() {
 		return null;
 	}
-	
+	@Override
+	public DataEntity getFunctionValue(String func) {
+		// no function could be produced by join
+		return null;
+	}
+	public boolean hasFunctionValue(String func) {
+		return false;
+	}	
 	
 }

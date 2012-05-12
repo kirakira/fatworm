@@ -116,6 +116,15 @@ public class TableScan implements Scan{
 	public RecordFile getRecordFile() {
 		return iter;
 	}
+
+	@Override
+	public DataEntity getFunctionValue(String func) {
+		// no function from table;
+		return null;
+	}
 	
+	public boolean hasFunctionValue(String func) {
+		return false;
+	}	
 	
 }

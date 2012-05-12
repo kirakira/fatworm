@@ -3,8 +3,6 @@ package fatworm.query;
 import java.util.ArrayList;
 import java.util.List;
 
-import fatworm.absyn.BoolExpr;
-import fatworm.util.Util;
 
 public class JoinPlan extends QueryPlan{
     List<QueryPlan> planList;
