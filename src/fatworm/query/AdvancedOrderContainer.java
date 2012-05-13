@@ -62,18 +62,32 @@ public class AdvancedOrderContainer extends OrderContainer {
                 ArrayList<Object> occupy1 = new ArrayList<Object>();
                 byte[] occupy2 = new byte[4096 * 10];
 
+                boolean read = false;
                 try {
                     while (limit == -1 || count < limit) {
+                        read = false;
                         if (scan.next()) {
+                            read = true;
                             add(scan);
                             occupy1.add(null);
                             ++count;
                         } else {
+                            read = true;
                             end = true;
                             break;
                         }
                     }
                 } catch (OutOfMemoryError e) {
+                    if (read == false)
+                        fail = true;
+                }
+
+                if (fail) {
+                    table = null;
+                    occupy1 = null;
+                    occupy2 = null;
+                    System.out.println("Wan tuo le");
+                    break;
                 }
 
                 occupy1 = null;
