@@ -40,11 +40,7 @@ public class UpdateCommand extends Command{
 			result.put(assign.getKey(), assign.getValue().getValue(env).toType(schema.type(assign.getKey())));
 		}
 		env.endScope();
-		try {
-			rf.update(result);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		rf.update(result);
 	}
 	
 	public void execute() {

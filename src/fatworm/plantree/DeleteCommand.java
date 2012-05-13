@@ -19,11 +19,7 @@ public class DeleteCommand extends Command{
 	public BoolExpr condition;
 
 	void delete(RecordFile rf)  {
-		try {
-			rf.delete();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		rf.delete();
 	}
 	
 	public void execute() {

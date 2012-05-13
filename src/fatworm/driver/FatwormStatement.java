@@ -65,7 +65,7 @@ public class FatwormStatement implements Statement {
 			e.printStackTrace();
 			return false;
 		}
-		return true;
+		return result != null;
 	}
 
 	@Override
