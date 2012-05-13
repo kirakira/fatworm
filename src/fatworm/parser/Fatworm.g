@@ -152,10 +152,10 @@ column_description
 data_type
     : INT -> INT
     | FLOAT -> FLOAT
+    | TIMESTAMP -> TIMESTAMP
     | CHAR '(' INTEGER_LITERAL ')' -> ^(Char INTEGER_LITERAL)
     | VARCHAR '(' INTEGER_LITERAL ')' -> ^(VarChar INTEGER_LITERAL)
     | DATETIME -> DATETIME
-    | TIMESTAMP -> TIMESTAMP
     | BOOLEAN -> BOOLEAN
     | DECIMAL '(' INTEGER_LITERAL ')' -> ^(Decimal INTEGER_LITERAL)
     | decimal_with_point
@@ -338,13 +338,13 @@ atom_value
 
 const_value
     :INTEGER_LITERAL -> ^(ConstInt INTEGER_LITERAL)
-    |STRING_LITERAL -> ^(ConstString STRING_LITERAL)
-    |FLOATING_POINT_LITERAL -> ^(ConstFloat FLOATING_POINT_LITERAL)
     |TIMESTAMP_LITERAL -> ^(ConstTimeStamp TIMESTAMP_LITERAL)
+    |FLOATING_POINT_LITERAL -> ^(ConstFloat FLOATING_POINT_LITERAL)
     |TRUE -> ^(ConstBoolean TRUE)
     |FALSE -> ^(ConstBoolean FALSE)
     |NULL -> ^(ConstNull NULL)
     |DEFAULT -> ^(ConstDefault DEFAULT)
+    |STRING_LITERAL -> ^(ConstString STRING_LITERAL)
     ;
 
 
@@ -508,7 +508,7 @@ fragment Z
 
        
 TIMESTAMP_LITERAL
-    :   '\'' DIGIT DIGIT DIGIT DIGIT'-'DIGIT DIGIT'-'DIGIT DIGIT DIGIT DIGIT ':' DIGIT DIGIT '\'';
+    :   '\'' DIGIT DIGIT DIGIT DIGIT '-'  DIGIT DIGIT '-' DIGIT DIGIT ' ' DIGIT DIGIT ':' DIGIT DIGIT ':' DIGIT DIGIT'\'';
 
 fragment
 DIGIT
