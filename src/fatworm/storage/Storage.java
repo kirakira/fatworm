@@ -20,15 +20,22 @@ public class Storage implements StorageManagerInterface {
     private static Storage instance = null;
 
     private Storage() {
-        File f = new File(fileName(tempDBName, false));
+    }
 
-        try {
-            if (f.exists())
-                f.delete();
-            tempDB = new Database(fileName(tempDBName, false));
-        } catch (java.io.IOException e) {
-            e.printStackTrace();
-            System.exit(-1);
+    private Database tempDB() {
+        if (tempDB != null)
+            return tempDB;
+        else {
+            File f = new File(fileName(tempDBName, false));
+
+            try {
+                if (f.exists())
+                    f.delete();
+                tempDB = new Database(fileName(tempDBName, false));
+                return tempDB;
+            } catch (java.io.IOException e) {
+                return null;
+            }
         }
     }
 
