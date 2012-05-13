@@ -8,6 +8,7 @@ import java.util.Map;
 
 import fatworm.absyn.ConstDefault;
 import fatworm.absyn.ConstValue;
+import fatworm.absyn.Value;
 import fatworm.dataentity.DataEntity;
 import fatworm.record.Schema;
 
@@ -17,12 +18,12 @@ public class SimpleInsert extends InsertCommand {
 		super(name);
 		// TODO Auto-generated constructor stub
 	}
-	public ArrayList<ConstValue> values;
+	public ArrayList<Value> values;
 	@Override
 	public Map<String, DataEntity> getTupleMap(Schema schema) {
 		Map<String, DataEntity> result = new HashMap<String, DataEntity>();
 		for(int i = 0; i < values.size(); i++) {
-			ConstValue value = values.get(i);
+			Value value = values.get(i);
 			if (value instanceof ConstDefault) {
 				continue;
 			}

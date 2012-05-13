@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import fatworm.absyn.ConstValue;
+import fatworm.absyn.Value;
 import fatworm.dataentity.DataEntity;
 import fatworm.record.Schema;
 
@@ -14,11 +15,11 @@ public class FieldInsert extends InsertCommand {
 		super(name);
 		// TODO Auto-generated constructor stub
 	}
-	public Map<String, ConstValue> assigns = new HashMap<String, ConstValue>();
+	public Map<String, Value> assigns = new HashMap<String, Value>();
 	@Override
 	public Map<String, DataEntity> getTupleMap(Schema schema) {
 		Map<String, DataEntity> result = new HashMap<String, DataEntity>();
-		for(Entry<String, ConstValue> assign: assigns.entrySet()) {
+		for(Entry<String, Value> assign: assigns.entrySet()) {
 			result.put(assign.getKey(), assign.getValue().getValue(null).toType(schema.type(assign.getKey())));
 		}
 		return result;

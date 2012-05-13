@@ -9,6 +9,7 @@ options {
 }
 
 tokens {
+    Unary;
     ConstValue;
     Distinct;
     QueryValue;
@@ -165,7 +166,7 @@ decimal_with_point
     ;
 
 insert_stmt
-    : INSERT INTO IDENTIFIER VALUES'(' value_list')' -> ^(InsertStmt IDENTIFIER value_list)
+    : INSERT INTO IDENTIFIER VALUES '(' value_list ')' -> ^(InsertStmt IDENTIFIER value_list)
     | INSERT INTO IDENTIFIER '(' col_name_list ')' VALUES '(' value_list ')' -> ^(InsertStmt IDENTIFIER col_name_list value_list)
     | INSERT INTO IDENTIFIER '(' query ')' -> ^(InsertStmt IDENTIFIER query) 
     ;
@@ -175,7 +176,7 @@ col_name_list
 	;
 	
 value_list
-    : value  (',' value )* -> ^(ValueList value+)
+    : value  ( ',' value )* -> ^(ValueList value+)
     ;
 
 id_list
@@ -250,10 +251,10 @@ select_expr
     ;
 
 func
-    : AVG
-    | COUNT
-    | MIN
-    | MAX
+    : AVG 
+    | COUNT 
+    | MIN 
+    | MAX 
     | SUM
     ;
 
@@ -319,15 +320,20 @@ value
     ;
         
 mult_value
-    : atom_value (('*'|'/'|'%')^ atom_value)*
+    : unary_value (('*'|'/'|'%')^ unary_value)*
+    ;
+
+unary_value
+    : '-' atom_value -> ^(Unary atom_value)
+    | atom_value
     ;
 
 atom_value
-    : '(' value ')' -> value
+    :'(' value ')' -> value
     | col_name -> col_name
     | const_value -> ^(ConstValue const_value)
     | '(' query ')' -> ^(QueryValue query)
-    | func '(' col_name ')' -> ^(Func ^(func) col_name)
+    | func  col_name ')' -> ^(Func ^(func) col_name)
     ;
 
 const_value
@@ -421,15 +427,15 @@ DESC :
 AS :
         A S;
 AVG :
-        A V G;
+        A V G '(';
 COUNT :
-        C O U N T ;
+        C O U N T '(';
 MIN :
-        M I N;
+        M I N '(';
 MAX :
-        M A X;
+        M A X '(';
 SUM :
-        S U M;
+        S U M '(';
 AND :
         A N D;
 OR :
@@ -508,7 +514,9 @@ fragment
 DIGIT
     :('0'..'9');
 
-INTEGER_LITERAL : ('-')? ('0' | '1'..'9' ('0'..'9')*);
+//INTEGER_LITERAL : ('0' | '1'..'9' ('0'..'9')*);
+INTEGER_LITERAL : ('0'..'9')+;
+
 
 
 // STRING_LITERAL

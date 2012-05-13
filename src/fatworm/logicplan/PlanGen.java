@@ -296,6 +296,11 @@ public class PlanGen {
 			Value right = getValue((CommonTree)tree.getChild(1));
 			return new OpValue(root, left, right);
 		}
+		if (root != null && root.startsWith("Unary")) {
+			Value left = new ConstInt("0");
+			Value right = getValue((CommonTree)tree.getChild(0));
+			return new OpValue("-", left, right);
+		}
 		if (text.startsWith("ColumnName")){
 			ColName colName;
 			CommonTree temp = (CommonTree)tree.getChild(0);
@@ -451,7 +456,7 @@ public class PlanGen {
 		}
 		if (t.getText().startsWith("InsertStmt")){
 			String tableName = t.getChild(0).getText();
-			ArrayList<ConstValue> valueList = null;
+			ArrayList<Value> valueList = null;
 			LinkedList<ColName> colNameList = null;
 			Node query = null;
 			for (int i = 1; i < t.getChildCount(); i++){
@@ -474,10 +479,10 @@ public class PlanGen {
 					continue;
 				}
 				if (tree.getText().startsWith("ValueList")){
-					valueList = new ArrayList<ConstValue>();
+					valueList = new ArrayList<Value>();
 					for (int j = 0; j < tree.getChildCount(); j++){
 						Value value = getValue((CommonTree)tree.getChild(j));
-						valueList.add((ConstValue)value);
+						valueList.add((Value)value);
 					}
 					continue;
 				}
@@ -486,7 +491,7 @@ public class PlanGen {
 				//FieldInsert
 				FieldInsert fieldInsert = new FieldInsert(tableName);
 				for (int i = 0; i < colNameList.size(); i++){
-					fieldInsert.assigns.put(colNameList.get(i).toString(), (ConstValue)valueList.get(i));
+					fieldInsert.assigns.put(colNameList.get(i).toString(), (Value)valueList.get(i));
 				}
 				current = fieldInsert;
 			} else 

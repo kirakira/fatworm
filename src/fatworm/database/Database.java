@@ -69,10 +69,11 @@ public class Database {
     			buffer = reader.readLine();
     			continue;
     		}
-    		if (buffer.startsWith(";"))
+    		if (buffer.startsWith(";")){
+    			String state = sql.toString();
+    			sql = new StringBuffer();	    			
 	    		try {
-	    			String state = sql.toString();
-	    			sql = new StringBuffer();	    			
+
 		    		Scan result = database.execute(state);
 		    		if(result != null) {
 		    			int width = result.getNumberOfColumns();
@@ -86,7 +87,9 @@ public class Database {
 		    		}
 	    		} catch(Exception e) {
 	    			e.printStackTrace();
+	    			System.err.println(state);
 	    		}
+    		}
     		else {
     			sql.append(buffer);
     			sql.append(" ");
