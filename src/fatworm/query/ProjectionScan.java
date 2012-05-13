@@ -359,7 +359,7 @@ public class ProjectionScan implements Scan {
 				}
 				if (proj instanceof ProjectionAllColumnValue) {
 					if (scan.hasColumn(column)) {
-						result = count + scan.indexOfField(column);
+						result = count + scan.indexOfColumn(column);
 						return result;
 					}
 					else 

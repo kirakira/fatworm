@@ -111,8 +111,7 @@ public class DistinctScan implements Scan {
 	}
 	@Override
 	public int indexOfColumn(String column) {
-		// TODO Auto-generated method stub
-		return 0;
+		return scan.indexOfColumn(column);
 	}
 	@Override
 	public DataEntity getOrderKey(String key) {

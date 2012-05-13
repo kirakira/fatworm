@@ -128,7 +128,7 @@ public class JoinScan implements Scan{
 	
 	@Override
 	public int type(String colname) {
-		return type(indexOfField(colname));
+		return type(indexOfColumn(colname));
 	}
 	@Override
 	public int type(int index) {

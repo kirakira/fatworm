@@ -15,6 +15,7 @@ import org.antlr.runtime.tree.CommonTreeNodeStream;
 
 import fatworm.absyn.*;
 import fatworm.dataentity.DataEntity;
+import fatworm.dataentity.NullDataEntity;
 import fatworm.parser.FatwormLexer;
 import fatworm.parser.FatwormParser;
 import fatworm.plantree.*;
@@ -447,7 +448,7 @@ public class PlanGen {
 			}
 			for (int j = 0; j < columnDefList.size(); j++){
 				ColumnDef c = columnDefList.get(j);
-				DataEntity defaultValue = null;
+				DataEntity defaultValue = new NullDataEntity();
 				if(c.defaultValue != null)
 					defaultValue = c.defaultValue.getValue(null);
 				schema.addField(c.colName, c.type, c.length, c.isNotNull, c.autoIncrement, c.primary, defaultValue.toType(c.type));
