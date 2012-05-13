@@ -450,7 +450,7 @@ public class PlanGen {
 				DataEntity defaultValue = null;
 				if(c.defaultValue != null)
 					defaultValue = c.defaultValue.getValue(null);
-				schema.addField(c.colName, c.type, c.length, c.isNotNull, c.autoIncrement, c.primary, defaultValue);
+				schema.addField(c.colName, c.type, c.length, c.isNotNull, c.autoIncrement, c.primary, defaultValue.toType(c.type));
 			}
 			current = new CreateTable(tableName,schema);
 		}

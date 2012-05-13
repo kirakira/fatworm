@@ -30,6 +30,7 @@ public class FatwormResultSet implements java.sql.ResultSet {
 	ResultSetMetaData metadata;
 	public FatwormResultSet(Scan result) {
 		this.result = result;
+		result.beforeFirst();
 		metadata = new FatwormResultSetMetaData(result);
 	}
 
