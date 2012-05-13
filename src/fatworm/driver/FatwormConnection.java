@@ -16,6 +16,7 @@ import java.sql.Statement;
 import java.sql.Struct;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.Executor;
 
 import fatworm.database.Database;
 
@@ -328,8 +329,20 @@ public class FatwormConnection implements java.sql.Connection {
 		
 	}
 	
-	public int getNetworkTimeOut() throws SQLException {
+	public int getNetworkTimeout() throws SQLException {
 		return 0;
 	}
 
+    public void setNetworkTimeout(Executor e, int milli) throws SQLException {
+    }
+
+    public void abort(Executor e) throws SQLException {
+    }
+
+    public String getSchema() throws SQLException {
+        return null;
+    }
+
+    public void setSchema(String schema) throws SQLException {
+    }
 }

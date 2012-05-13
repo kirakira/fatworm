@@ -3,6 +3,8 @@ package fatworm.driver;
 import java.sql.Connection;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+import java.util.logging.Logger;
 import java.util.Properties;
 
 import fatworm.database.Database;
@@ -53,4 +55,7 @@ public class Driver implements java.sql.Driver {
 		return true;
 	}
 
+    public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+        return null;
+    }
 }

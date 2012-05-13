@@ -1228,7 +1228,8 @@ public class FatwormResultSet implements java.sql.ResultSet {
 		return null;
 		
 	}
-	
-	
 
+    public <T> T getObject(int columnIndex, Class<T> type) throws SQLException {
+        return null;
+    }
 }
