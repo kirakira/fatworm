@@ -3,7 +3,7 @@ JC = javac -d bin/ -cp bin:lib/antlr-3.4-complete.jar
 
 .PHONY: init parser base dataentity schema storage all
 
-all: init
+all: parser
 	find src -name "*.java"  > sources.txt
 	$(JC) @sources.txt
 

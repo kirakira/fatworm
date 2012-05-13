@@ -20,8 +20,10 @@ public class Schema {
             return false;
         if (autoIncrement && type != INTEGER)
             return false;
-        if (defaultValue == null)
+        if (defaultValue == null || defaultValue.isNull())
             defaultValue = new NullDataEntity();
+        else if (type != defaultValue.type())
+            return false;
         info.add(new FieldInfo(fldname, type, length, notNull, autoIncrement, primaryKey, defaultValue));
         return true;
     }

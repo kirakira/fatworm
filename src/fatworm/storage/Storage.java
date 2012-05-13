@@ -10,7 +10,7 @@ import java.util.HashMap;
 
 public class Storage implements StorageManagerInterface {
     private Database current = null, tempDB = null;
-    private static String tempDBName = "~TEMP";
+    private static String tempDBName = "TEMP";
     private String currentName = "";
     private Map<String, Database> map = new HashMap<String, Database>();
     private String path = "test" + java.io.File.separator;
@@ -20,12 +20,12 @@ public class Storage implements StorageManagerInterface {
     private static Storage instance = null;
 
     private Storage() {
-        File f = new File(fileName(tempDBName));
+        File f = new File(fileName(tempDBName, false));
 
         try {
             if (f.exists())
                 f.delete();
-            tempDB = new Database(fileName(tempDBName));
+            tempDB = new Database(fileName(tempDBName, false));
         } catch (java.io.IOException e) {
             e.printStackTrace();
             System.exit(-1);
@@ -39,7 +39,14 @@ public class Storage implements StorageManagerInterface {
     }
 
     private String fileName(String dbName) {
-        return path + dbName + ".db";
+        return fileName(dbName, true);
+    }
+
+    private String fileName(String dbName, boolean suffix) {
+        if (suffix)
+            return path + dbName + ".db";
+        else
+            return path + dbName;
     }
 
     public boolean createDatabase(String name) {
