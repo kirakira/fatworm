@@ -7,7 +7,7 @@ import fatworm.dataentity.DataEntity;
 import fatworm.query.Env;
 
 public class ProjectionValue {
-	Value val;
+	public Value val;
 	ProjectionValue(Value val){
 		this.val = val;
 	}

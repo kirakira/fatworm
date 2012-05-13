@@ -51,8 +51,10 @@ public class VarChar extends DataEntity {
 	public DataEntity toType(int type) {
 		if (type == java.sql.Types.CHAR)
 			return new FixChar(value, value.length());
-		else if (type == java.sql.Types.TIMESTAMP) 
-			return new TimeStamp(java.sql.Timestamp.valueOf(value));
+		else if (type == java.sql.Types.TIMESTAMP) {
+			return new TimeStamp(java.sql.Timestamp.valueOf(value.replaceAll("'", "")));
+			
+		}
 		return this;
 	}
 

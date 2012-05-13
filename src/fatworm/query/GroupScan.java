@@ -34,6 +34,8 @@ public class GroupScan implements Scan {
 	@Override
 	public boolean next() {
 		if (container.next()) {
+			//dirty hack, will be slow;
+			scan.beforeFirst();
 			while(scan.next()) {
 				DataEntity keyValue = scan.getColumn(keyName);
 				if ( keyValue.toString().equals(container.getKeyValue().toString())

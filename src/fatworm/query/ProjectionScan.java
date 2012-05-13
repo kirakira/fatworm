@@ -28,7 +28,7 @@ public class ProjectionScan implements Scan {
     Map<String, DataEntity> oneGroupFunctionValue;
 
     int[] typeArray;
-    boolean iterTable = true;
+    boolean iterTable = false;
     boolean startOne = true;
     int width;
     Env env;
@@ -39,9 +39,13 @@ public class ProjectionScan implements Scan {
         typeArray = new int[projections.size()];
         usefulColumnList = new ArrayList<Set<String>>();
         for (ProjectionValue projection: projections) {
-        	usefulColumnList.add(projection.dumpUsefulColumns());
+        	Set<String> useful = projection.dumpUsefulColumns();
+        	if (useful.size() > 0)
+        		iterTable = true;
+        	usefulColumnList.add(useful);
         	if (projection instanceof ProjectionAllColumnValue) {
         		width += scan.getNumberOfColumns();
+        		iterTable = true;
         	}
         	else 
         		width++;
@@ -150,15 +154,17 @@ public class ProjectionScan implements Scan {
 	public void beforeFirst() {
 		if (iterTable)
 			scan.beforeFirst();
-		else 
+		else {
 			startOne = true;
+			scan.beforeFirst();
+		}
 	}
 	@Override
 	public boolean next() {
 		if (iterTable)
 			return scan.next();
 		else { 
-			if (startOne) {
+			if (startOne && scan.next()) {
 				startOne = false;
 				return true;
 			}
@@ -342,7 +348,7 @@ public class ProjectionScan implements Scan {
 		if (Util.isFieldSuffix(column)) {
 			for (ProjectionValue proj: projections) {
 				if (proj instanceof ProjectionSimpleValue) {
-					if (proj.toString().equals(column)) {
+					if (proj.val.toString().equals(column)) {
 						result = count;
 						return result;
 					}

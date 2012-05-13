@@ -56,7 +56,7 @@ public class ColumnDef {
 		}
 		if (dataType.startsWith("DATETIME")){
 			length = 8;
-			type = java.sql.Types.DATE;
+			type = java.sql.Types.TIMESTAMP;
 		}
 		if (dataType.startsWith("TIMESTAMP")){
 			length = 8;

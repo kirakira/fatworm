@@ -27,20 +27,23 @@ public class BasicQueryPlanner implements QueryPlanner {
 
 	@Override
 	public QueryPlan createQueryPlan(Node query) {
+		if (query == null)
+			return null;
+		Node firstchild = query.childList.size() > 0? query.childList.getFirst() : null;
 		if (query instanceof Distinct) {
-			return new DistinctPlan(createQueryPlan(query.childList.getFirst()));
+			return new DistinctPlan(createQueryPlan(firstchild));
 		}
 		else if (query instanceof OrderBy) {
-			return new OrderPlan(createQueryPlan(query.childList.getFirst()), ((OrderBy)query).colNameList);
+			return new OrderPlan(createQueryPlan(firstchild), ((OrderBy)query).colNameList);
 		}
 		else if (query instanceof Projection) {
-			return new ProjectionPlan(createQueryPlan(query.childList.getFirst()), ((Projection)query).valList);
+			return new ProjectionPlan(createQueryPlan(firstchild), ((Projection)query).valList);
 		}
 		else if (query instanceof Select) {
-			return new SelectPlan(createQueryPlan(query.childList.getFirst()), ((Select) query).boolValue);
+			return new SelectPlan(createQueryPlan(firstchild), ((Select) query).boolValue);
 		}
 		else if (query instanceof GroupBy) {
-			return new GroupPlan(createQueryPlan(query.childList.getFirst()), ((GroupBy) query).colName.toString());
+			return new GroupPlan(createQueryPlan(firstchild), ((GroupBy) query).colName.toString());
 		}
 		else if (query instanceof Join) {
 			List<QueryPlan>  joinlist = new ArrayList<QueryPlan>();
@@ -50,7 +53,7 @@ public class BasicQueryPlanner implements QueryPlanner {
 			return new JoinPlan(joinlist);
 		}
 		else if (query instanceof Rename) {
-			return new RenamePlan(createQueryPlan(query.childList.getFirst()), ((Rename)query).alias);
+			return new RenamePlan(createQueryPlan(firstchild), ((Rename)query).alias);
 		} 
 		else if (query instanceof Table) {
 			return new TablePlan(((Table) query).name);
@@ -60,20 +63,23 @@ public class BasicQueryPlanner implements QueryPlanner {
 
 	@Override
 	public QueryPlan createQueryPlan(Node query, Env env) {
+		if (query == null)
+			return null;
+		Node firstchild = query.childList.size() > 0? query.childList.getFirst() : null;
 		if (query instanceof Distinct) {
-			return new DistinctPlan(createQueryPlan(query.childList.getFirst(), env));
+			return new DistinctPlan(createQueryPlan(firstchild, env));
 		}
 		else if (query instanceof OrderBy) {
-			return new OrderPlan(createQueryPlan(query.childList.getFirst(), env), ((OrderBy)query).colNameList);
+			return new OrderPlan(createQueryPlan(firstchild, env), ((OrderBy)query).colNameList);
 		}		
 		if (query instanceof Projection) {
-			return new ProjectionPlan(createQueryPlan(query.childList.getFirst(), env), ((Projection)query).valList, env);
+			return new ProjectionPlan(createQueryPlan(firstchild, env), ((Projection)query).valList, env);
 		}
 		else if (query instanceof Select) {
-			return new SelectPlan(createQueryPlan(query.childList.getFirst(), env), ((Select) query).boolValue, env);
+			return new SelectPlan(createQueryPlan(firstchild, env), ((Select) query).boolValue, env);
 		}
 		else if (query instanceof GroupBy) {
-			return new GroupPlan(createQueryPlan(query.childList.getFirst(), env), ((GroupBy) query).colName.toString());
+			return new GroupPlan(createQueryPlan(firstchild, env), ((GroupBy) query).colName.toString());
 		}		
 		else if (query instanceof Join) {
 			List<QueryPlan>  joinlist = new ArrayList<QueryPlan>();
@@ -83,7 +89,7 @@ public class BasicQueryPlanner implements QueryPlanner {
 			return new JoinPlan(joinlist);
 		}
 		else if (query instanceof Rename) {
-			return new RenamePlan(createQueryPlan(query.childList.getFirst(), env), ((Rename)query).alias);
+			return new RenamePlan(createQueryPlan(firstchild, env), ((Rename)query).alias);
 		} 
 		else if (query instanceof Table) {
 			return new TablePlan(((Table) query).name);

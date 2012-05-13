@@ -39,7 +39,7 @@ public class Database {
     	queryPlanner = new BasicQueryPlanner();
     	executor = new BasicExecutor();
     	//storageManager = new MemoryStorageManager();
-    	storageManager = new Storage();
+    	storageManager = Storage.getInstance();
     	instance = this;
     	
     }
@@ -61,21 +61,40 @@ public class Database {
     public static void main(String[] args) throws Exception {
     	Database database = new Database();
     	BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-    	String sql = reader.readLine();
+    	String buffer = reader.readLine();
+    	StringBuffer sql = new StringBuffer();
     	while(sql != null) {
-    		Scan result = database.execute(sql);
-    		if(result != null) {
-    			int width = result.getNumberOfColumns();
-    			result.beforeFirst();
-    			while(result.next()) {
-	    			for (int i = 0; i < width; i++)
-	    				System.out.print(result.getColumnByIndex(i).toString() + " | ");
-	    			System.out.println();
-    			}
-    			System.out.println();
+    		//System.err.println(sql.toString());
+    		if (buffer.startsWith("@")) {
+    			buffer = reader.readLine();
+    			continue;
     		}
-    		sql = reader.readLine();
-    		
+    		if (buffer.startsWith(";")){
+    			String state = sql.toString();
+    			sql = new StringBuffer();	    			
+	    		try {
+
+		    		Scan result = database.execute(state);
+		    		if(result != null) {
+		    			int width = result.getNumberOfColumns();
+		    			result.beforeFirst();
+		    			while(result.next()) {
+			    			for (int i = 0; i < width; i++)
+			    				System.out.print(result.getColumnByIndex(i).toString() + " | ");
+			    			System.out.println();
+		    			}
+		    			System.out.println();
+		    		}
+	    		} catch(Exception e) {
+	    			e.printStackTrace();
+	    			System.err.println(state);
+	    		}
+    		}
+    		else {
+    			sql.append(buffer);
+    			sql.append(" ");
+    		}
+    		buffer = reader.readLine();
     	}
     }
     

@@ -39,7 +39,7 @@ public class Util
 	}
 
 	static boolean legalCharInColName(char ch) {
-		if (ch == '.' || (ch >='A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z'))
+		if (ch == '.' || (ch >='A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >='0' && ch <='9') || (ch == '_'))
 			return true;
 		return false;
 	}

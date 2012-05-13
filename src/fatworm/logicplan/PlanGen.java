@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.LinkedList;
 
 import org.antlr.runtime.ANTLRInputStream;
@@ -118,8 +119,11 @@ public class PlanGen {
 			colName = new FieldCol(temp);
 		}
 		GroupBy gb = new GroupBy(colName);
-		gb.childList.add(current);
-		current.parent = gb;
+
+		if (current != null) {
+			current.parent = gb;
+			gb.childList.add(current);
+		}
 		return gb;
 	}
 	
@@ -148,8 +152,11 @@ public class PlanGen {
 			cnl.add(orderByColumn);
 		}
 		OrderBy orderBy = new OrderBy(cnl);
-		orderBy.childList.add(current);
-		current.parent = orderBy;
+
+		if (current != null) {
+			current.parent = orderBy;
+			orderBy.childList.add(current);			
+		}
 		return orderBy;
 	}
 	
@@ -163,8 +170,11 @@ public class PlanGen {
 		CommonTree tree = selectChild(query, "Distinct");
 		if (tree == null) return current;
 		Distinct distinct = new Distinct();
-		distinct.childList.add(current);
-		current.parent = distinct;
+
+		if (current != null) {
+			current.parent = distinct;
+			distinct.childList.add(current);			
+		}
 		return distinct;
 	}
 
@@ -203,8 +213,11 @@ public class PlanGen {
 			valList.add(val);
 		}
 		Projection projection = new Projection(valList);
-		projection.childList.add(current);
-		current.parent = projection;
+		
+		if (current != null) {
+			current.parent = projection;
+			projection.childList.add(current);			
+		}
 		return projection;
 	}
 	
@@ -218,8 +231,10 @@ public class PlanGen {
 		CommonTree tree = selectChild(query, "WhereCondition");
 		if (tree == null) return current;
 		Select select = new Select(getBoolExpr((CommonTree)tree.getChild(0)));
-		current.parent = select;
-		select.childList.add(current);
+		if (current != null) {
+			current.parent = select;
+			select.childList.add(current);
+		}
 		return select;
 	}
 	
@@ -233,11 +248,12 @@ public class PlanGen {
 		CommonTree tree = selectChild(query, "HavingCondition");
 		if (tree == null) return current;
 		Select select = new Select(getBoolExpr((CommonTree)tree.getChild(0)));
-		if (select.boolValue instanceof InExpr){
-			
+		if (current != null) {
+			current.parent = select;
+			select.childList.add(current); 
 		}
-		current.parent = select;
 		return select;
+		
 	}
 	
 	public static void printNode(PrintWriter writer, int level, Node cur){
@@ -280,6 +296,11 @@ public class PlanGen {
 			Value right = getValue((CommonTree)tree.getChild(1));
 			return new OpValue(root, left, right);
 		}
+		if (root != null && root.startsWith("Unary")) {
+			Value left = new ConstInt("0");
+			Value right = getValue((CommonTree)tree.getChild(0));
+			return new OpValue("-", left, right);
+		}
 		if (text.startsWith("ColumnName")){
 			ColName colName;
 			CommonTree temp = (CommonTree)tree.getChild(0);
@@ -311,6 +332,8 @@ public class PlanGen {
 			return new ConstDefault(tree.getChild(0).getText());
 		if (text.startsWith("ConstBoolean"))
 			return new ConstBoolean(tree.getChild(0).getText());
+		if (text.startsWith("QueryValue"))
+			return new QueryValue((Node)planGen((CommonTree)tree.getChild(0)));
 		// must not be reached
 		return null;
 	}
@@ -340,7 +363,6 @@ public class PlanGen {
 		if (tree.getText().startsWith("In")){
 			Value val = getValue((CommonTree)tree.getChild(0));
 			Node query = (Node)planGen((CommonTree)tree.getChild(1));
-			printNode(writer,0,query);
 			return new InExpr(val, query);
 		}
 		if (tree.getText()=="Compare"){
@@ -361,6 +383,14 @@ public class PlanGen {
 			String cop = tree.getChild(2).getText();
 			return new CompareAllExpr(val, query, cop);
 		}
+		if (tree.getText() == "Exist") {
+			Node query = (Node)planGen((CommonTree)tree.getChild(0));
+			return new ExistExpr(false, query);
+		}
+		if (tree.getText() == "NotExist") {
+			Node query = (Node)planGen((CommonTree)tree.getChild(0));
+			return new ExistExpr(true, query);
+		}
 		return null;
 	}
 	
@@ -374,8 +404,8 @@ public class PlanGen {
 		
 		if (t.getText().startsWith("Query")) {
 			current = processFrom(t, (Node)current);
-			current = processGroupBy(t, (Node)current);
 			current = processWhereCondition(t, (Node)current);
+			current = processGroupBy(t, (Node)current);			
 			current = processHavingCondition(t, (Node)current);
 			current = processSelectColumn(t, (Node)current);
 			current = processOrderBy(t, (Node)current);
@@ -426,7 +456,7 @@ public class PlanGen {
 		}
 		if (t.getText().startsWith("InsertStmt")){
 			String tableName = t.getChild(0).getText();
-			LinkedList<ConstValue> valueList = null;
+			ArrayList<Value> valueList = null;
 			LinkedList<ColName> colNameList = null;
 			Node query = null;
 			for (int i = 1; i < t.getChildCount(); i++){
@@ -449,10 +479,10 @@ public class PlanGen {
 					continue;
 				}
 				if (tree.getText().startsWith("ValueList")){
-					valueList = new LinkedList<ConstValue>();
+					valueList = new ArrayList<Value>();
 					for (int j = 0; j < tree.getChildCount(); j++){
 						Value value = getValue((CommonTree)tree.getChild(j));
-						valueList.add((ConstValue)value);
+						valueList.add((Value)value);
 					}
 					continue;
 				}
@@ -461,7 +491,7 @@ public class PlanGen {
 				//FieldInsert
 				FieldInsert fieldInsert = new FieldInsert(tableName);
 				for (int i = 0; i < colNameList.size(); i++){
-					fieldInsert.assigns.put(colNameList.get(i).toString(), (ConstValue)valueList.get(i));
+					fieldInsert.assigns.put(colNameList.get(i).toString(), (Value)valueList.get(i));
 				}
 				current = fieldInsert;
 			} else 
@@ -540,7 +570,10 @@ public class PlanGen {
 				columnDef.setIsNotNull();
 				continue;
 			}
-			Value defaultValue = getValue((CommonTree)columnDes.getChild(1));
+			if (columnDes.getChild(0).getText().startsWith("DefaultValue")) {
+				Value defaultValue = getValue((CommonTree)columnDes.getChild(1));
+				columnDef.defaultValue = (ConstValue) defaultValue;
+			}
 			//System.out.println("defaultValue=\t"+defaultValue.toString());
 		}
 		return columnDef;

@@ -19,7 +19,8 @@ public class ProjectionPlan extends QueryPlan{
         funcSet = new HashSet<String>();
         for (ProjectionValue proj: projections)
         	funcSet.addAll(proj.dumpUsefulFunctions());
-        plan.addFunctionsToCalc(this.funcSet);
+        if (plan != null) 
+        	plan.addFunctionsToCalc(this.funcSet);
     }
     
     public ProjectionPlan(QueryPlan plan, List<ProjectionValue> proj) {
@@ -27,6 +28,8 @@ public class ProjectionPlan extends QueryPlan{
     }
 
     public Scan open() {
+    	if (plan == null)
+    		return new ProjectionScan(new OneTimeScan(true), projections, env);
         return new ProjectionScan(plan.open(), projections, env);
     }
 

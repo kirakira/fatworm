@@ -10,8 +10,9 @@ import fatworm.query.Env;
 public class FuncValue extends Value{
 	String func;
 	ColumnValue val;
-	public FuncValue(String func, Value val){
-		this.func = func.toUpperCase();
+	public FuncValue(String f, Value val){
+		this.func = f.toUpperCase();
+		this.func = func.substring(0, func.indexOf('('));
 		this.val = (ColumnValue)val;
 	}
 	@Override

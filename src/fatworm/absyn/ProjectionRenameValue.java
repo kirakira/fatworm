@@ -6,9 +6,7 @@ public class ProjectionRenameValue extends ProjectionValue{
 		super(val);
 		this.alias = alias;
 	}
-	public String toString(){
-		return "ProjectionRename "+val.toString()+" as "+alias;
-	}
+
 	
 	public String getAlias() {
 		return alias;

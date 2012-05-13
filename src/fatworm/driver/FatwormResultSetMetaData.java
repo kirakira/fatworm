@@ -17,6 +17,10 @@ public class FatwormResultSetMetaData implements ResultSetMetaData {
 		}
 	}
 
+	public FatwormResultSetMetaData() {
+		columnCount = 0;
+	}
+
 	@Override
 	public boolean isWrapperFor(Class<?> iface) throws SQLException {
 		// TODO Auto-generated method stub
@@ -66,7 +70,7 @@ public class FatwormResultSetMetaData implements ResultSetMetaData {
 
 	@Override
 	public int getColumnType(int arg0) throws SQLException {
-		return columnType[arg0];
+		return columnType[arg0-1];
 	}
 
 	@Override
