@@ -9,6 +9,8 @@ import java.sql.Statement;
 
 import org.antlr.runtime.RecognitionException;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 import fatworm.database.Database;
 import fatworm.query.Scan;
 
@@ -272,6 +274,10 @@ public class FatwormStatement implements Statement {
 	public void setQueryTimeout(int arg0) throws SQLException {
 		// TODO Auto-generated method stub
 
+	}
+
+	public boolean isCloseOnCompletion() throws SQLException{
+		return false;
 	}
 
 }

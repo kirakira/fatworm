@@ -1223,5 +1223,12 @@ public class FatwormResultSet implements java.sql.ResultSet {
 		// TODO Auto-generated method stub
 		return false;
 	}
+	
+	public <T> T 	getObject(String columnLabel, Class<T> type) throws SQLException{
+		return null;
+		
+	}
+	
+	
 
 }

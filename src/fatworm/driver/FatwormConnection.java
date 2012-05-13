@@ -327,5 +327,9 @@ public class FatwormConnection implements java.sql.Connection {
 		// TODO Auto-generated method stub
 		
 	}
+	
+	public int getNetworkTimeOut() throws SQLException {
+		return 0;
+	}
 
 }

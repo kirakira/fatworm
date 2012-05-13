@@ -88,5 +88,15 @@ public class InMemoryTableWithIter implements RecordFile {
 	public Schema getSchema() {
 		return table.schema;
 	}
+	@Override
+	public DataEntity[] tuple() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	@Override
+	public boolean insert(DataEntity[] tuple) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 
 }
