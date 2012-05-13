@@ -1,7 +1,9 @@
 package fatworm.dataentity;
 
-import java.math.BigDecimal;
 import fatworm.util.ByteLib;
+
+import java.math.BigDecimal;
+import static java.sql.Types.*;
 
 public class Decimal extends DataEntity {
     
@@ -21,6 +23,10 @@ public class Decimal extends DataEntity {
         ByteLib.intToBytes(data.length, ret, 0);
         System.arraycopy(data, 0, ret, 4, data.length);
         return ret;
+    }
+
+    public int type() {
+        return DECIMAL;
     }
     
     public int compareTo(DataEntity t) {

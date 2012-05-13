@@ -3,6 +3,7 @@ package fatworm.dataentity;
 import java.math.BigDecimal;
 
 import fatworm.util.ByteLib;
+import static java.sql.Types.*;
 
 public class Int extends DataEntity
 {
@@ -19,6 +20,10 @@ public class Int extends DataEntity
         byte[] data = new byte[4];
         ByteLib.intToBytes(value, data, 0);
         return data;
+    }
+
+    public int type() {
+        return INTEGER;
     }
 
     public int compareTo(DataEntity t) {
@@ -102,6 +107,5 @@ public class Int extends DataEntity
 	
     public Object toJavaType() {
     	return value;
-    }	
-	
+    }
 }

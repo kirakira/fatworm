@@ -1,5 +1,7 @@
 package fatworm.dataentity;
 
+import fatworm.util.ByteLib;
+
 import static java.sql.Types.*;
 
 public abstract class DataEntity
@@ -11,10 +13,25 @@ public abstract class DataEntity
     }
 
     public abstract byte[] getBytes();
+
+    public byte[] getBytesWithType() {
+        byte[] data = getBytes();
+        byte[] ret = new byte[data.length + 4];
+        ByteLib.intToBytes(type(), ret, 0);
+        System.arraycopy(data, 0, ret, 4, data.length);
+        return ret;
+    }
     
-    public DataEntity toType(int type){
+    public DataEntity toType(int type) {
     	return this;
     }
+
+    public static DataEntity fromBytes(byte[] data, int offset) {
+        int type = ByteLib.bytesToInt(data, offset);
+        return fromBytes(type, data, offset + 4);
+    }
+
+    public abstract int type();
 
     public static DataEntity fromBytes(int type, byte[] data, int offset) {
         DataEntity ret = null;

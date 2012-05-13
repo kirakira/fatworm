@@ -150,7 +150,7 @@ public class Database implements IOHelper {
 
     public Table getTable(String table) throws java.io.IOException {
         int relation = superTable.getRelation(table), schema = superTable.getSchema(table);
-        if (relation == 0 || schema == 0)
+        if (relation == 0)
             return null;
         else
             return Table.load(this, relation, table, schema);
@@ -160,8 +160,13 @@ public class Database implements IOHelper {
     public Table insertTable(String table, Schema schema) throws java.io.IOException {
         if (getTable(table) != null)
             return null;
-        SchemaOnDisk ss = SchemaOnDisk.create(this, schema);
-        int sBlock = ss.save();
+        int sBlock;
+        if (schema == null)
+            sBlock = 0;
+        else {
+            SchemaOnDisk ss = SchemaOnDisk.create(this, schema);
+            sBlock = ss.save();
+        }
         Table st = Table.create(this, table, sBlock);
         int tBlock = st.save();
         superTable.insertTable(table, tBlock, sBlock);

@@ -36,6 +36,8 @@ public class Tester {
             System.out.println("Create database failed");
         storage.useDatabase("lichking");
         RecordFile table = storage.insertTable("loli", schema);
+        storage.dropTable("loli");
+        table = storage.insertTable("loli", schema);
         if (table == null) {
             System.out.println("Table already existed");
             table = storage.getTable("loli");

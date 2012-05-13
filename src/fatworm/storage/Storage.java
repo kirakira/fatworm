@@ -9,14 +9,27 @@ import java.util.Map;
 import java.util.HashMap;
 
 public class Storage implements StorageManagerInterface {
-    private Database current = null;
+    private Database current = null, tempDB = null;
+    private static String tempDBName = "~TEMP";
     private String currentName = "";
     private Map<String, Database> map = new HashMap<String, Database>();
     private String path = "test" + java.io.File.separator;
 
+    private int tempCount = 0;
+
     private static Storage instance = null;
 
     private Storage() {
+        File f = new File(fileName(tempDBName));
+
+        try {
+            if (f.exists())
+                f.delete();
+            tempDB = new Database(fileName(tempDBName));
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
     }
 
     public static Storage getInstance() {
@@ -29,7 +42,7 @@ public class Storage implements StorageManagerInterface {
         return path + dbName + ".db";
     }
 
-	public boolean createDatabase(String name) {
+    public boolean createDatabase(String name) {
         File f = new File(fileName(name));
         if (f.exists())
             return false;
@@ -101,6 +114,17 @@ public class Storage implements StorageManagerInterface {
             }
         } else
             return null;
+    }
+
+    public RecordFile insertTempTable() {
+        Table table;
+        try {
+            table = tempDB.insertTable("t" + tempCount, null);
+        } catch (java.io.IOException e) {
+            return null;
+        }
+        ++tempCount;
+        return table;
     }
 
 	public void dropTable(String name) {

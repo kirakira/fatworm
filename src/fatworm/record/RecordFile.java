@@ -10,8 +10,11 @@ public interface RecordFile {
     public DataEntity getField(String field);
     public DataEntity getFieldByIndex(int index);
     public boolean hasField(String field);
-    public boolean update(Map<String, DataEntity> tuple) throws java.io.IOException;
-    public boolean insert(Map<String, DataEntity> tuple) throws java.io.IOException;
-    public void delete() throws java.io.IOException;
+    public DataEntity[] tuple();
+
+    public boolean update(Map<String, DataEntity> tuple);
+    public boolean insert(Map<String, DataEntity> tuple);
+    public boolean insert(DataEntity[] tuple);
+    public void delete();
     public Schema getSchema();
 }

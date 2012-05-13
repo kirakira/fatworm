@@ -26,7 +26,10 @@ public class Table implements RecordFile {
     private Table(IOHelper io, String name, int schema) {
         this.io = io;
         this.name = name;
-        this.schema = SchemaOnDisk.load(io, schema);
+        if (schema == 0)
+            this.schema = null;
+        else
+            this.schema = SchemaOnDisk.load(io, schema);
         front = 0;
         rear = 0;
         capacity = 0;
@@ -36,17 +39,20 @@ public class Table implements RecordFile {
         removed = false;
     }
 
-    public static Table create(IOHelper io, String name, int schemaBlock) throws java.io.IOException {
-        Table ret = new Table(io, name, schemaBlock);
-        ret.front = Cell.create(io, ret.getSchema()).save();
-        ret.rear = ret.front;
-        ret.capacity = (io.getBlockSize() - 16) / (4 + ret.schema.estimatedTupleSize());
-        System.out.println("Table capacity: " + ret.capacity);
-        if (ret.capacity == 0)
-            ret.capacity = 1;
+    public static Table create(IOHelper io, String name, int schemaBlock) {
+        try {
+            Table ret = new Table(io, name, schemaBlock);
+            ret.front = Cell.create(io, ret.getSchema()).save();
+            ret.rear = ret.front;
+            ret.capacity = (io.getBlockSize() - 16) / (4 + ret.schema.estimatedTupleSize());
+            if (ret.capacity == 0)
+                ret.capacity = 1;
 
-        ret.head = Bucket.create(io, ret.getHeadBytes());
-        return ret;
+            ret.head = Bucket.create(io, ret.getHeadBytes());
+            return ret;
+        } catch (java.io.IOException e) {
+            return null;
+        }
     }
 
     private byte[] getHeadBytes() {
@@ -57,7 +63,7 @@ public class Table implements RecordFile {
         return data;
     }
 
-    public static Table load(IOHelper io, int block, String name, int schema) throws java.io.IOException {
+    public static Table load(IOHelper io, int block, String name, int schema) {
         Table ret = new Table(io, name, schema);
         ret.head = Bucket.load(io, block);
         byte[] data = ret.head.getData();
@@ -83,11 +89,35 @@ public class Table implements RecordFile {
         head.remove();
     }
 
-    public boolean insert(Map<String, DataEntity> map) throws java.io.IOException {
-        Cell cell = Cell.load(io, getSchema(), rear);
-        Tuple tuple = Tuple.create(getSchema(), map);
-        if (tuple == null)
+    public boolean insert(Map<String, DataEntity> map) {
+        try {
+            Tuple tuple = Tuple.create(getSchema(), map);
+            if (tuple == null)
+                return false;
+            insert(tuple);
+            return true;
+        } catch (java.io.IOException e) {
             return false;
+        }
+    }
+
+    public boolean insert(DataEntity[] tuple) {
+        try {
+            Schema schema = getSchema();
+            Tuple t = Tuple.create(schema, tuple);
+            if (t == null)
+                return false;
+            else {
+                insert(t);
+                return true;
+            }
+        } catch (java.io.IOException e) {
+            return false;
+        }
+    }
+
+    private void insert(Tuple tuple) throws java.io.IOException {
+        Cell cell = Cell.load(io, getSchema(), rear);
         cell.insert(tuple);
         cell.save();
         if (cell.tupleCount() >= capacity) {
@@ -96,19 +126,22 @@ public class Table implements RecordFile {
             cell.save();
             save();
         }
-        return true;
     }
 
-    public boolean update(Map<String, DataEntity> map) throws java.io.IOException {
-        if (!removed && currentCell != null && currentIndex >= 0 && currentIndex < currentCell.tupleCount()) {
-            Tuple tuple = Tuple.create(getSchema(), map, getTuple());
-            if (tuple == null)
+    public boolean update(Map<String, DataEntity> map) {
+        try {
+            if (!removed && currentCell != null && currentIndex >= 0 && currentIndex < currentCell.tupleCount()) {
+                Tuple tuple = Tuple.create(getSchema(), map, getTuple());
+                if (tuple == null)
+                    return false;
+                currentCell.set(currentIndex, tuple);
+                currentCell.save();
+                return true;
+            } else
                 return false;
-            currentCell.set(currentIndex, tuple);
-            currentCell.save();
-            return true;
-        } else
+        } catch (java.io.IOException e) {
             return false;
+        }
     }
 
     public Schema getSchema() {
@@ -141,12 +174,15 @@ public class Table implements RecordFile {
         }
     }
 
-    public void delete() throws java.io.IOException {
-        if (!removed && currentCell != null && currentIndex >= 0 && currentIndex < currentCell.tupleCount()) {
-            currentCell.remove(currentIndex);
-            currentCell.save();
-            removed = true;
-            --currentIndex;
+    public void delete() {
+        try {
+            if (!removed && currentCell != null && currentIndex >= 0 && currentIndex < currentCell.tupleCount()) {
+                currentCell.remove(currentIndex);
+                currentCell.save();
+                removed = true;
+                --currentIndex;
+            }
+        } catch (java.io.IOException e) {
         }
     }
 
@@ -175,5 +211,9 @@ public class Table implements RecordFile {
             return null;
         else
             return getFieldByIndex(i);
+    }
+
+    public DataEntity[] tuple() {
+        return getTuple().tuple();
     }
 }

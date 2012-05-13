@@ -2,6 +2,8 @@ package fatworm.dataentity;
 
 import fatworm.util.ByteLib;
 
+import static java.sql.Types.*;
+
 public class VarChar extends DataEntity {
     String value;
     public VarChar(String v) {
@@ -19,6 +21,10 @@ public class VarChar extends DataEntity {
         ByteLib.intToBytes(data.length, ret, 0);
         System.arraycopy(data, 0, ret, 4, data.length);
         return ret;
+    }
+
+    public int type() {
+        return VARCHAR;
     }
 
     public int compareTo(DataEntity t){

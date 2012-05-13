@@ -29,5 +29,8 @@ storage: schema
 	find src/fatworm/storage -name "*.java" > sources.txt
 	$(JC) @sources.txt
 
+sort: storage
+	$(JC) src/fatworm/query/TupleComparator.java src/fatworm/query/OrderContainer.java src/fatworm/query/AdvancedOrderContainer.java
+
 clean:
 	rm -rf bin/

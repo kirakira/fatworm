@@ -15,6 +15,20 @@ public class Tuple {
         this.schema = schema;
     }
 
+    public static Tuple create(Schema schema, DataEntity[] values) {
+        Tuple ret = new Tuple(schema);
+        if (schema != null) {
+            int len = schema.columnCount();
+            if (len != values.length)
+                return null;
+            for (int i = 0; i < len; ++i)
+                if (values[i].type() != NULL && values[i].type() != schema.type(i))
+                    return null;
+        }
+        ret.values = values;
+        return ret;
+    }
+
     public static Tuple create(Schema schema, Map<String, DataEntity> map) {
         Tuple ret = new Tuple(schema);
 
@@ -74,7 +88,10 @@ public class Tuple {
 
                 int len = ByteLib.bytesToInt(data, s);
                 s += 4;
-                values[i] = DataEntity.fromBytes(schema.type(i), data, s);
+                if (schema == null)
+                    values[i] = DataEntity.fromBytes(data, s);
+                else
+                    values[i] = DataEntity.fromBytes(schema.type(i), data, s);
                 s += len;
             } else {
                 ++s;
@@ -91,7 +108,10 @@ public class Tuple {
                 buffer[i] = null;
                 len += 1;
             } else {
-                buffer[i] = values[i].getBytes();
+                if (schema == null)
+                    buffer[i] = values[i].getBytesWithType();
+                else
+                    buffer[i] = values[i].getBytes();
                 len += 5 + buffer[i].length;
             }
         }
@@ -121,5 +141,9 @@ public class Tuple {
 
     public DataEntity get(int index) {
         return values[index];
+    }
+
+    public DataEntity[] tuple() {
+        return values;
     }
 }

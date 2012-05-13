@@ -1,5 +1,7 @@
 package fatworm.dataentity;
 
+import static java.sql.Types.*;
+
 public class Bool extends DataEntity
 {
     boolean value;
@@ -21,6 +23,10 @@ public class Bool extends DataEntity
         else
             ret[0] = 0;
         return ret;
+    }
+
+    public int type() {
+        return BOOLEAN;
     }
 
     public int compareTo(DataEntity t) {

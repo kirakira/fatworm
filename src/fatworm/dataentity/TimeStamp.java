@@ -1,7 +1,9 @@
 package fatworm.dataentity;
 
 import fatworm.util.ByteLib;
+
 import java.util.Date;
+import static java.sql.Types.*;
 
 public class TimeStamp extends DataEntity
 {
@@ -23,6 +25,10 @@ public class TimeStamp extends DataEntity
         byte[] ret = new byte[8];
         ByteLib.longToBytes(value.getTime(), ret, 0);
         return ret;
+    }
+
+    public int type() {
+        return TIMESTAMP;
     }
 
     public int compareTo(DataEntity t) {
