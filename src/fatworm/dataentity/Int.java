@@ -98,7 +98,7 @@ public class Int extends DataEntity
 
 	public DataEntity toType(int type) {
 		if (type == java.sql.Types.FLOAT)
-			return new Float((int)value);
+			return new Float(value);
 		else if (type == java.sql.Types.DECIMAL)
 			return new Decimal(new BigDecimal(value));
 		else 

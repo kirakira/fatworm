@@ -34,7 +34,7 @@ public class SortTester {
 
         int n = 100000;
         for (int i = 0; i < n; ++i) {
-            Map map = new HashMap<String, DataEntity>();
+            Map<String, DataEntity> map = new HashMap<String, DataEntity>();
             map.put("key", new Int(rand.nextInt()));
             map.put("value", new FixChar("", 4096));
             rf.insert(map);

@@ -30,7 +30,8 @@ storage: schema
 	$(JC) @sources.txt
 
 sort: storage
-	$(JC) src/fatworm/query/TupleComparator.java src/fatworm/query/OrderContainer.java src/fatworm/query/AdvancedOrderContainer.java
+	$(JC) src/fatworm/absyn/ColName.java src/fatworm/absyn/OrderByColumn.java src/fatworm/absyn/SimpleCol.java src/fatworm/absyn/FieldCol.java
+	$(JC) src/fatworm/query/Scan.java src/fatworm/query/TupleComparator.java src/fatworm/query/OrderContainer.java src/fatworm/query/AdvancedOrderContainer.java
 	$(JC) src/fatworm/tester/TableScan.java src/fatworm/tester/SortTester.java
 
 clean:

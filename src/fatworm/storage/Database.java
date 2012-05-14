@@ -182,7 +182,6 @@ public class Database implements IOHelper {
     }
 
     public void close() {
-        new Exception().printStackTrace();
     	file.close();
     }
 }

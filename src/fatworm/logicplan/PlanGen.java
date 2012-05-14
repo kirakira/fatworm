@@ -483,7 +483,7 @@ public class PlanGen {
 					valueList = new ArrayList<Value>();
 					for (int j = 0; j < tree.getChildCount(); j++){
 						Value value = getValue((CommonTree)tree.getChild(j));
-						valueList.add((Value)value);
+						valueList.add(value);
 					}
 					continue;
 				}
@@ -492,7 +492,7 @@ public class PlanGen {
 				//FieldInsert
 				FieldInsert fieldInsert = new FieldInsert(tableName);
 				for (int i = 0; i < colNameList.size(); i++){
-					fieldInsert.assigns.put(colNameList.get(i).toString(), (Value)valueList.get(i));
+					fieldInsert.assigns.put(colNameList.get(i).toString(), valueList.get(i));
 				}
 				current = fieldInsert;
 			} else 
