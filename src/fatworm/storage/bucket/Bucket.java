@@ -58,6 +58,7 @@ public class Bucket {
 
             return bucket;
         } catch (java.io.IOException e) {
+            e.printStackTrace();
             return null;
         }
     }
