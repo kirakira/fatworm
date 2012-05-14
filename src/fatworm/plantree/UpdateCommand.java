@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import fatworm.absyn.BoolExpr;
+import fatworm.absyn.ConstDefault;
 import fatworm.absyn.Value;
 import fatworm.dataentity.DataEntity;
 import fatworm.query.Env;
@@ -26,7 +27,7 @@ public class UpdateCommand extends Command{
 	}
 
 	public BoolExpr condition;
-	public Map<String, Value> assigns = new HashMap<String, Value>();
+	private Map<String, Value> assigns = new HashMap<String, Value>();
 	public Set<String> usefulColumns = new HashSet<String>();
 	void update(RecordFile rf, Scan scan) {
 		Map<String, DataEntity> result = new HashMap<String, DataEntity> ();
@@ -37,27 +38,30 @@ public class UpdateCommand extends Command{
 			env.putValue(column, scan.getColumn(column));
 		}
 		for(Entry<String, Value> assign: assigns.entrySet()) {
-			result.put(assign.getKey(), assign.getValue().getValue(env).toType(schema.type(assign.getKey())));
+			if (assign.getValue() instanceof ConstDefault)
+				result.put(assign.getKey(), schema.defaultValue(assign.getKey()));
+			else 
+				result.put(assign.getKey(), assign.getValue().getValue(env).toType(schema.type(assign.getKey())));
 		}
 		env.endScope();
 		rf.update(result);
 	}
 	
+	public void addAssign(String key, Value value) {
+		assigns.put(key.toLowerCase(), value);
+	}
+	
 	public void execute() {
 		for(Value value: assigns.values()) 
 			usefulColumns.addAll(value.dumpUsefulColumns());
-		TableScan scan = new TableScan(name);
+		Scan scan = new TableScan(name);
 		scan.beforeFirst();
-		Scan select;
-		if (condition == null) {
-			select = scan;
-		}
-		else 
-			select = new SelectScan(scan, condition, Util.getEmptyEnv());
-		boolean next = select.next();
+		if (condition != null) 
+			scan = new SelectScan(scan, condition, Util.getEmptyEnv());
+		boolean next = scan.next();
 		while(next) {
-			update(select.getRecordFile(), select);
-			next = select.next(); 
+			update(scan.getRecordFile(), scan);
+			next = scan.next(); 
 		}
 	} 
 }

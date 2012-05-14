@@ -4,8 +4,6 @@ import java.util.LinkedList;
 import java.util.Set;
 
 import fatworm.absyn.ProjectionValue;
-import fatworm.absyn.SelectExprList;
-import fatworm.absyn.Value;
 
 public class Projection extends Node{
 	public LinkedList<ProjectionValue> valList;

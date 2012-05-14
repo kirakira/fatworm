@@ -32,6 +32,14 @@ public class File {
     public void writeBlock(int block, byte[] data, int offset) throws java.io.IOException {
         writeBlock(block, 1, data, offset);
     }
+    
+    public void close() {
+    	try {
+    		file.close();
+    	} catch (java.io.IOException e) {
+    	
+    	}
+    }
 
     public static long totalTime = 0;
 }

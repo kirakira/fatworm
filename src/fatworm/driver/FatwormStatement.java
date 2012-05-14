@@ -62,6 +62,7 @@ public class FatwormStatement implements Statement {
 		try {
 			result = Database.getInstance().execute(arg0);
 		} catch (Exception e) {
+			System.out.println(arg0);			
 			e.printStackTrace();
 			return false;
 		}

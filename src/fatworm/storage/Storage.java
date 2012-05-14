@@ -98,10 +98,15 @@ public class Storage implements StorageManagerInterface {
         File file = new File(fileName(name));
         if (!file.exists())
             return false;
+
+	Database db = map.get(name);
+	if (db != null) {
+	    db.close();
+	    map.remove(name);
+	}
         if (!file.delete())
             return false;
 
-        map.remove(name);
         if (current != null && currentName.equals(name))
             current = null;
 

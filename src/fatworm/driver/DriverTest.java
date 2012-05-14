@@ -22,7 +22,7 @@ public class DriverTest {
     	BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
     	String buffer = reader.readLine();
     	StringBuffer sql = new StringBuffer();
-    	while(sql != null) {
+    	while(buffer != null) {
     		//System.err.println(sql.toString());
     		if (buffer.startsWith("@")) {
     			buffer = reader.readLine();
