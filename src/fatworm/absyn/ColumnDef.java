@@ -15,7 +15,7 @@ public class ColumnDef {
 	public ConstValue defaultValue = null;
 	
 	public ColumnDef(CommonTree tree){
-		this.colName = tree.getChild(0).getText();
+		this.colName = tree.getChild(0).getText().toLowerCase();
 		this.dataType = tree.getChild(1).getText().toUpperCase();
 		this.setLength(tree);
 	}

@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.sun.corba.se.spi.orbutil.fsm.Guard.Result;
+
 
 import fatworm.absyn.ProjectionAllColumnValue;
 import fatworm.absyn.ProjectionRenameValue;
@@ -18,6 +20,8 @@ import fatworm.dataentity.DataEntity;
 import fatworm.dataentity.Int;
 import fatworm.dataentity.Float;
 import fatworm.dataentity.NullDataEntity;
+import fatworm.functioncalculator.FuncValue;
+import fatworm.functioncalculator.FunctionCalculator;
 import fatworm.record.RecordFile;
 import fatworm.util.Util;
 
@@ -75,7 +79,7 @@ public class ProjectionScan implements Scan {
     	func = Util.getFuncName(func).toUpperCase();
     	if (func.startsWith("COUNT"))
     		return java.sql.Types.INTEGER;
-    	else if (func.startsWith("AVG"))
+    	else if (func.startsWith("AVG") || func.startsWith("SUM"))
     		return java.sql.Types.FLOAT;
     	else return varType;
     }
@@ -83,72 +87,92 @@ public class ProjectionScan implements Scan {
     DataEntity calcFunction(String s, Scan scan) {
     	String column = Util.getFuncVariable(s);
     	String func = Util.getFuncName(s);
-    	scan.beforeFirst();
-    	if (func.compareToIgnoreCase("COUNT") == 0) {
-    		//oneGroupFunctionType.put(s, new Integer(java.sql.Types.INTEGER));
-    		int count = 0;
-    		while(scan.next()) {
-    			if (!scan.getColumn(column).isNull())
-    				count++;
-    		}
-    		return new Int(count);
-    	}
-    	else if (func.compareToIgnoreCase("AVG") == 0) { 
-    		//oneGroupFunctionType.put(s, new Integer(java.sql.Types.FLOAT));
-    		int count = 0;
-    		Float sum = new Float(0);    		    		
-    		while(scan.next()) {
-    			DataEntity entry = scan.getColumn(column); 
-    			if (!entry.isNull()) {
-    				count++;
-    				sum = (Float) sum.opWith(entry, "+");
-    			}
-    		}
-    		if (count > 0)
-    			return sum.opWith(new Int(count), "/");
-    	}
-    	else {
-    		//oneGroupFunctionType.put(s, new Integer(scan.type(column)));
-    		DataEntity result = new NullDataEntity();
-    		if (func.compareToIgnoreCase("SUM") == 0) {
-	    		while(scan.next()) {
-	    			DataEntity entry = scan.getColumn(column); 
-	    			if (!entry.isNull()) {
-	    				if (result.isNull())
-	    					result = entry;
-	    				else 
-	    					result = result.opWith(entry, "+");
-	    			}
-	    		}
-	    	}
-    		else if (func.compareToIgnoreCase("MAX") == 0) {
-	    		while(scan.next()) {
-	    			DataEntity entry = scan.getColumn(column); 
-	    			if (!entry.isNull()) {
-	    				if (result.isNull())
-	    					result = entry;
-	    				else if (result.compareTo(entry) < 0)
-	    					result = entry;
-	    			}
-	    		}
-	    	}
-    		else if (func.compareToIgnoreCase("MIN") == 0) {
-	    		while(scan.next()) {
-	    			DataEntity entry = scan.getColumn(column); 
-	    			if (!entry.isNull()) {
-	    				if (result.isNull())
-	    					result = entry;
-	    				else if (result.compareTo(entry) > 0)
-	    					result = entry;
-	    			}
-	    		}
-	    	}
-    		if (result == null)
-    			return new NullDataEntity();
-    		else 
-    			return result;
-    	}
-    	return new NullDataEntity();
+    	FuncValue result = new FuncValue();
+
+    	FunctionCalculator calculator = FunctionCalculator.count;
+    	if (func.compareToIgnoreCase("COUNT") == 0)
+    		calculator = FunctionCalculator.count;
+    	else if (func.compareToIgnoreCase("AVG") == 0)
+    		calculator = FunctionCalculator.avg;
+    	else if (func.compareToIgnoreCase("MAX") == 0)
+    		calculator = FunctionCalculator.max;
+    	else if (func.compareToIgnoreCase("MIN") == 0)
+    		calculator = FunctionCalculator.min;
+    	else if (func.compareToIgnoreCase("SUM") == 0)
+    		calculator = FunctionCalculator.sum;
+    	
+    	scan.beforeFirst();    	
+		while(scan.next()) {
+			calculator.update(result, scan.getColumn(column));
+		}
+    	return calculator.getResult(result);
+//    	if (func.compareToIgnoreCase("COUNT") == 0) {
+//    		calculator = FunctionCalculator.count;
+//    		//oneGroupFunctionType.put(s, new Integer(java.sql.Types.INTEGER));
+//    		int count = 0;
+//    		while(scan.next()) {
+//    			if (!scan.getColumn(column).isNull())
+//    				count++;
+//    		}
+//    		return new Int(count);
+//    	}
+//    	else if (func.compareToIgnoreCase("AVG") == 0) {
+//    		calculator = FunctionCalculator.avg;
+//    		//oneGroupFunctionType.put(s, new Integer(java.sql.Types.FLOAT));
+//    		int count = 0;
+//    		Float sum = new Float(0);    		    		
+//    		while(scan.next()) {
+//    			DataEntity entry = scan.getColumn(column); 
+//    			if (!entry.isNull()) {
+//    				count++;
+//    				sum = (Float) sum.opWith(entry, "+");
+//    			}
+//    		}
+//    		if (count > 0)
+//    			return sum.opWith(new Int(count), "/");
+//    	}
+//    	else {
+//    		//oneGroupFunctionType.put(s, new Integer(scan.type(column)));
+//    		DataEntity result = new NullDataEntity();
+//    		if (func.compareToIgnoreCase("SUM") == 0) {
+//	    		while(scan.next()) {
+//	    			DataEntity entry = scan.getColumn(column); 
+//	    			if (!entry.isNull()) {
+//	    				if (result.isNull())
+//	    					result = entry;
+//	    				else 
+//	    					result = result.opWith(entry, "+");
+//	    			}
+//	    		}
+//	    	}
+//    		else if (func.compareToIgnoreCase("MAX") == 0) {
+//	    		while(scan.next()) {
+//	    			DataEntity entry = scan.getColumn(column); 
+//	    			if (!entry.isNull()) {
+//	    				if (result.isNull())
+//	    					result = entry;
+//	    				else if (result.compareTo(entry) < 0)
+//	    					result = entry;
+//	    			}
+//	    		}
+//	    	}
+//    		else if (func.compareToIgnoreCase("MIN") == 0) {
+//	    		while(scan.next()) {
+//	    			DataEntity entry = scan.getColumn(column); 
+//	    			if (!entry.isNull()) {
+//	    				if (result.isNull())
+//	    					result = entry;
+//	    				else if (result.compareTo(entry) > 0)
+//	    					result = entry;
+//	    			}
+//	    		}
+//	    	}
+//    		if (result == null)
+//    			return new NullDataEntity();
+//    		else 
+//    			return result;
+//    	}
+
     }
 	@Override
 	public void beforeFirst() {
@@ -359,7 +383,7 @@ public class ProjectionScan implements Scan {
 				}
 				if (proj instanceof ProjectionAllColumnValue) {
 					if (scan.hasColumn(column)) {
-						result = count + scan.indexOfField(column);
+						result = count + scan.indexOfColumn(column);
 						return result;
 					}
 					else 

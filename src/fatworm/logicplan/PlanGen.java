@@ -15,6 +15,7 @@ import org.antlr.runtime.tree.CommonTreeNodeStream;
 
 import fatworm.absyn.*;
 import fatworm.dataentity.DataEntity;
+import fatworm.dataentity.NullDataEntity;
 import fatworm.parser.FatwormLexer;
 import fatworm.parser.FatwormParser;
 import fatworm.plantree.*;
@@ -438,16 +439,16 @@ public class PlanGen {
 				}
 			}
 			for (int p = 0; p < primaryKeyList.size(); p++){
-				String primaryKey = primaryKeyList.get(p);
+				String primaryKey = primaryKeyList.get(p).toLowerCase();
 				for (int q = 0; q < columnDefList.size(); q++){
-					if (columnDefList.get(q).colName.startsWith(primaryKey)){	
+					if (columnDefList.get(q).colName.equals(primaryKey)){	
 						columnDefList.get(q).primary = true;
 					}
 				}
 			}
 			for (int j = 0; j < columnDefList.size(); j++){
 				ColumnDef c = columnDefList.get(j);
-				DataEntity defaultValue = null;
+				DataEntity defaultValue = new NullDataEntity();
 				if(c.defaultValue != null)
 					defaultValue = c.defaultValue.getValue(null);
 				schema.addField(c.colName, c.type, c.length, c.isNotNull, c.autoIncrement, c.primary, defaultValue.toType(c.type));
@@ -529,7 +530,7 @@ public class PlanGen {
 					CommonTree tree = (CommonTree)t.getChild(i);
 					
 					for (int j = 0; j < tree.getChildCount(); j++){
-						((UpdateCommand)current).assigns.put(tree.getChild(j).getChild(0).getText(), getValue((CommonTree)tree.getChild(j).getChild(1)));
+						((UpdateCommand)current).addAssign(tree.getChild(j).getChild(0).getText(), getValue((CommonTree)tree.getChild(j).getChild(1)));
 					}
 				}
 			}
@@ -538,7 +539,7 @@ public class PlanGen {
 			DropTable dropTable = new DropTable(t.getChild(0).getText());
 			dropTable.tableList.add(t.getChild(0).getText());
 			for (int i = 0; i < t.getChild(0).getChildCount(); i++){
-				dropTable.tableList.add(t.getChild(0).getChild(i).getText());
+				dropTable.tableList.add(t.getChild(0).getChild(i).getText().toLowerCase());
 			}
 			//System.out.println(dropTable.tableList.get(1));
 			//dropTable.tableList.add(e)

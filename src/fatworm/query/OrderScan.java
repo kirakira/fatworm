@@ -17,8 +17,8 @@ public class OrderScan implements Scan {
 	public OrderScan(Scan scan, List<OrderByColumn> order) {
 		this.scan = scan;
 		this.order = order;
+		scan.beforeFirst();		
 		container = Util.getOrderContainer(scan, order);
-		scan.beforeFirst();
 		container.sort();
 	}
 	@Override

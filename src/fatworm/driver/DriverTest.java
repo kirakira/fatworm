@@ -22,7 +22,7 @@ public class DriverTest {
     	BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
     	String buffer = reader.readLine();
     	StringBuffer sql = new StringBuffer();
-    	while(sql != null) {
+    	while(buffer != null) {
     		//System.err.println(sql.toString());
     		if (buffer.startsWith("@")) {
     			buffer = reader.readLine();
@@ -39,6 +39,9 @@ public class DriverTest {
 		    			ResultSetMetaData metadata = resultset.getMetaData();
 		    			int width = metadata.getColumnCount();
 		    			//resultset.beforeFirst();
+		    			for (int i =1; i <= width;i++)
+		    				System.out.print(metadata.getColumnType(i) + " | ");
+		    			System.out.println();
 		    			while(resultset.next()) {
 			    			for (int i = 1; i <= width; i++)
 			    				System.out.print(resultset.getObject(i).toString() + " | ");

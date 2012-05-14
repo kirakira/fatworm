@@ -180,4 +180,8 @@ public class Database implements IOHelper {
             superTable.removeTable(tablename);
         }
     }
+
+    public  void close() {
+    	file.close();
+    }
 }

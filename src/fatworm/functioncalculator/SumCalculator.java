@@ -9,7 +9,8 @@ public class SumCalculator extends FunctionCalculator {
 		if (nextValue.isNull())
 			return;
 		if (oldValue.value.isNull()) 
-			oldValue.value = nextValue;
+			//XXX this is up to testcases
+			oldValue.value = nextValue.toType(java.sql.Types.FLOAT);
 		else 
 			oldValue.value = oldValue.value.opWith(nextValue, "+");
 		oldValue.count++;
