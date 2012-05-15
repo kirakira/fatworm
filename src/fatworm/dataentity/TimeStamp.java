@@ -56,10 +56,12 @@ public class TimeStamp extends DataEntity
     }
 	
 	public DataEntity toType(int type) {
-		if (type == java.sql.Types.CHAR)
-			return new FixChar(value.toString(), value.toString().length());
+		String s = value.toString();
+		s = s.substring(0, s.indexOf("."));
+		if (type == java.sql.Types.CHAR) 
+			return new FixChar(s, s.length());
 		else if (type == java.sql.Types.VARCHAR)
-			return new VarChar(value.toString());
+			return new VarChar(s);
 		return this;
 	}
 
