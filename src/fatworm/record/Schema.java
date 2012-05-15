@@ -257,7 +257,7 @@ public class Schema {
             else if (field.type == FLOAT)
                 tot += 8;
             else
-                tot += field.length;
+                tot += field.length + 1;
         }
         return tot;
     }

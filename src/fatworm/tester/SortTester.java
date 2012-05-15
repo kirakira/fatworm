@@ -21,9 +21,10 @@ public class SortTester {
     Random rand = new Random();
 
     public void test() {
+        int length = 10000;
         Schema schema = new Schema();
         schema.addField("key", INTEGER, 4, true, false, false, null);
-        schema.addField("value", CHAR, 4096, false, false, false, null);
+        schema.addField("value", CHAR, length, false, false, false, null);
 
         Storage.getInstance().createDatabase(dbName);
         Storage.getInstance().useDatabase(dbName);
@@ -36,7 +37,7 @@ public class SortTester {
         for (int i = 0; i < n; ++i) {
             Map<String, DataEntity> map = new HashMap<String, DataEntity>();
             map.put("key", new Int(rand.nextInt()));
-            map.put("value", new FixChar("", 4096));
+            map.put("value", new FixChar("", length));
             rf.insert(map);
         }
 
