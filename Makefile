@@ -31,6 +31,7 @@ storage: schema
 
 sort: storage
 	$(JC) src/fatworm/query/TupleComparator.java src/fatworm/query/OrderContainer.java src/fatworm/query/AdvancedOrderContainer.java
+	$(JC) src/fatworm/tester/TableScan.java src/fatworm/tester/SortTester.java
 
 clean:
 	rm -rf bin/
