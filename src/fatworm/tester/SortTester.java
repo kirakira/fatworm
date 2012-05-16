@@ -44,16 +44,23 @@ public class SortTester {
         Connection con = DriverManager.getConnection(url, username, password);
         Statement sql_statement = con.createStatement();
 
-        int length = 10000;
+        int length = 100000;
+        /*
         sql_statement.execute("drop database " + dbName);
         sql_statement.execute("create database " + dbName);
         sql_statement.execute("use " + dbName);
-        sql_statement.execute("create table " + tableName + "(key int, value char(" + length + ")");
+        sql_statement.execute("create table " + tableName + "(k int, v char(" + length + "))");
 
-        int n = 100;
+        int n = 1000;
+        String s = "";
+        for (int i = 0; i < length; ++i)
+            s += (char) ('a');
         for (int i = 0; i < n; ++i)
-            sql_statement.execute("insert into " + tableName + " values(" + rand.nextInt(100) + ", '')");
-        boolean result = sql_statement.execute("select * from " + tableName + " order by key");
+            sql_statement.execute("insert into " + tableName + " values(" + rand.nextInt(100) + ", '" + s + "')");
+        System.out.println("Insert finished");*/
+        sql_statement.execute("use " + dbName);
+
+        boolean result = sql_statement.execute("select * from " + tableName + " order by k desc");
         if (!result)
             System.out.println("no result");
         else {
@@ -72,32 +79,6 @@ public class SortTester {
             }
             System.out.println();
         }
-
-        /*
-        Schema schema = new Schema();
-        schema.addField("key", INTEGER, 4, true, false, false, null);
-        schema.addField("value", CHAR, length, false, false, false, null);
-
-        Storage.getInstance().createDatabase(dbName);
-        Storage.getInstance().useDatabase(dbName);
-        RecordFile rf = Storage.getInstance().insertTable(tableName, schema);
-        
-        if (rf == null)
-            System.out.println("Create table failed");
-
-        int n = 10000;
-        for (int i = 0; i < n; ++i) {
-            Map<String, DataEntity> map = new HashMap<String, DataEntity>();
-            map.put("key", new Int(rand.nextInt(100)));
-            map.put("value", new FixChar("", length));
-            rf.insert(map);
-        }
-
-        TableScan scan = new TableScan(rf);
-        List<OrderByColumn> orders = new ArrayList<OrderByColumn>();
-        orders.add(new OrderByColumn
-        OrderContainer orderContainer = new AdvancedOrderContainer(scan, orders);
-
-        Storage.getInstance().save();*/
+        System.out.println("Total memory: " + Runtime.getRuntime().totalMemory());
     }
 }

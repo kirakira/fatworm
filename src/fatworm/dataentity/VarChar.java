@@ -27,6 +27,10 @@ public class VarChar extends DataEntity {
         return VARCHAR;
     }
 
+    public int estimatedSize() {
+        return 2 * value.length();
+    }
+
     public int compareTo(DataEntity t){
     	if (t instanceof FixChar) {
     		return value.compareTo(((FixChar) t).value);

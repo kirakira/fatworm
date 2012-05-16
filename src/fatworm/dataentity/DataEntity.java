@@ -26,6 +26,8 @@ public abstract class DataEntity
     	return this;
     }
 
+    public abstract int estimatedSize();
+
     public static DataEntity fromBytes(byte[] data, int offset) {
         int type = ByteLib.bytesToInt(data, offset);
         return fromBytes(type, data, offset + 4);

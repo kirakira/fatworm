@@ -173,6 +173,16 @@ public class Database implements IOHelper {
         return st;
     }
 
+    Table insertTable(String table, int tupleSize) throws java.io.IOException {
+        if (getTable(table) != null)
+            return null;
+        int sBlock;
+        Table st = Table.createTemp(this, table, tupleSize);
+        int tBlock = st.save();
+        superTable.insertTable(table, tBlock, 0);
+        return st;
+    }
+
     public void dropTable(String tablename) throws java.io.IOException {
         Table table = getTable(tablename);
         if (table != null) {

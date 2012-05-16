@@ -37,11 +37,18 @@ public class Table implements RecordFile {
     }
 
     public static Table create(IOHelper io, String name, int schemaBlock) {
+        return createRaw(io, name, schemaBlock, 400);
+    }
+
+    private static Table createRaw(IOHelper io, String name, int schemaBlock, int tupleSize) {
         try {
             Table ret = new Table(io, name, schemaBlock);
             ret.front = Cell.create(io, ret.getSchema()).save();
             ret.rear = ret.front;
-            ret.capacity = (io.getBlockSize() - 16) / (4 + ret.schema.estimatedTupleSize());
+            if (ret.schema != null)
+                ret.capacity = (io.getBlockSize() - 16) / (4 + ret.schema.estimatedTupleSize());
+            else
+                ret.capacity = (io.getBlockSize() - 16) / (4 + tupleSize);
             if (ret.capacity == 0)
                 ret.capacity = 1;
 
@@ -50,6 +57,10 @@ public class Table implements RecordFile {
         } catch (java.io.IOException e) {
             return null;
         }
+    }
+
+    static Table createTemp(IOHelper io, String name, int tupleSize) {
+        return createRaw(io, name, 0, tupleSize);
     }
 
     private byte[] getHeadBytes() {
@@ -130,7 +141,10 @@ public class Table implements RecordFile {
     }
 
     public Schema getSchema() {
-        return schema.schema();
+        if (schema != null)
+            return schema.schema();
+        else
+            return null;
     }
 
     public void beforeFirst() {

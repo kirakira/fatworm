@@ -31,6 +31,10 @@ public class FixChar extends DataEntity{
         return CHAR;
     }
 
+    public int estimatedSize() {
+        return length * 2;
+    }
+
     public int compareTo(DataEntity t){
     	if (t instanceof FixChar) {
     		return value.compareTo(((FixChar) t).value);

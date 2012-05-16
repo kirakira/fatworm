@@ -26,6 +26,10 @@ public class Float extends DataEntity
         return FLOAT;
     }
 
+    public int estimatedSize() {
+        return 8;
+    }
+
     public int compareTo(DataEntity t) {
         if(t instanceof Float) {
             double anotherv = ((Float)t).value;

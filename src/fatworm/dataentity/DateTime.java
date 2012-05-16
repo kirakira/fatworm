@@ -25,6 +25,10 @@ public class DateTime extends DataEntity
         return DATE;
     }
 
+    public int estimatedSize() {
+        return 8;
+    }
+
     public int compareTo(DataEntity t) {
         if(t instanceof DateTime) {
             return value.compareTo(((DateTime)t).value);

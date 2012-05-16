@@ -29,6 +29,10 @@ public class Bool extends DataEntity
         return BOOLEAN;
     }
 
+    public int estimatedSize() {
+        return 1;
+    }
+
     public int compareTo(DataEntity t) {
         if (t instanceof Bool) {
         	if (value == ((Bool)t).value)
