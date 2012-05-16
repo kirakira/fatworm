@@ -5,8 +5,8 @@ import java.util.Set;
 
 import fatworm.query.Env;
 public class CompareExpr extends BoolExpr{
-	Value left, right;
-	String cop;
+	public Value left, right;
+	public String cop;
 
 	public CompareExpr(Value left, Value right, String cop){
 		this.left = left;

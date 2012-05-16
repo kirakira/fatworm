@@ -29,7 +29,7 @@ public class ProjectionScan implements Scan {
     Map<String, DataEntity> oneGroupFunctionValue;
 
     int[] typeArray;
-    boolean iterTable = false;
+    boolean iterTable = true;
     boolean startOne = true;
     int width;
     Env env;
@@ -41,12 +41,12 @@ public class ProjectionScan implements Scan {
         usefulColumnList = new ArrayList<Set<String>>();
         for (ProjectionValue projection: projections) {
         	Set<String> useful = projection.dumpUsefulColumns();
-        	if (useful.size() > 0)
-        		iterTable = true;
+//        	if (useful.size() > 0)
+//        		iterTable = true;
         	usefulColumnList.add(useful);
         	if (projection instanceof ProjectionAllColumnValue) {
         		width += scan.getNumberOfColumns();
-        		iterTable = true;
+//        		iterTable = true;
         	}
         	else 
         		width++;
@@ -516,5 +516,18 @@ public class ProjectionScan implements Scan {
 	@Override
 	public DataEntity getOrderKey(String key) {
 		return scan.getColumn(key);
-	}		
+	}
+
+    @Override
+    public boolean hasIndex(String colname) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public fatworm.record.Iterator getIndex(String colname, DataEntity right,
+            String cop) {
+        // TODO Auto-generated method stub
+        return null;
+    }		
 }

@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Set;
 
 import fatworm.dataentity.DataEntity;
+import fatworm.record.Iterator;
 import fatworm.record.RecordFile;
 import fatworm.util.Util;
 
@@ -141,5 +142,15 @@ public class GroupScan implements Scan {
 		@Override
 	public DataEntity getOrderKey(String key) {
 		return getColumn(key);
-	}		
+	}
+        @Override
+        public boolean hasIndex(String colname) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+        @Override
+        public Iterator getIndex(String colname, DataEntity right, String cop) {
+            // TODO Auto-generated method stub
+            return null;
+        }		
 }

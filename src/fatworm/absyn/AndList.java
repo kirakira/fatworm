@@ -2,14 +2,15 @@ package fatworm.absyn;
 
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import fatworm.query.Env;
 
 public class AndList extends BoolExpr{
-	public LinkedList<BoolExpr> andList = null;
-	public AndList(LinkedList<BoolExpr> andList){
-		this.andList = andList;
+	public List<BoolExpr> andList = null;
+	public AndList(List<BoolExpr> list){
+		this.andList = list;
 	}
 
 	public String toString(){

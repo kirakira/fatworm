@@ -4,13 +4,16 @@ import java.util.List;
 import java.util.Set;
 
 import fatworm.planner.QueryPlanner;
+import fatworm.query.ConditionJoinPlan;
 import fatworm.query.DistinctContainer;
 import fatworm.query.Env;
 import fatworm.query.GroupContainer;
+import fatworm.query.JoinPlan;
 import fatworm.query.MemoryDistinctContainer;
 import fatworm.query.MemoryGroupContainer;
 import fatworm.query.MemoryOrderContainer;
 import fatworm.query.OrderContainer;
+import fatworm.query.QueryPlan;
 import fatworm.query.AdvancedOrderContainer;
 import fatworm.query.Scan;
 import fatworm.query.SimpleEnv;
@@ -114,6 +117,10 @@ public class Util
 
 	public static DistinctContainer getDistinctContainer() {
 		return new MemoryDistinctContainer();
+	}
+	
+	public static JoinPlan getJoinPlan(List<QueryPlan> planList) {
+	    return new ConditionJoinPlan(planList);
 	}
 
 }

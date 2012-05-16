@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 import fatworm.dataentity.DataEntity;
+import fatworm.record.Iterator;
 import fatworm.record.RecordFile;
 import fatworm.record.Schema;
 import fatworm.util.Util;
@@ -134,6 +135,25 @@ public class TableScan implements Scan{
 	@Override
 	public DataEntity getOrderKey(String key) {
 		return getColumn(key);
-	}			
-	
+	}
+
+    @Override
+    public boolean hasIndex(String colname) {
+        return true;
+    }
+
+    @Override
+    public Iterator getIndex(String colname, DataEntity right, String cop) {
+        if (cop.equals("EQ"))
+            return iter.indexEqual(colname, right);
+        if (cop.equals("LE"))
+            return iter.indexLessThanEqual(colname, right);
+        if (cop.equals("LT"))
+            return iter.indexLessThan(colname, right);
+        if (cop.equals("GE"))
+            return iter.indexGreaterThanEqual(colname, right);
+        if (cop.equals("GT"))
+            return iter.indexGreaterThan(colname, right);
+        return null;
+    }
 }

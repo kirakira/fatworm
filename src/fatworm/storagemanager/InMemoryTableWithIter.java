@@ -88,16 +88,6 @@ public class InMemoryTableWithIter implements RecordFile {
 	public Schema getSchema() {
 		return table.schema;
 	}
-	@Override
-	public DataEntity[] tuple() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	@Override
-	public boolean insert(DataEntity[] tuple) {
-		// TODO Auto-generated method stub
-		return false;
-	}
 
     public DataEntity min(String col) {
         return null;
@@ -135,5 +125,15 @@ public class InMemoryTableWithIter implements RecordFile {
 
     public fatworm.record.Iterator indexGreaterThanEqual(String col, DataEntity value) {
         return null;
+    }
+    @Override
+    public DataEntity[] tuple() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    @Override
+    public boolean insert(DataEntity[] tuple) {
+        // TODO Auto-generated method stub
+        return false;
     }
 }

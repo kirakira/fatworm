@@ -32,7 +32,7 @@ public class BasicExecutor implements Executor {
 		else
 			command.execute();
 		
-		Util.getStorageManager().save();
+		//Util.getStorageManager().save();
 	}
 
 }

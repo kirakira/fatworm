@@ -4,6 +4,7 @@ import fatworm.query.Scan;
 import java.util.Collection;
 
 import fatworm.dataentity.DataEntity;
+import fatworm.record.Iterator;
 import fatworm.record.RecordFile;
 
 public class TableScan implements Scan {
@@ -90,6 +91,18 @@ public class TableScan implements Scan {
     }
 
     public DataEntity getOrderKey(String key) {
+        return null;
+    }
+
+    @Override
+    public boolean hasIndex(String colname) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public Iterator getIndex(String colname, DataEntity right, String cop) {
+        // TODO Auto-generated method stub
         return null;
     }
 }

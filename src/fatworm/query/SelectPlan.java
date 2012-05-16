@@ -25,7 +25,17 @@ public class SelectPlan extends QueryPlan{
     public Scan open() {
     	if (plan == null)
     		return new OneTimeScan(pred.satisfiedBy(env)); 
-        return new SelectScan(plan.open(), pred, env);
+    	
+    	Scan scan = plan.open();
+    	if (scan instanceof ConditionJoinScan) {
+    	    ConditionJoinScan condjoin = (ConditionJoinScan)scan;
+    	    BoolExpr newpred = condjoin.setCondition(pred);
+    	    if (newpred != null)
+    	        return new SelectScan(condjoin, newpred, env);
+    	    else
+    	        return condjoin;
+    	}
+    	return new SelectScan(scan, pred, env);
     }
 
     public void addFunctionsToCalc(Set<String> funcs){
