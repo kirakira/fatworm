@@ -3,6 +3,7 @@ package fatworm.storage;
 import fatworm.storage.bplustree.*;
 import fatworm.record.Schema;
 import fatworm.record.RecordFile;
+import fatworm.record.Iterator;
 import fatworm.dataentity.*;
 
 import java.util.Random;
@@ -73,6 +74,17 @@ public class Tester {
         storage.save();
 
         printTable("lichking", "loli");
+
+        System.out.println("Age >= 10:");
+        Iterator iter = table.indexGreaterThanEqual("age", new Int(10));
+        iter.beforeFirst();
+        while (iter.next()) {
+            for (int i = 0; i < table.getSchema().columnCount(); ++i)
+                System.out.print(iter.getField(i) + "\t");
+            System.out.println();
+        }
+
+        System.out.println("Min age:" + table.min("age"));
     }
 
     public void printTable(String db, String tablename) {

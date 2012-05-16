@@ -1,8 +1,9 @@
 package fatworm.storage;
 
 import fatworm.record.RecordFile;
-import fatworm.storage.bucket.Bucket;
 import fatworm.record.Schema;
+import fatworm.record.Iterator;
+import fatworm.storage.bucket.Bucket;
 import fatworm.util.ByteLib;
 import fatworm.dataentity.*;
 
@@ -19,10 +20,8 @@ public class Table implements RecordFile {
     private int front, rear;
     private int capacity;
 
-    private Cell currentCell;
-    private int currentIndex = -1;
-    private boolean removed = false;
-    
+    private Iterator scanIter;
+
     private Table(IOHelper io, String name, int schema) {
         this.io = io;
         this.name = name;
@@ -34,9 +33,7 @@ public class Table implements RecordFile {
         rear = 0;
         capacity = 0;
 
-        currentCell = null;
-        currentIndex = 0;
-        removed = false;
+        scanIter = scan();
     }
 
     public static Table create(IOHelper io, String name, int schemaBlock) {
@@ -129,19 +126,7 @@ public class Table implements RecordFile {
     }
 
     public boolean update(Map<String, DataEntity> map) {
-        try {
-            if (!removed && currentCell != null && currentIndex >= 0 && currentIndex < currentCell.tupleCount()) {
-                Tuple tuple = Tuple.create(getSchema(), map, getTuple());
-                if (tuple == null)
-                    return false;
-                currentCell.set(currentIndex, tuple);
-                currentCell.save();
-                return true;
-            } else
-                return false;
-        } catch (java.io.IOException e) {
-            return false;
-        }
+        return scanIter.update(map);
     }
 
     public Schema getSchema() {
@@ -149,48 +134,15 @@ public class Table implements RecordFile {
     }
 
     public void beforeFirst() {
-        currentCell = Cell.load(io, getSchema(), front);
-        currentIndex = -1;
-        removed = false;
+        scanIter.beforeFirst();
     }
 
     public boolean next() {
-        int t = currentIndex + 1;
-        if (t >= currentCell.tupleCount()) {
-            do {
-                int nextCell = currentCell.getNext();
-                if (nextCell == 0)
-                    return false;
-                currentCell = Cell.load(io, getSchema(), nextCell);
-            } while (currentCell.tupleCount() == 0);
-
-            currentIndex = 0;
-            removed = false;
-            return true;
-        } else {
-            currentIndex = t;
-            removed = false;
-            return true;
-        }
+        return scanIter.next();
     }
 
     public void delete() {
-        try {
-            if (!removed && currentCell != null && currentIndex >= 0 && currentIndex < currentCell.tupleCount()) {
-                currentCell.remove(currentIndex);
-                currentCell.save();
-                removed = true;
-                --currentIndex;
-            }
-        } catch (java.io.IOException e) {
-        }
-    }
-
-    private Tuple getTuple() {
-        if (!removed && currentCell != null && currentIndex >= 0 && currentIndex < currentCell.tupleCount())
-            return currentCell.get(currentIndex);
-        else
-            return null;
+        scanIter.remove();
     }
 
     public boolean hasField(String name) {
@@ -198,22 +150,188 @@ public class Table implements RecordFile {
     }
 
     public DataEntity getFieldByIndex(int index) {
-        Tuple tuple = getTuple();
-        if (tuple == null)
-            return null;
-        else
-            return tuple.get(index);
+        return scanIter.getField(index);
     }
 
     public DataEntity getField(String name) {
-        int i = getSchema().index(name);
-        if (i == -1)
-            return null;
-        else
-            return getFieldByIndex(i);
+        return scanIter.getField(name);
     }
 
     public DataEntity[] tuple() {
-        return getTuple().tuple();
+        return scanIter.getTuple();
+    }
+
+    private class ScanIterator implements Iterator {
+        private Cell currentCell = null;
+        private int currentIndex = 0;
+        private boolean removed = false;
+
+        public void beforeFirst() {
+            currentCell = Cell.load(io, getSchema(), front);
+            currentIndex = -1;
+            removed = false;
+        }
+        
+        public boolean next() {
+            int t = currentIndex + 1;
+            if (t >= currentCell.tupleCount()) {
+                do {
+                    int nextCell = currentCell.getNext();
+                    if (nextCell == 0)
+                        return false;
+                    currentCell = Cell.load(io, getSchema(), nextCell);
+                } while (currentCell.tupleCount() == 0);
+
+                currentIndex = 0;
+                removed = false;
+                return true;
+            } else {
+                currentIndex = t;
+                removed = false;
+                return true;
+            }
+        }
+
+        public void remove() {
+            try {
+                if (!removed && currentCell != null && currentIndex >= 0 && currentIndex < currentCell.tupleCount()) {
+                    currentCell.remove(currentIndex);
+                    currentCell.save();
+                    removed = true;
+                    --currentIndex;
+                }
+            } catch (java.io.IOException e) {
+            }
+        }
+
+        public boolean update(Map<String, DataEntity> map) {
+            try {
+                if (!removed && currentCell != null && currentIndex >= 0 && currentIndex < currentCell.tupleCount()) {
+                    Tuple tuple = Tuple.create(getSchema(), map, getTuple());
+                    if (tuple == null)
+                        return false;
+                    currentCell.set(currentIndex, tuple);
+                    currentCell.save();
+                    return true;
+                } else
+                    return false;
+            } catch (java.io.IOException e) {
+                return false;
+            }
+        }
+
+        public DataEntity[] getTuple() {
+            if (!removed && currentCell != null && currentIndex >= 0 && currentIndex < currentCell.tupleCount())
+                return currentCell.get(currentIndex).tuple();
+            else
+                return null;
+        }
+
+        public DataEntity getField(int index) {
+            DataEntity[] tuple = getTuple();
+            if (tuple == null)
+                return null;
+            else
+                return tuple[index];
+        }
+
+        public DataEntity getField(String fldname) {
+            Schema schema = getSchema();
+            if (schema == null)
+                return null;
+            else {
+                int i = schema.index(fldname);
+                if (i == -1)
+                    return null;
+                else
+                    return getField(i);
+            }
+        }
+    }
+
+    private class DummyIndexIterator extends ScanIterator {
+        String fldname;
+        DataEntity value;
+        DataComparator compare;
+
+        public DummyIndexIterator(String fldname, DataEntity value, DataComparator compare) {
+            super();
+            this.fldname = fldname;
+            this.value = value;
+            this.compare = compare;
+        }
+
+        public boolean next() {
+            boolean ret = super.next();
+            while (ret) {
+                if (compare.compare(getField(fldname), value))
+                    break;
+                else
+                    ret = super.next();
+            }
+            return ret;
+        }
+    }
+
+    public Iterator scan() {
+        return new ScanIterator();
+    }
+
+    public void createIndex(String col) {
+        // TODO
+    }
+
+    public void dropIndex(String col) {
+        // TODO
+    }
+
+    public Iterator indexEqual(String col, DataEntity value) {
+        return new DummyIndexIterator(col, value, new EqualToComparator());
+    }
+
+    public Iterator indexLessThan(String col, DataEntity value) {
+        return new DummyIndexIterator(col, value, new LessThanComparator());
+    }
+
+    public Iterator indexLessThanEqual(String col, DataEntity value) {
+        return new DummyIndexIterator(col, value, new LessThanEqualToComparator());
+    }
+
+    public Iterator indexGreaterThan(String col, DataEntity value) {
+        return new DummyIndexIterator(col, value, new GreaterThanComparator());
+    }
+
+    public Iterator indexGreaterThanEqual(String col, DataEntity value) {
+        return new DummyIndexIterator(col, value, new GreaterThanEqualToComparator());
+    }
+
+    public DataEntity max(String col) {
+        Iterator iter = scan();
+        iter.beforeFirst();
+        DataComparator compare = new GreaterThanComparator();
+        DataEntity ret = null;
+        while (iter.next()) {
+            DataEntity value = iter.getField(col);
+            if (ret == null && !value.isNull())
+                ret = value;
+            else if (compare.compare(value, ret))
+                ret = value;
+        }
+        return ret;
+    }
+
+    public DataEntity min(String col) {
+        Iterator iter = scan();
+        iter.beforeFirst();
+        DataComparator compare = new LessThanComparator();
+        DataEntity ret = null;
+        while (iter.next()) {
+            DataEntity value = iter.getField(col);
+            if (ret == null && !value.isNull())
+                ret = value;
+            else if (compare.compare(value, ret))
+                ret = value;
+        }
+        return ret;
     }
 }

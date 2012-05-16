@@ -24,7 +24,7 @@ schema: dataentity
 	$(JC) src/fatworm/record/Schema.java
 
 storage: schema
-	$(JC) src/fatworm/record/RecordFile.java
+	$(JC) src/fatworm/record/RecordFile.java src/fatworm/record/Iterator.java
 	$(JC) src/fatworm/storagemanager/StorageManagerInterface.java
 	find src/fatworm/storage -name "*.java" > sources.txt
 	$(JC) @sources.txt

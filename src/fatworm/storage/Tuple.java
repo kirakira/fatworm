@@ -53,7 +53,7 @@ public class Tuple {
         return ret;
     }
 
-    public static Tuple create(Schema schema, Map<String, DataEntity> map, Tuple base) {
+    public static Tuple create(Schema schema, Map<String, DataEntity> map, DataEntity[] base) {
         Tuple ret = new Tuple(schema);
 
         int len = schema.columnCount();
@@ -63,7 +63,7 @@ public class Tuple {
         for (int i = 0; i < len; ++i) {
             DataEntity de = map.get(schema.name(i));
             if (de == null)
-                de = base.values[i];
+                de = base[i];
             ++count;
             ret.values[i] = de;
         }
