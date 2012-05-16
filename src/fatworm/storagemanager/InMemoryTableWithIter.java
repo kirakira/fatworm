@@ -99,4 +99,41 @@ public class InMemoryTableWithIter implements RecordFile {
 		return false;
 	}
 
+    public DataEntity min(String col) {
+        return null;
+    }
+
+    public DataEntity max(String col) {
+        return null;
+    }
+
+    public fatworm.record.Iterator scan() {
+        return null;
+    }
+
+    public void createIndex(String col) {
+    }
+
+    public void dropIndex(String col) {
+    }
+
+    public fatworm.record.Iterator indexEqual(String col, DataEntity value) {
+        return null;
+    }
+
+    public fatworm.record.Iterator indexLessThan(String col, DataEntity value) {
+        return null;
+    }
+
+    public fatworm.record.Iterator indexLessThanEqual(String col, DataEntity value) {
+        return null;
+    }
+
+    public fatworm.record.Iterator indexGreaterThan(String col, DataEntity value) {
+        return null;
+    }
+
+    public fatworm.record.Iterator indexGreaterThanEqual(String col, DataEntity value) {
+        return null;
+    }
 }
