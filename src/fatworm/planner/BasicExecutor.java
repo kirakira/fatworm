@@ -1,5 +1,10 @@
 package fatworm.planner;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import fatworm.dataentity.DataEntity;
 import fatworm.plantree.Command;
 import fatworm.record.RecordFile;
 import fatworm.record.Schema;
@@ -22,8 +27,12 @@ public class BasicExecutor implements Executor {
 					Scan scan = Util.getQueryPlanner().createQueryPlan(((QueryInsert) command).query).open();
 					scan.beforeFirst();
 					Schema  schema = rf.getSchema();
+					List<Map<String, DataEntity>> result = new LinkedList<Map<String, DataEntity>>();
 					while(scan.next())
-						rf.insert(((QueryInsert) command).getTupleMap(schema, scan));
+						result.add(((QueryInsert) command).getTupleMap(schema, scan));
+					for(Map<String, DataEntity> tuple: result) {
+					    rf.insert(tuple);
+					}
 				}
 			}catch (Exception e) {
 				e.printStackTrace();

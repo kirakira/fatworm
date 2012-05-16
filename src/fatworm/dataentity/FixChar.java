@@ -37,17 +37,20 @@ public class FixChar extends DataEntity{
 
     public int compareTo(DataEntity t){
     	if (t instanceof FixChar) {
-    		return value.compareTo(((FixChar) t).value);
+    		return value.compareToIgnoreCase(((FixChar) t).value);
     	}
     	if (t instanceof VarChar) {
-            return value.compareTo(((VarChar)t).value);
+            return value.compareToIgnoreCase(((VarChar)t).value);
         }
         if (t instanceof TimeStamp) {
-            return value.compareTo(((TimeStamp)t).value.toString());
+            return value.compareToIgnoreCase(((TimeStamp)t).value.toString());
         }
         if (t instanceof DateTime) {
-            return value.compareTo(((DateTime)t).value.toString());
+            return value.compareToIgnoreCase(((DateTime)t).value.toString());
         }
+        if (t instanceof Int) {
+            return - t.compareTo(this);
+        }        
         return -1;
     }
 	@Override

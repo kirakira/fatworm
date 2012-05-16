@@ -185,6 +185,7 @@ public class ProjectionScan implements Scan {
 		if (iterTable)
 			return scan.next();
 		else { 
+		    scan.beforeFirst();
 			if (startOne && scan.next()) {
 				startOne = false;
 				return true;

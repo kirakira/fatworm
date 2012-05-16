@@ -18,6 +18,7 @@ public class ConditionJoinScan extends JoinScan {
     int[] dependent;
     DependentCondition[] dependentCondition;
     List<BoolExpr> conditions;
+    boolean iterTable = true;
 
     public ConditionJoinScan(List<Scan> scanList) {
         super(scanList);
@@ -30,15 +31,20 @@ public class ConditionJoinScan extends JoinScan {
 
     
     private boolean nextTable(int i) {
-        if (dependent[i] >= 0)
-            return indexIteratorList[i].next();
+        if (dependent[i] >= 0) {
+            if (indexIteratorList[i] != null)
+                return indexIteratorList[i].next(); 
+            else return false;
+        }
         else 
             return scanList.get(i).next();
     }
     
     private void beforeFirstTable(int i) {
-        if (dependent[i] >= 0)
-            indexIteratorList[i].beforeFirst();
+        if (dependent[i] >= 0) {
+            if(indexIteratorList[i] != null) 
+                indexIteratorList[i].beforeFirst();
+        }
         else 
             scanList.get(i).beforeFirst();
     }
@@ -52,7 +58,8 @@ public class ConditionJoinScan extends JoinScan {
                         DependentCondition cond = dependentCondition[j];
                         indexIteratorList[j] = scanList.get(j).getIndex(cond.myleft, getColumn(cond.yourright), cond.cop);
                     }
-                    beforeFirstTable(j);
+                    if (dependent[j] <= i || dependent[j] == j || dependent[j] < 0)
+                        beforeFirstTable(j);
                 }
                 i++;
             } //while (i < scanList.size() && nextTable(i));
@@ -62,12 +69,25 @@ public class ConditionJoinScan extends JoinScan {
                 i--;
             if (i < 0)
                 break;
+            for (int j = i+1; j < scanList.size(); j++) {
+                if (dependent[j] == i) {
+                    DependentCondition cond = dependentCondition[j];
+                    indexIteratorList[j] = scanList.get(j).getIndex(cond.myleft, getColumn(cond.yourright), cond.cop);
+                }
+                if (dependent[j] <= i || dependent[j] == j || dependent[j] < 0)
+                    beforeFirstTable(j);
+            }
             i++;
+        }
+        if (i < 0) {
+            iterTable = false;
         }
         beforeFirstTable(scanList.size() - 1);
     }
     
     public boolean next() {
+        if (iterTable == false)
+            return false;
         int i = scanList.size() - 1;
         while(true) {
             if (i >= scanList.size())
@@ -153,7 +173,7 @@ public class ConditionJoinScan extends JoinScan {
                         ConstValue left = (ConstValue) comp.left;
                         String right = ((ColumnValue) comp.right).colName.toString();
                         int tableNum = getColumnTable(right);
-                        if (tableNum > 0 && dependent[tableNum] < 0 && scanList.get(tableNum).hasIndex(right)) {
+                        if (tableNum >= 0 && dependent[tableNum] < 0 && scanList.get(tableNum).hasIndex(right)) {
                             int type = scanList.get(tableNum).type(right);
                             indexIteratorList[tableNum] = scanList.get(tableNum).getIndex(right,left.getValue(null).toType(type), "EQ");
                             dependent[tableNum] = tableNum;
@@ -165,7 +185,7 @@ public class ConditionJoinScan extends JoinScan {
                         String left = ((ColumnValue) comp.left).colName.toString();
                         ConstValue right = (ConstValue) comp.right;
                         int tableNum = getColumnTable(left);
-                        if (tableNum > 0 && dependent[tableNum] < 0 && scanList.get(tableNum).hasIndex(left)) {
+                        if (tableNum >= 0 && dependent[tableNum] < 0 && scanList.get(tableNum).hasIndex(left)) {
                             int type = scanList.get(tableNum).type(left);
                             indexIteratorList[tableNum] = scanList.get(tableNum).getIndex(left, right.getValue(null).toType(type), "EQ");
                             dependent[tableNum] = tableNum;
@@ -180,7 +200,7 @@ public class ConditionJoinScan extends JoinScan {
     }
 
     static boolean indexCanUseInEqual(String cop) {
-        return !(cop.equals("NE") && cop.equals("EQ"));
+        return !(cop.equals("NE") || cop.equals("EQ"));
     }
 
     static String inverseCop(String cop) {
@@ -207,7 +227,7 @@ public class ConditionJoinScan extends JoinScan {
                         ConstValue left = (ConstValue) comp.left;
                         String right = ((ColumnValue) comp.right).colName.toString();
                         int tableNum = getColumnTable(right);
-                        if (tableNum > 0 && dependent[tableNum] < 0 && scanList.get(tableNum).hasIndex(right)) {
+                        if (tableNum >= 0 && dependent[tableNum] < 0 && scanList.get(tableNum).hasIndex(right)) {
                             int type = scanList.get(tableNum).type(right);
                             indexIteratorList[tableNum] = scanList.get(tableNum).getIndex(right,left.getValue(null).toType(type), 
                                                                                       inverseCop(comp.cop));
@@ -220,7 +240,7 @@ public class ConditionJoinScan extends JoinScan {
                         String left = ((ColumnValue) comp.left).colName.toString();
                         ConstValue right = (ConstValue) comp.right;
                         int tableNum = getColumnTable(left);
-                        if (tableNum > 0 && dependent[tableNum] < 0 && scanList.get(tableNum).hasIndex(left)) {
+                        if (tableNum >= 0 && dependent[tableNum] < 0 && scanList.get(tableNum).hasIndex(left)) {
                             int type = scanList.get(tableNum).type(left);
                             indexIteratorList[tableNum] = scanList.get(tableNum).getIndex(left, right.getValue(null).toType(type), comp.cop);
                             dependent[tableNum] = tableNum;
@@ -246,13 +266,13 @@ public class ConditionJoinScan extends JoinScan {
                             String right = ((ColumnValue)comp.right).colName.toString();
                             int lefttable = getColumnTable(left);
                             int righttable = getColumnTable(right);
-                            if (lefttable == i && righttable > i && dependent[righttable] < 0) {
+                            if (lefttable == i && righttable > i && dependent[righttable] < 0 && scanList.get(righttable).hasIndex(right)) {
                                 dependent[righttable] = lefttable;
                                 dependentCondition[righttable] = new DependentCondition(right, left, "EQ");
                                 list.remove(j);
                                 continue;
                             }
-                            if (righttable == i && lefttable > i && dependent[lefttable] < 0) {
+                            if (righttable == i && lefttable > i && dependent[lefttable] < 0 && scanList.get(righttable).hasIndex(left)) {
                                 dependent[lefttable] = righttable;
                                 dependentCondition[lefttable] = new DependentCondition(left, right,  "EQ");
                                 list.remove(j);
@@ -277,13 +297,13 @@ public class ConditionJoinScan extends JoinScan {
                             String right = ((ColumnValue)comp.right).colName.toString();
                             int lefttable = getColumnTable(left);
                             int righttable = getColumnTable(right);
-                            if (lefttable == i && righttable > i && dependent[righttable] < 0) {
+                            if (lefttable == i && righttable > i && dependent[righttable] < 0 && scanList.get(righttable).hasIndex(right)) {
                                 dependent[righttable] = lefttable;
                                 dependentCondition[righttable] = new DependentCondition(right, left, inverseCop(comp.cop));
                                 list.remove(j);
                                 continue;
                             }
-                            if (righttable == i && lefttable > i && dependent[lefttable] < 0) {
+                            if (righttable == i && lefttable > i && dependent[lefttable] < 0 && scanList.get(righttable).hasIndex(right)) {
                                 dependent[lefttable] = righttable;
                                 dependentCondition[lefttable] = new DependentCondition(left, right, comp.cop);
                                 list.remove(j);

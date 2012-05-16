@@ -94,7 +94,7 @@ public class RenameScan implements Scan{
 	}
 	@Override
 	public int type(String colname) {
-		return scan.type(colname);
+		return type(indexOfColumn(colname));
 	}
 
 	@Override
