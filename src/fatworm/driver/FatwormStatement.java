@@ -11,6 +11,7 @@ import org.antlr.runtime.RecognitionException;
 
 import fatworm.database.Database;
 import fatworm.query.Scan;
+import fatworm.util.Util;
 
 public class FatwormStatement implements Statement {
 
@@ -62,10 +63,12 @@ public class FatwormStatement implements Statement {
 		try {
 			result = Database.getInstance().execute(arg0);
 		} catch (Exception e) {
+		    Util.getStorageManager().save();		    
 			System.out.println(arg0);			
 			e.printStackTrace();
 			return false;
 		}
+		Util.getStorageManager().save();
 		return result != null;
 	}
 

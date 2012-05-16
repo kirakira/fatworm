@@ -135,5 +135,18 @@ public class SelectScan implements Scan{
 	@Override
 	public DataEntity getOrderKey(String key) {
 		return getColumn(key);
-	}			
+	}
+
+    @Override
+    public boolean hasIndex(String colname) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public fatworm.record.Iterator getIndex(String colname, DataEntity right,
+            String cop) {
+        // TODO Auto-generated method stub
+        return null;
+    }			
 }

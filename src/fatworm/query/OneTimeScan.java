@@ -3,6 +3,7 @@ package fatworm.query;
 import java.util.Collection;
 
 import fatworm.dataentity.DataEntity;
+import fatworm.record.Iterator;
 import fatworm.record.RecordFile;
 
 public class OneTimeScan implements Scan {
@@ -134,5 +135,15 @@ public class OneTimeScan implements Scan {
 		// TODO Auto-generated method stub
 		return null;
 	}
+    @Override
+    public boolean hasIndex(String colname) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+    @Override
+    public Iterator getIndex(String colname, DataEntity right, String cop) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 }

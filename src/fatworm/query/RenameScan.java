@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 import fatworm.dataentity.DataEntity;
+import fatworm.record.Iterator;
 import fatworm.record.RecordFile;
 import fatworm.util.Util;
 
@@ -128,6 +129,14 @@ public class RenameScan implements Scan{
 	@Override
 	public DataEntity getOrderKey(String key) {
 		return getColumn(key);
-	}		
+	}
+    @Override
+    public boolean hasIndex(String colname) {
+        return scan.hasIndex(colname);
+    }
+    @Override
+    public Iterator getIndex(String colname, DataEntity right, String cop) {
+        return scan.getIndex(colname, right, cop);
+    }		
 	
 }

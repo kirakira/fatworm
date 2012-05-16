@@ -22,6 +22,7 @@ import fatworm.query.RenamePlan;
 import fatworm.query.SelectPlan;
 import fatworm.query.TablePlan;
 import fatworm.query.OrderPlan;
+import fatworm.util.Util;
 
 public class BasicQueryPlanner implements QueryPlanner {
 
@@ -50,7 +51,7 @@ public class BasicQueryPlanner implements QueryPlanner {
 			for (Node node: query.childList) {
 				joinlist.add(createQueryPlan(node));
 			}
-			return new JoinPlan(joinlist);
+			return Util.getJoinPlan(joinlist);
 		}
 		else if (query instanceof Rename) {
 			return new RenamePlan(createQueryPlan(firstchild), ((Rename)query).alias);
@@ -86,7 +87,7 @@ public class BasicQueryPlanner implements QueryPlanner {
 			for (Node node: query.childList) {
 				joinlist.add(createQueryPlan(node, env));
 			}
-			return new JoinPlan(joinlist);
+			return Util.getJoinPlan(joinlist);
 		}
 		else if (query instanceof Rename) {
 			return new RenamePlan(createQueryPlan(firstchild, env), ((Rename)query).alias);

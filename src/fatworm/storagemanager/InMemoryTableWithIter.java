@@ -98,5 +98,57 @@ public class InMemoryTableWithIter implements RecordFile {
 		// TODO Auto-generated method stub
 		return false;
 	}
+    @Override
+    public fatworm.record.Iterator scan() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    @Override
+    public void createIndex(String col) {
+        // TODO Auto-generated method stub
+        
+    }
+    @Override
+    public void dropIndex(String col) {
+        // TODO Auto-generated method stub
+        
+    }
+    @Override
+    public fatworm.record.Iterator indexEqual(String col, DataEntity value) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    @Override
+    public fatworm.record.Iterator indexLessThan(String col, DataEntity value) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    @Override
+    public fatworm.record.Iterator indexLessThanEqual(String col,
+            DataEntity value) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    @Override
+    public fatworm.record.Iterator indexGreaterThan(String col, DataEntity value) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    @Override
+    public fatworm.record.Iterator indexGreaterThanEqual(String col,
+            DataEntity value) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    @Override
+    public DataEntity max(String col) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    @Override
+    public DataEntity min(String col) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 }

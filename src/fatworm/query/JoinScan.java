@@ -6,17 +6,23 @@ import java.util.List;
 import java.util.Set;
 
 import fatworm.dataentity.DataEntity;
+import fatworm.record.Iterator;
 import fatworm.record.RecordFile;
 
 public class JoinScan implements Scan{
 
     List<Scan> scanList;
     int width;
+    int[] columnCount;
     public JoinScan(List<Scan> scanList) {
         this.scanList = scanList;
         width = 0;
+        columnCount = new int[scanList.size()];
+        int i = 0;
         for (Scan s: scanList) {
             width += s.getNumberOfColumns();
+            columnCount[i] = s.getNumberOfColumns();
+            i++;
         }
     }
 	@Override
@@ -47,6 +53,7 @@ public class JoinScan implements Scan{
         }
         return null;
 	}
+	
 	@Override
 	public boolean hasField(String fldname) {
         for (Scan s: scanList) {
@@ -182,5 +189,15 @@ public class JoinScan implements Scan{
 	@Override
 	public DataEntity getOrderKey(String key) {
 		return getColumn(key);
-	}			
+	}
+    @Override
+    public boolean hasIndex(String colname) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+    @Override
+    public Iterator getIndex(String colname, DataEntity right, String cop) {
+        // TODO Auto-generated method stub
+        return null;
+    }			
 }

@@ -3,6 +3,7 @@ package fatworm.query;
 import java.util.Collection;
 
 import fatworm.dataentity.DataEntity;
+import fatworm.record.Iterator;
 import fatworm.record.RecordFile;
 /**
  * The interface will be implemented by each query scan.
@@ -105,4 +106,8 @@ public interface Scan {
     public boolean hasFunctionValue(String func);
 
 	public DataEntity getOrderKey(String key);
+	
+	public boolean hasIndex(String colname);
+	
+	public Iterator getIndex(String colname, DataEntity right, String cop);
 }
