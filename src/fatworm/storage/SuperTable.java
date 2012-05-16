@@ -48,7 +48,7 @@ public class SuperTable {
 
     public static SuperTable create(IOHelper io) {
         SuperTable ret = new SuperTable(io);
-        ret.bucket = Bucket.create(io, null, FreeList.reservedBlock);
+        ret.bucket = Bucket.create(io, FreeList.reservedBlock);
         return ret;
     }
 

@@ -63,19 +63,23 @@ public class Bucket {
         }
     }
 
-    public static Bucket create(IOHelper io, byte[] data, int block) {
-        Bucket ret = Bucket.create(io, data);
+    public static Bucket create(IOHelper io, int block) {
+        Bucket ret = Bucket.create(io);
         ret.block = block;
         return ret;
     }
 
-    public static Bucket create(IOHelper io, byte[] data) {
+    public static Bucket create(IOHelper io) {
         Bucket bucket = new Bucket();
         bucket.block = 0;
         bucket.io = io;
         bucket.blocks = new LinkedList<Integer>();
-        bucket.setData(data);
+        bucket.setData(null);
         return bucket;
+    }
+
+    public int block() {
+        return block;
     }
 
     public byte[] getData() {

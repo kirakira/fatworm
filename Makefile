@@ -29,6 +29,9 @@ storage: schema
 	find src/fatworm/storage -name "*.java" > sources.txt
 	$(JC) @sources.txt
 
+bptree: storage
+	$(JC) src/fatworm/tester/BPlusTreeTester.java
+
 sort: storage
 	$(JC) src/fatworm/absyn/ColName.java src/fatworm/absyn/OrderByColumn.java src/fatworm/absyn/SimpleCol.java src/fatworm/absyn/FieldCol.java
 	$(JC) src/fatworm/query/Scan.java src/fatworm/query/TupleComparator.java src/fatworm/query/OrderContainer.java src/fatworm/query/AdvancedOrderContainer.java

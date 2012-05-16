@@ -50,7 +50,7 @@ public class Table implements RecordFile {
             if (ret.capacity == 0)
                 ret.capacity = 1;
 
-            ret.head = Bucket.create(io, null);
+            ret.head = Bucket.create(io);
             return ret;
         } catch (java.io.IOException e) {
             return null;

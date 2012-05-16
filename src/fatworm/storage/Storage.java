@@ -168,4 +168,8 @@ public class Storage implements StorageManagerInterface {
             path += java.io.File.separator;
         this.path = path;
     }
+
+    public IOHelper getCurrentIOHelper() {
+        return current;
+    }
 }

@@ -1,97 +1,112 @@
 package fatworm.storage.bplustree;
 
 import fatworm.storage.*;
-import fatworm.util.ByteLib;
+import fatworm.util.ByteBuffer;
+import fatworm.storage.bucket.Bucket;
+
 import java.util.Comparator;
 import java.util.List;
 import java.util.LinkedList;
 
 public class BPlusTree {
     public enum KeySize {
+        FIXED_1_BYTE,
         FIXED_4_BYTES,
+        FIXED_8_BYTES,
         VARIANT
     }
 
-    private KeySize keySize;
     private IOHelper io;
-    private int block;
+    private Comparator<byte[]> compare;
+
+    private Bucket head;
+
+    private KeySize keySize;
     private int fanout;
     private int root;
-    private Comparator<byte[]> compare;
-    private Bucket bucket;
 
     private static char[] magic = {'f', 'a', 't', 'w', 'o', 'r', 'm', 'b', 'p', 't'};
 
-    private BPlusTree(IOHelper ioHelper, int block, Comparator<byte[]> compare, KeySize size) {
+    private BPlusTree(IOHelper ioHelper, Comparator<byte[]> compare) {
         io = ioHelper;
-        this.block = block;
         this.compare = compare;
-        bucket = new Bucket(io);
-        keySize = size;
     }
 
     public static BPlusTree load(IOHelper ioHelper, Comparator<byte[]> compare, int block) {
-        BPlusTree ret = new BPlusTree(ioHelper, block, compare, null);
-        try {
-            byte[] data  = new byte[ret.io.getBlockSize()];
-            ret.io.readBlock(block, data, 0);
+        BPlusTree ret = new BPlusTree(ioHelper, compare);
+        ret.head = Bucket.load(ret.io, block);
+        byte[] data  = ret.head.getData();
+        ByteBuffer buffer = new ByteBuffer(data);
 
-            for (int i = 0; i < magic.length; ++i) {
-                if (data[i] != (byte) magic[i])
-                    return null;
-            }
+        for (int i = 0; i < magic.length; ++i) {
+            if (buffer.getChar() != magic[i])
+                return null;
+        }
 
-            int s = magic.length;
-
-            if (data[s] == 0)
-                ret.keySize = KeySize.FIXED_4_BYTES;
-            else
-                ret.keySize = KeySize.VARIANT;
-            ++s;
-
-            ret.fanout = ByteLib.bytesToInt(data, s);
-            s += 4;
-
-            ret.root = ByteLib.bytesToInt(data, s);
-
-            return ret;
-        } catch (java.io.IOException e) {
+        byte ks = buffer.getByte();
+        if (ks == 0)
+            ret.keySize = KeySize.FIXED_1_BYTE;
+        else if (ks == 1)
+            ret.keySize = KeySize.FIXED_4_BYTES;
+        else if (ks == 2)
+            ret.keySize = KeySize.FIXED_8_BYTES;
+        else if (ks == 3)
+            ret.keySize = KeySize.VARIANT;
+        else
             return null;
-        }
-    }
 
-    public static BPlusTree create(IOHelper ioHelper, Comparator<byte[]> compare, KeySize size) throws java.io.IOException {
-        BPlusTree ret = new BPlusTree(ioHelper, ioHelper.occupy(), compare, size);
-        byte[] data = new byte[ret.io.getBlockSize()];
-
-        for (int i = 0; i < magic.length; ++i)
-            data[i] = (byte) magic[i];
-
-        int s = magic.length;
-
-        if (ret.keySize == KeySize.FIXED_4_BYTES) {
-            ret.fanout = 511;
-            data[s] = 0;
-        } else {
-            ret.fanout = 256;
-            data[s] = 1;
-        }
-        ++s;
-
-        ByteLib.intToBytes(ret.fanout, data, s);
-        s += 4;
-
-        ret.root = 0;
-        ByteLib.intToBytes(ret.root, data, s);
-
-        ret.block = ret.io.occupy();
-        ret.io.writeBlock(ret.block, data, 0);
+        ret.fanout = buffer.getInt();
+        ret.root = buffer.getInt();
 
         return ret;
     }
 
+    public static BPlusTree create(IOHelper ioHelper, Comparator<byte[]> compare, KeySize size) throws java.io.IOException {
+        BPlusTree ret = new BPlusTree(ioHelper, compare);
+
+        ret.keySize = size;
+        ret.root = 0;
+
+        if (ret.keySize == KeySize.FIXED_1_BYTE)
+            ret.fanout = 816;
+        else if (ret.keySize == KeySize.FIXED_4_BYTES)
+            ret.fanout = 510;
+        else if (ret.keySize == KeySize.FIXED_8_BYTES)
+            ret.fanout = 340;
+        else if (ret.keySize == KeySize.VARIANT)
+            ret.fanout = 170;
+        else
+            return null;
+
+        ret.head = Bucket.create(ret.io);
+        ret.saveHead();
+
+        return ret;
+    }
+
+    private int saveHead() throws java.io.IOException {
+        ByteBuffer buffer = new ByteBuffer();
+        for (int i = 0; i < magic.length; ++i)
+            buffer.putChar(magic[i]);
+
+        if (keySize == KeySize.FIXED_1_BYTE)
+            buffer.putByte((byte) 0);
+        else if (keySize == KeySize.FIXED_4_BYTES)
+            buffer.putByte((byte) 1);
+        else if (keySize == KeySize.FIXED_8_BYTES)
+            buffer.putByte((byte) 2);
+        else if (keySize == KeySize.VARIANT)
+            buffer.putByte((byte) 3);
+
+        buffer.putInt(fanout);
+        buffer.putInt(root);
+
+        head.setData(buffer.array());
+        return head.save();
+    }
+
     public int getBlock() {
-        return block;
+        return head.block();
     }
 
     public boolean check() {
@@ -152,10 +167,7 @@ public class BPlusTree {
 
     private void changeRoot(int value) throws java.io.IOException {
         root = value;
-        byte[] data = new byte[io.getBlockSize()];
-        io.readBlock(block, data, 0);
-        ByteLib.intToBytes(root, data, magic.length + 1 + 4);
-        io.writeBlock(block, data, 0);
+        saveHead();
     }
 
     private static class SearchResult {
@@ -198,6 +210,23 @@ public class BPlusTree {
         }
     }
 
+    private List<Integer> getList(byte[] data) {
+        ByteBuffer buffer = new ByteBuffer(data);
+        int len = buffer.getInt();
+        LinkedList<Integer> ret = new LinkedList<Integer>();
+        for (int i = 0; i < len; ++i)
+            ret.add(buffer.getInt());
+        return ret;
+    }
+
+    private byte[] putList(List<Integer> list) {
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.putInt(list.size());
+        for (Integer i: list)
+            buffer.putInt(i.intValue());
+        return buffer.array();
+    }
+
     public List<Integer> find(byte[] key) throws java.io.IOException {
         int current = root;
 
@@ -206,7 +235,8 @@ public class BPlusTree {
             if (!sr.success)
                 return new LinkedList<Integer>();
             else if (sr.leaf) {
-                return bucket.load(sr.block);
+                Bucket bucket = Bucket.load(io, sr.block);
+                return getList(bucket.getData());
             } else {
                 current = sr.block;
             }
@@ -217,7 +247,9 @@ public class BPlusTree {
         if (root == 0) {
             List<Integer> b = new LinkedList<Integer>();
             b.add(value);
-            int bucketBlock = bucket.create(b);
+            Bucket bucket = Bucket.create(io);
+            bucket.setData(putList(b));
+            int bucketBlock = bucket.save();
             Node n = new Node(true, key, bucketBlock, 0);
             changeRoot(n.save());
         } else {
@@ -237,12 +269,15 @@ public class BPlusTree {
             if (block == 0)
                 b = new LinkedList<Integer>();
             else {
-                b = bucket.load(block);
-                bucket.remove(block);
+                Bucket bucket = Bucket.load(io, block);
+                b = getList(bucket.getData());
+                bucket.remove();
             }
             b.add(value);
             
-            int bucketBlock = bucket.create(b);
+            Bucket bucket = Bucket.create(io);
+            bucket.setData(putList(b));
+            int bucketBlock = bucket.save();
             return n.insertSplitSave(key, bucketBlock);
         } else {
             InsertResult ret = insertRaw(block, key, value);
@@ -258,62 +293,43 @@ public class BPlusTree {
         int[] pointers;
         byte[][] keys;
 
+        Bucket bucket;
+
         private LinkedList<Integer> blocks = new LinkedList<Integer>();
 
         private Node(boolean leaf) {
             this.leaf = leaf;
+            bucket = Bucket.create(io);
         }
 
         public Node(int block) throws java.io.IOException {
-            byte[] data = new byte[io.getBlockSize()], tmp = new byte[io.getBlockSize()];
-            int datalen = io.getBlockSize();
-            io.readBlock(block, data, 0);
-            blocks.add(new Integer(block));
+            bucket = Bucket.load(io, block);
+            ByteBuffer buffer = new ByteBuffer(bucket.getData());
 
-            int next = ByteLib.bytesToInt(data, 0);
-            int count = ByteLib.bytesToInt(data, 4);
+            leaf = buffer.getBoolean();
+            int count = buffer.getInt();
             pointers = new int[count];
             keys = new byte[count - 1][];
-            int t = ByteLib.bytesToInt(data, 8);
-            if (t == 0)
-                leaf = false;
-            else
-                leaf = true;
-
-            while (next != 0) {
-                io.readBlock(next, tmp, 0);
-                blocks.add(new Integer(next));
-                next = ByteLib.bytesToInt(tmp, 0);
-                data = concat(data, datalen, tmp, 4);
-                datalen += io.getBlockSize() - 4;
-            }
-
-            int s = 12;
-
-            pointers[0] = ByteLib.bytesToInt(data, s);
-            s += 4;
-            for (int i = 0; i < count - 1; ++i) {
-                if (keySize == KeySize.FIXED_4_BYTES) {
-                    keys[i] = new byte[4];
-                    System.arraycopy(data, s, keys[i], 0, 4);
-
-                    s += 4;
-                } else {
-                    int l = ByteLib.bytesToInt(data, s);
-                    s += 4;
-                    keys[i] = new byte[l];
-                    System.arraycopy(data, s, keys[i], 0, l);
-
-                    s += l;
-                }
-
-                pointers[i + 1] = ByteLib.bytesToInt(data, s);
-                s += 4;
+            for (int i = 0; i < pointers.length; ++i)
+                pointers[i] = buffer.getInt();
+            for (int i = 0; i < keys.length; ++i) {
+                int l;
+                if (keySize == KeySize.FIXED_1_BYTE)
+                    l = 1;
+                else if (keySize == KeySize.FIXED_4_BYTES)
+                    l = 4;
+                else if (keySize == KeySize.FIXED_8_BYTES)
+                    l = 8;
+                else
+                    l = buffer.getInt();
+                keys[i] = new byte[l];
+                buffer.getBytes(keys[i], 0, l);
             }
         }
 
         public Node(boolean leaf, byte[] key, int pointerl, int pointerr) {
             this.leaf = leaf;
+            bucket = Bucket.create(io);
             keys = new byte[1][];
             keys[0] = key;
             pointers = new int[2];
@@ -322,91 +338,32 @@ public class BPlusTree {
         }
 
         public int save() throws java.io.IOException {
-            byte[] data = new byte[io.getBlockSize()];
-            int datalen = 12;
-            ByteLib.intToBytes(pointers.length, data, 0);
-            if (leaf)
-                ByteLib.intToBytes(1, data, 4);
-            else
-                ByteLib.intToBytes(0, data, 4);
-            ByteLib.intToBytes(pointers[0], data, 8);
-
-            for (int i = 0; i < pointers.length - 1; ++i) {
-                byte[] tmp = new byte[4];
-                if (keySize == KeySize.VARIANT) {
-                    ByteLib.intToBytes(keys[i].length, tmp, 0);
-                    data = concat(data, datalen, tmp, 0);
-                    datalen += 4;
+            ByteBuffer buffer = new ByteBuffer();
+            buffer.putBoolean(leaf);
+            buffer.putInt(pointers.length);
+            for (int i = 0; i < pointers.length; ++i)
+                buffer.putInt(pointers[i]);
+            for (int i = 0; i < keys.length; ++i) {
+                int l;
+                if (keySize == KeySize.FIXED_1_BYTE)
+                    l = 1;
+                else if (keySize == KeySize.FIXED_4_BYTES)
+                    l = 4;
+                else if (keySize == KeySize.FIXED_8_BYTES)
+                    l = 8;
+                else {
+                    l = keys[i].length;
+                    buffer.putInt(l);
                 }
-                data = concat(data, datalen, keys[i], 0);
-                datalen += keys[i].length;
-                ByteLib.intToBytes(pointers[i + 1], tmp, 0);
-                data = concat(data, datalen, tmp, 0);
-                datalen += 4;
+                buffer.putBytes(keys[i], 0, l);
             }
 
-            LinkedList<Integer> newBlocks = new LinkedList<Integer>();
-            int current;
-            if (blocks.isEmpty())
-                current = io.occupy();
-            else
-                current = blocks.removeFirst();
-            int ret = current;
-            newBlocks.add(new Integer(current));
-            int s = 0;
-            byte[] tmp = new byte[io.getBlockSize()];
-            while (datalen - s > 0) {
-                if (s + io.getBlockSize() - 4 >= datalen) {
-                    System.arraycopy(data, s, tmp, 4, datalen - s);
-                    s += datalen - s;
-                    ByteLib.intToBytes(0, tmp, 0);
-                    io.writeBlock(current, tmp, 0);
-                    break;
-                } else {
-                    int next;
-                    if (blocks.isEmpty())
-                        next = io.occupy();
-                    else
-                        next = blocks.removeFirst();
-                    newBlocks.add(new Integer(next));
-
-                    System.arraycopy(data, s, tmp, 4, io.getBlockSize() - 4);
-                    s += io.getBlockSize() - 4;
-                    ByteLib.intToBytes(next, tmp, 0);
-                    io.writeBlock(current, tmp, 0);
-                    current = next;
-                }
-            }
-
-            for (Integer i: blocks)
-                io.free(i.intValue());
-
-            blocks = newBlocks;
-
-            return ret;
+            bucket.setData(buffer.array());
+            return bucket.save();
         }
 
         public void remove() {
-            for (Integer i: blocks) {
-                io.free(i.intValue());
-            }
-            blocks = new LinkedList<Integer>();
-        }
-
-        private byte[] concat(byte[] a, int alen, byte[] b, int boffset) {
-            if (a.length - alen < b.length - boffset) {
-                int newlen = a.length * 2;
-                if (newlen < alen + b.length - boffset)
-                    newlen += b.length - boffset;
-
-                byte[] c = new byte[newlen];
-                System.arraycopy(a, 0, c, 0, alen);
-                System.arraycopy(b, boffset, c, alen, b.length - boffset);
-                return c;
-            } else {
-                System.arraycopy(b, boffset, a, alen, b.length - boffset);
-                return a;
-            }
+            bucket.remove();
         }
 
         private int binarySearch(byte[] key) {

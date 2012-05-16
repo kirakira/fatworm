@@ -122,4 +122,14 @@ public class ByteBuffer {
             sb.append(getChar());
         return sb.toString();
     }
+
+    public void putBytes(byte[] data, int offset, int len) {
+        makeRoom(len);
+        buffer.put(data, offset, len);
+        updateLength();
+    }
+
+    public void getBytes(byte[] data, int offset, int len) {
+        buffer.get(data, offset, len);
+    }
 }

@@ -22,7 +22,7 @@ public class Cell {
     public static Cell create(IOHelper io) {
         Cell ret = new Cell(io);
 
-        ret.bucket = Bucket.create(io, null);
+        ret.bucket = Bucket.create(io);
         return ret;
     }
 
