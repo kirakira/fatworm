@@ -43,8 +43,9 @@ public class DriverTest {
 		    				System.out.print(metadata.getColumnType(i) + " | ");
 		    			System.out.println();
 		    			while(resultset.next()) {
-			    			for (int i = 1; i <= width; i++)
+			    			for (int i = 1; i <= width; i++) {
 			    				System.out.print(resultset.getObject(i).toString() + " | ");
+			    			}
 			    			System.out.println();
 		    			}
 		    			System.out.println();
