@@ -16,6 +16,10 @@ public class NullDataEntity extends DataEntity
         return NULL;
     }
 
+    public int estimatedSize() {
+        return 1;
+    }
+
 	@Override
 	public int compareTo(DataEntity o) {
 		return 0;

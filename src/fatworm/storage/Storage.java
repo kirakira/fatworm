@@ -132,10 +132,10 @@ public class Storage implements StorageManagerInterface {
         }
     }
 
-    public RecordFile insertTempTable() {
+    public RecordFile insertTempTable(int tupleSize) {
         Table table;
         try {
-            table = tempDB().insertTable("t" + tempCount, null);
+            table = tempDB().insertTable("t" + tempCount, tupleSize);
         } catch (java.io.IOException e) {
             return null;
         }

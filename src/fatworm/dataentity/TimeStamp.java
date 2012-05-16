@@ -31,6 +31,10 @@ public class TimeStamp extends DataEntity
         return TIMESTAMP;
     }
 
+    public int estimatedSize() {
+        return 8;
+    }
+
     public int compareTo(DataEntity t) {
         if(t instanceof DateTime) {
             return value.compareTo(((DateTime)t).value);

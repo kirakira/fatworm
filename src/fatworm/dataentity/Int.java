@@ -26,6 +26,10 @@ public class Int extends DataEntity
         return INTEGER;
     }
 
+    public int estimatedSize() {
+        return 4;
+    }
+
     public int compareTo(DataEntity t) {
         if(t instanceof Int) {
             int anotherv = ((Int)t).value;

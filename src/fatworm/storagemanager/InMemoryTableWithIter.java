@@ -88,67 +88,52 @@ public class InMemoryTableWithIter implements RecordFile {
 	public Schema getSchema() {
 		return table.schema;
 	}
-	@Override
-	public DataEntity[] tuple() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	@Override
-	public boolean insert(DataEntity[] tuple) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-    @Override
-    public fatworm.record.Iterator scan() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    @Override
-    public void createIndex(String col) {
-        // TODO Auto-generated method stub
-        
-    }
-    @Override
-    public void dropIndex(String col) {
-        // TODO Auto-generated method stub
-        
-    }
-    @Override
-    public fatworm.record.Iterator indexEqual(String col, DataEntity value) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    @Override
-    public fatworm.record.Iterator indexLessThan(String col, DataEntity value) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    @Override
-    public fatworm.record.Iterator indexLessThanEqual(String col,
-            DataEntity value) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    @Override
-    public fatworm.record.Iterator indexGreaterThan(String col, DataEntity value) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    @Override
-    public fatworm.record.Iterator indexGreaterThanEqual(String col,
-            DataEntity value) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    @Override
-    public DataEntity max(String col) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    @Override
+
     public DataEntity min(String col) {
-        // TODO Auto-generated method stub
         return null;
     }
 
+    public DataEntity max(String col) {
+        return null;
+    }
+
+    public fatworm.record.Iterator scan() {
+        return null;
+    }
+
+    public void createIndex(String col) {
+    }
+
+    public void dropIndex(String col) {
+    }
+
+    public fatworm.record.Iterator indexEqual(String col, DataEntity value) {
+        return null;
+    }
+
+    public fatworm.record.Iterator indexLessThan(String col, DataEntity value) {
+        return null;
+    }
+
+    public fatworm.record.Iterator indexLessThanEqual(String col, DataEntity value) {
+        return null;
+    }
+
+    public fatworm.record.Iterator indexGreaterThan(String col, DataEntity value) {
+        return null;
+    }
+
+    public fatworm.record.Iterator indexGreaterThanEqual(String col, DataEntity value) {
+        return null;
+    }
+    @Override
+    public DataEntity[] tuple() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    @Override
+    public boolean insert(DataEntity[] tuple) {
+        // TODO Auto-generated method stub
+        return false;
+    }
 }

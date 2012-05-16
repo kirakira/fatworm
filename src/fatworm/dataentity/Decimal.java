@@ -28,6 +28,10 @@ public class Decimal extends DataEntity {
     public int type() {
         return DECIMAL;
     }
+
+    public int estimatedSize() {
+        return value.toPlainString().length() * 2;
+    }
     
     public int compareTo(DataEntity t) {
         if(t instanceof Decimal) {

@@ -14,6 +14,7 @@ import fatworm.query.MemoryGroupContainer;
 import fatworm.query.MemoryOrderContainer;
 import fatworm.query.OrderContainer;
 import fatworm.query.QueryPlan;
+import fatworm.query.AdvancedOrderContainer;
 import fatworm.query.Scan;
 import fatworm.query.SimpleEnv;
 import fatworm.record.RecordFile;
@@ -111,7 +112,7 @@ public class Util
 
 	public static OrderContainer getOrderContainer(Scan scan,
 			List<OrderByColumn> order) {
-		return new MemoryOrderContainer(scan, order);
+		return new AdvancedOrderContainer(scan, order);
 	}
 
 	public static DistinctContainer getDistinctContainer() {

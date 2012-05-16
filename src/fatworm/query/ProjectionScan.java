@@ -9,9 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.sun.corba.se.spi.orbutil.fsm.Guard.Result;
-
-
 import fatworm.absyn.ProjectionAllColumnValue;
 import fatworm.absyn.ProjectionRenameValue;
 import fatworm.absyn.ProjectionSimpleValue;
