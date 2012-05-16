@@ -44,7 +44,12 @@ public class DriverTest {
 		    			System.out.println();
 		    			while(resultset.next()) {
 			    			for (int i = 1; i <= width; i++) {
-			    				System.out.print(resultset.getObject(i).toString() + " | ");
+			    			    Object obj = resultset.getObject(i);
+			    			    if(obj == null)
+			    			        System.out.print("NULL");
+			    			    else 
+			    			        System.out.print(obj.toString());
+			    			    System.out.print(" | ");
 			    			}
 			    			System.out.println();
 		    			}

@@ -136,7 +136,10 @@ public class RenameScan implements Scan{
     }
     @Override
     public Iterator getIndex(String colname, DataEntity right, String cop) {
-        return scan.getIndex(colname, right, cop);
+        if (Util.isFieldSuffix(colname))
+            return scan.getIndex(Util.getColumnFieldName(colname), right, cop);
+        else 
+            return scan.getIndex(colname, right, cop);
     }		
 	
 }

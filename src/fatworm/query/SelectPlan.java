@@ -30,7 +30,10 @@ public class SelectPlan extends QueryPlan{
     	if (scan instanceof ConditionJoinScan) {
     	    ConditionJoinScan condjoin = (ConditionJoinScan)scan;
     	    BoolExpr newpred = condjoin.setCondition(pred);
-    	    return new SelectScan(condjoin, newpred, env);
+    	    if (newpred != null)
+    	        return new SelectScan(condjoin, newpred, env);
+    	    else
+    	        return condjoin;
     	}
     	return new SelectScan(scan, pred, env);
     }
