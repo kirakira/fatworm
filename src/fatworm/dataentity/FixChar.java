@@ -1,30 +1,26 @@
 package fatworm.dataentity;
 
-import fatworm.util.ByteLib;
+import fatworm.util.ByteBuffer;
 
 import static java.sql.Types.*;
 
 public class FixChar extends DataEntity{
     String value;
     int length;
+
     public FixChar(String s, int l){
         value = s;
         length = l;
     }
 
-    public FixChar(byte[] data, int offset) {
-        length = ByteLib.bytesToInt(data, offset);
-        int slen = ByteLib.bytesToInt(data, offset + 4);
-        value = ByteLib.bytesToString(data, offset + 8, slen);
+    public FixChar(ByteBuffer buffer) {
+        length = buffer.getInt();
+        value = buffer.getString();
     }
 
-    public byte[] getBytes() {
-        byte[] data = ByteLib.stringToBytes(value);
-        byte[] ret = new byte[data.length + 8];
-        ByteLib.intToBytes(length, ret, 0);
-        ByteLib.intToBytes(data.length, ret, 4);
-        System.arraycopy(data, 0, ret, 8, data.length);
-        return ret;
+    public void getBytes(ByteBuffer buffer) {
+        buffer.putInt(length);
+        buffer.putString(value);
     }
 
     public int type() {
@@ -32,7 +28,7 @@ public class FixChar extends DataEntity{
     }
 
     public int estimatedSize() {
-        return length * 2;
+        return length * 2 + 8;
     }
 
     public int compareTo(DataEntity t){

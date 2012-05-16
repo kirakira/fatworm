@@ -1,26 +1,22 @@
 package fatworm.dataentity;
 
-import fatworm.util.ByteLib;
+import fatworm.util.ByteBuffer;
 
 import static java.sql.Types.*;
 
 public class VarChar extends DataEntity {
     String value;
+
     public VarChar(String v) {
         value = v;
     }
 
-    public VarChar(byte[] data, int offset) {
-        int slen = ByteLib.bytesToInt(data, offset);
-        value = ByteLib.bytesToString(data, offset + 4, slen);
+    public VarChar(ByteBuffer buffer) {
+        value = buffer.getString();
     }
 
-    public byte[] getBytes() {
-        byte[] data = ByteLib.stringToBytes(value);
-        byte[] ret = new byte[data.length + 4];
-        ByteLib.intToBytes(data.length, ret, 0);
-        System.arraycopy(data, 0, ret, 4, data.length);
-        return ret;
+    public void getBytes(ByteBuffer buffer) {
+        buffer.putString(value);
     }
 
     public int type() {
@@ -28,7 +24,7 @@ public class VarChar extends DataEntity {
     }
 
     public int estimatedSize() {
-        return 2 * value.length();
+        return 2 * value.length() + 4;
     }
 
     public int compareTo(DataEntity t){

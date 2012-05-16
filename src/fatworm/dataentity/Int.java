@@ -2,7 +2,7 @@ package fatworm.dataentity;
 
 import java.math.BigDecimal;
 
-import fatworm.util.ByteLib;
+import fatworm.util.ByteBuffer;
 import static java.sql.Types.*;
 
 public class Int extends DataEntity
@@ -12,14 +12,12 @@ public class Int extends DataEntity
         value = v;
     }
 
-    public Int(byte[] data, int offset) {
-        value = ByteLib.bytesToInt(data, offset);
+    public Int(ByteBuffer buffer) {
+        value = buffer.getInt();
     }
 
-    public byte[] getBytes() {
-        byte[] data = new byte[4];
-        ByteLib.intToBytes(value, data, 0);
-        return data;
+    public void getBytes(ByteBuffer buffer) {
+        buffer.putInt(value);
     }
 
     public int type() {

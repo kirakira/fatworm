@@ -14,7 +14,7 @@ parser: init
 	cd src/fatworm/parser; make parser
 
 base: init
-	$(JC) src/fatworm/util/ByteLib.java
+	$(JC) src/fatworm/util/ByteLib.java src/fatworm/util/ByteBuffer.java
 
 dataentity: base
 	find src/fatworm/dataentity -name "*.java" > sources.txt

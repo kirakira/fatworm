@@ -4,7 +4,7 @@ import fatworm.record.RecordFile;
 import fatworm.record.Schema;
 import fatworm.record.Iterator;
 import fatworm.storage.bucket.Bucket;
-import fatworm.util.ByteLib;
+import fatworm.util.ByteBuffer;
 import fatworm.dataentity.*;
 
 import static java.sql.Types.*;
@@ -12,7 +12,6 @@ import java.util.Map;
 
 public class Table implements RecordFile {
     private IOHelper io;
-    private String name;
     private SchemaOnDisk schema;
 
     private Bucket head;
@@ -22,9 +21,8 @@ public class Table implements RecordFile {
 
     private Iterator scanIter;
 
-    private Table(IOHelper io, String name, int schema) {
+    private Table(IOHelper io, int schema) {
         this.io = io;
-        this.name = name;
         if (schema == 0)
             this.schema = null;
         else
@@ -36,53 +34,54 @@ public class Table implements RecordFile {
         scanIter = scan();
     }
 
-    public static Table create(IOHelper io, String name, int schemaBlock) {
-        return createRaw(io, name, schemaBlock, 400);
+    public static Table create(IOHelper io, int schemaBlock) {
+        return createRaw(io, schemaBlock, 400);
     }
 
-    private static Table createRaw(IOHelper io, String name, int schemaBlock, int tupleSize) {
+    private static Table createRaw(IOHelper io, int schemaBlock, int tupleSize) {
         try {
-            Table ret = new Table(io, name, schemaBlock);
-            ret.front = Cell.create(io, ret.getSchema()).save();
+            Table ret = new Table(io, schemaBlock);
+            ret.front = Cell.create(io).save();
             ret.rear = ret.front;
             if (ret.schema != null)
-                ret.capacity = (io.getBlockSize() - 16) / (4 + ret.schema.estimatedTupleSize());
+                ret.capacity = (io.getBlockSize() - 16) / (ret.schema.estimatedTupleSize());
             else
-                ret.capacity = (io.getBlockSize() - 16) / (4 + tupleSize);
+                ret.capacity = (io.getBlockSize() - 16) / (tupleSize);
             if (ret.capacity == 0)
                 ret.capacity = 1;
 
-            ret.head = Bucket.create(io, ret.getHeadBytes());
+            ret.head = Bucket.create(io, null);
             return ret;
         } catch (java.io.IOException e) {
             return null;
         }
     }
 
-    static Table createTemp(IOHelper io, String name, int tupleSize) {
-        return createRaw(io, name, 0, tupleSize);
+    static Table createTemp(IOHelper io, int tupleSize) {
+        return createRaw(io, 0, tupleSize);
     }
 
-    private byte[] getHeadBytes() {
-        byte[] data = new byte[12];
-        ByteLib.intToBytes(front, data, 0);
-        ByteLib.intToBytes(rear, data, 4);
-        ByteLib.intToBytes(capacity, data, 8);
-        return data;
+    private void getHeadBytes(ByteBuffer buffer) {
+        buffer.putInt(front);
+        buffer.putInt(rear);
+        buffer.putInt(capacity);
     }
 
-    public static Table load(IOHelper io, int block, String name, int schema) {
-        Table ret = new Table(io, name, schema);
+    public static Table load(IOHelper io, int block, int schema) {
+        Table ret = new Table(io, schema);
         ret.head = Bucket.load(io, block);
         byte[] data = ret.head.getData();
-        ret.front = ByteLib.bytesToInt(data, 0);
-        ret.rear = ByteLib.bytesToInt(data, 4);
-        ret.capacity = ByteLib.bytesToInt(data, 8);
+        ByteBuffer buffer = new ByteBuffer(data);
+        ret.front = buffer.getInt();
+        ret.rear = buffer.getInt();
+        ret.capacity = buffer.getInt();
         return ret;
     }
 
     public int save() throws java.io.IOException {
-        head.setData(getHeadBytes());
+        ByteBuffer buffer = new ByteBuffer();
+        getHeadBytes(buffer);
+        head.setData(buffer.array());
         return head.save();
     }
 
@@ -90,7 +89,7 @@ public class Table implements RecordFile {
         schema.remove();
         int next = front;
         do {
-            Cell cell = Cell.load(io, getSchema(), next);
+            Cell cell = Cell.load(io, next);
             cell.remove();
             next = cell.getNext();
         } while (next != 0);
@@ -111,8 +110,7 @@ public class Table implements RecordFile {
 
     public boolean insert(DataEntity[] tuple) {
         try {
-            Schema schema = getSchema();
-            Tuple t = Tuple.create(schema, tuple);
+            Tuple t = Tuple.create(tuple);
             if (t == null)
                 return false;
             else {
@@ -125,11 +123,11 @@ public class Table implements RecordFile {
     }
 
     private void insert(Tuple tuple) throws java.io.IOException {
-        Cell cell = Cell.load(io, getSchema(), rear);
+        Cell cell = Cell.load(io, rear);
         cell.insert(tuple);
         cell.save();
         if (cell.tupleCount() >= capacity) {
-            rear = Cell.create(io, getSchema()).save();
+            rear = Cell.create(io).save();
             cell.setNext(rear);
             cell.save();
             save();
@@ -181,7 +179,7 @@ public class Table implements RecordFile {
         private boolean removed = false;
 
         public void beforeFirst() {
-            currentCell = Cell.load(io, getSchema(), front);
+            currentCell = Cell.load(io, front);
             currentIndex = -1;
             removed = false;
         }
@@ -193,7 +191,7 @@ public class Table implements RecordFile {
                     int nextCell = currentCell.getNext();
                     if (nextCell == 0)
                         return false;
-                    currentCell = Cell.load(io, getSchema(), nextCell);
+                    currentCell = Cell.load(io, nextCell);
                 } while (currentCell.tupleCount() == 0);
 
                 currentIndex = 0;

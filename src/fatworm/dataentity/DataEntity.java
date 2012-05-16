@@ -1,6 +1,6 @@
 package fatworm.dataentity;
 
-import fatworm.util.ByteLib;
+import fatworm.util.ByteBuffer;
 
 import static java.sql.Types.*;
 
@@ -12,14 +12,11 @@ public abstract class DataEntity
         return false;
     }
 
-    public abstract byte[] getBytes();
+    public abstract void getBytes(ByteBuffer buffer);
 
-    public byte[] getBytesWithType() {
-        byte[] data = getBytes();
-        byte[] ret = new byte[data.length + 4];
-        ByteLib.intToBytes(type(), ret, 0);
-        System.arraycopy(data, 0, ret, 4, data.length);
-        return ret;
+    public void getBytesWithType(ByteBuffer buffer) {
+        buffer.putInt(type());
+        getBytes(buffer);
     }
     
     public DataEntity toType(int type) {
@@ -28,46 +25,50 @@ public abstract class DataEntity
 
     public abstract int estimatedSize();
 
-    public static DataEntity fromBytes(byte[] data, int offset) {
-        int type = ByteLib.bytesToInt(data, offset);
-        return fromBytes(type, data, offset + 4);
-    }
-
     public abstract int type();
 
-    public static DataEntity fromBytes(int type, byte[] data, int offset) {
+    public static DataEntity fromBytes(ByteBuffer buffer) {
+        int type = buffer.getInt();
+        return fromBytes(type, buffer);
+    }
+
+    public static DataEntity fromBytes(int type, ByteBuffer buffer) {
         DataEntity ret = null;
         switch (type) {
             case INTEGER:
-                ret = new Int(data, offset);
+                ret = new Int(buffer);
                 break;
 
             case FLOAT:
-                ret = new fatworm.dataentity.Float(data, offset);
+                ret = new fatworm.dataentity.Float(buffer);
                 break;
 
             case BOOLEAN:
-                ret = new Bool(data, offset);
+                ret = new Bool(buffer);
                 break;
 
             case CHAR:
-                ret = new FixChar(data, offset);
+                ret = new FixChar(buffer);
                 break;
 
             case VARCHAR:
-                ret = new VarChar(data, offset);
+                ret = new VarChar(buffer);
                 break;
 
             case DATE:
-                ret = new DateTime(data, offset);
+                ret = new DateTime(buffer);
                 break;
 
             case TIMESTAMP:
-                ret = new TimeStamp(data, offset);
+                ret = new TimeStamp(buffer);
                 break;
 
             case DECIMAL:
-                ret = new Decimal(data, offset);
+                ret = new Decimal(buffer);
+                break;
+
+            case NULL:
+                ret = new NullDataEntity();
                 break;
 
             default:

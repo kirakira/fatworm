@@ -2,6 +2,7 @@ package fatworm.storage;
 
 import fatworm.storage.bucket.Bucket;
 import fatworm.record.Schema;
+import fatworm.util.ByteBuffer;
 
 public class SchemaOnDisk {
     private Bucket bucket;
@@ -18,7 +19,8 @@ public class SchemaOnDisk {
         if (ret.bucket == null)
             return null;
         byte[] data = ret.bucket.getData();
-        ret.schema = new Schema(data, 0);
+        ByteBuffer buffer = new ByteBuffer(data);
+        ret.schema = new Schema(buffer);
         return ret;
     }
 
@@ -34,7 +36,9 @@ public class SchemaOnDisk {
     }
 
     public int save() throws java.io.IOException {
-        bucket.setData(schema.getBytes());
+        ByteBuffer buffer = new ByteBuffer();
+        schema.getBytes(buffer);
+        bucket.setData(buffer.array());
         return bucket.save();
     }
 
@@ -43,6 +47,6 @@ public class SchemaOnDisk {
     }
 
     public int estimatedTupleSize() {
-        return schema.estimatedLength() + 5 * schema.columnCount();
+        return schema.estimatedLength() + 4 * schema.columnCount() + 4;
     }
 }

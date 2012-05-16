@@ -1,5 +1,7 @@
 package fatworm.dataentity;
 
+import fatworm.util.ByteBuffer;
+
 import static java.sql.Types.*;
 
 public class Bool extends DataEntity
@@ -9,20 +11,12 @@ public class Bool extends DataEntity
         value = v;
     }
 
-    public Bool(byte[] data, int offset) {
-        if (data[offset] == 0)
-            value = false;
-        else
-            value = true;
+    public Bool(ByteBuffer buffer) {
+        value = buffer.getBoolean();
     }
 
-    public byte[] getBytes() {
-        byte[] ret = new byte[1];
-        if (value)
-            ret[0] = 1;
-        else
-            ret[0] = 0;
-        return ret;
+    public void getBytes(ByteBuffer buffer) {
+        buffer.putBoolean(value);
     }
 
     public int type() {

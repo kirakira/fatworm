@@ -3,7 +3,7 @@ package fatworm.storage;
 import java.util.Map;
 import java.util.HashMap;
 import fatworm.storage.bucket.Bucket;
-import fatworm.util.ByteLib;
+import fatworm.util.ByteBuffer;
 
 public class SuperTable {
     private static class MetaInfo {
@@ -17,28 +17,16 @@ public class SuperTable {
             this.schema = schema;
         }
 
-        public MetaInfo(byte[] bytes, int offset) {
-            int slen = ByteLib.bytesToInt(bytes, offset);
-            name = ByteLib.bytesToString(bytes, offset + 4, slen);
-            block = ByteLib.bytesToInt(bytes, offset + slen + 4);
-            schema = ByteLib.bytesToInt(bytes, offset + slen + 8);
+        public MetaInfo(ByteBuffer buffer) {
+            name = buffer.getString();
+            block = buffer.getInt();
+            schema = buffer.getInt();
         }
 
-        public byte[] getBytes() {
-            byte[] s = ByteLib.stringToBytes(name);
-            byte[] ret = new byte[4 + s.length + 8];
-
-            ByteLib.intToBytes(s.length, ret, 0);
-            System.arraycopy(s, 0, ret, 4, s.length);
-            ByteLib.intToBytes(block, ret, 4 + s.length);
-            ByteLib.intToBytes(schema, ret, 8 + s.length);
-
-            return ret;
-        }
-
-        public int getBytesLen() {
-            byte[] s = ByteLib.stringToBytes(name);
-            return 12 + s.length;
+        public void getBytes(ByteBuffer buffer) {
+            buffer.putString(name);
+            buffer.putInt(block);
+            buffer.putInt(schema);
         }
     }
 
@@ -60,7 +48,7 @@ public class SuperTable {
 
     public static SuperTable create(IOHelper io) {
         SuperTable ret = new SuperTable(io);
-        ret.bucket = null;
+        ret.bucket = Bucket.create(io, null, FreeList.reservedBlock);
         return ret;
     }
 
@@ -68,14 +56,11 @@ public class SuperTable {
         SuperTable ret = new SuperTable(io);
         ret.bucket = Bucket.load(io, FreeList.reservedBlock);
         byte[] data = ret.bucket.getData();
+        ByteBuffer buffer = new ByteBuffer(data);
 
-        int len = ByteLib.bytesToInt(data, 0);
-        int s = 4;
+        int len = buffer.getInt();
         for (int i = 0; i < len; ++i) {
-            int mlen = ByteLib.bytesToInt(data, s);
-            s += 4;
-            MetaInfo mi = new MetaInfo(data, s);
-            s += mlen;
+            MetaInfo mi = new MetaInfo(buffer);
             ret.tables.put(mi.name, mi);
         }
 
@@ -99,27 +84,12 @@ public class SuperTable {
     }
 
     public int save() throws java.io.IOException {
-        int len = 0;
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.putInt(tables.size());
         for (MetaInfo mi: tables.values())
-            len += 4 + mi.getBytesLen();
-        len += 4;
+            mi.getBytes(buffer);
 
-        byte[] data = new byte[len];
-        ByteLib.intToBytes(tables.size(), data, 0);
-        
-        int s = 4;
-        for (MetaInfo mi: tables.values()) {
-            byte[] tmp = mi.getBytes();
-            ByteLib.intToBytes(tmp.length, data, s);
-            s += 4;
-            System.arraycopy(tmp, 0, data, s, tmp.length);
-            s += tmp.length;
-        }
-
-        if (bucket == null)
-            bucket = Bucket.create(io, data, FreeList.reservedBlock);
-        else
-            bucket.setData(data);
+        bucket.setData(buffer.array());
         return bucket.save();
     }
 }

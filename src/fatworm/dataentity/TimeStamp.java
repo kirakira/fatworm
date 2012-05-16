@@ -1,6 +1,6 @@
 package fatworm.dataentity;
 
-import fatworm.util.ByteLib;
+import fatworm.util.ByteBuffer;
 
 import java.util.Date;
 import static java.sql.Types.*;
@@ -17,14 +17,12 @@ public class TimeStamp extends DataEntity
         value = v;
     }
 
-    public TimeStamp(byte[] data, int offset) {
-        value = new java.sql.Timestamp(ByteLib.bytesToLong(data, offset));
+    public TimeStamp(ByteBuffer buffer) {
+        value = new java.sql.Timestamp(buffer.getLong());
     }
 
-    public byte[] getBytes() {
-        byte[] ret = new byte[8];
-        ByteLib.longToBytes(value.getTime(), ret, 0);
-        return ret;
+    public void getBytes(ByteBuffer buffer) {
+        buffer.putLong(value.getTime());
     }
 
     public int type() {
