@@ -99,7 +99,7 @@ public class TableScan implements Scan{
 
 	@Override
 	public int type(String colname) {
-		return type(indexOfField(colname));
+		return type(indexOfColumn(colname));
 	}
 
 	@Override
@@ -144,6 +144,8 @@ public class TableScan implements Scan{
 
     @Override
     public Iterator getIndex(String colname, DataEntity right, String cop) {
+        if (Util.isFieldSuffix(colname))
+            colname = Util.getColumnFieldName(colname);
         if (cop.equals("EQ"))
             return iter.indexEqual(colname, right);
         if (cop.equals("LE"))

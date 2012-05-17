@@ -51,6 +51,24 @@ public class Int extends DataEntity
             return -t.compareTo(this);
         }
 
+        if(t instanceof VarChar) {
+            int anotherv = Integer.valueOf(((VarChar)t).value);
+            if(value == anotherv)
+                return 0;
+            if(value < anotherv)
+                return -1;
+            return 1;            
+
+        }
+        
+        if(t instanceof FixChar) {
+            int anotherv = Integer.valueOf(((VarChar)t).value);
+            if(value == anotherv)
+                return 0;
+            if(value < anotherv)
+                return -1;
+            return 1;            
+        }        
         return -1;
     }
 	@Override
