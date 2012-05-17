@@ -11,22 +11,6 @@ public class ByteLib {
         ByteBuffer.wrap(data, offset, data.length - offset).putInt(value);
     }
 
-    public static long bytesToLong(byte[] data, int offset) {
-        return ByteBuffer.wrap(data, offset, data.length - offset).getLong();
-    }
-
-    public static void longToBytes(long value, byte[] data, int offset) {
-        ByteBuffer.wrap(data, offset, data.length - offset).putLong(value);
-    }
-
-    public static double bytesToDouble(byte[] data, int offset) {
-        return ByteBuffer.wrap(data, offset, data.length - offset).getDouble();
-    }
-
-    public static void doubleToBytes(double value, byte[] data, int offset) {
-        ByteBuffer.wrap(data, offset, data.length - offset).putDouble(value);
-    }
-
     public static String bytesToString(byte[] data, int offset, int len) {
         return new String(data, offset, len);
     }

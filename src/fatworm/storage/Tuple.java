@@ -3,34 +3,24 @@ package fatworm.storage;
 import java.util.Map;
 import static java.sql.Types.*;
 
-import fatworm.util.ByteLib;
+import fatworm.util.ByteBuffer;
 import fatworm.dataentity.*;
 import fatworm.record.Schema;
 
 public class Tuple {
     private DataEntity[] values;
-    private Schema schema;
 
-    private Tuple(Schema schema) {
-        this.schema = schema;
+    private Tuple() {
     }
 
-    public static Tuple create(Schema schema, DataEntity[] values) {
-        Tuple ret = new Tuple(schema);
-        if (schema != null) {
-            int len = schema.columnCount();
-            if (len != values.length)
-                return null;
-            for (int i = 0; i < len; ++i)
-                if (values[i].type() != NULL && values[i].type() != schema.type(i))
-                    return null;
-        }
+    public static Tuple create(DataEntity[] values) {
+        Tuple ret = new Tuple();
         ret.values = values;
         return ret;
     }
 
     public static Tuple create(Schema schema, Map<String, DataEntity> map) {
-        Tuple ret = new Tuple(schema);
+        Tuple ret = new Tuple();
 
         int len = schema.columnCount();
         ret.values = new DataEntity[len];
@@ -54,7 +44,7 @@ public class Tuple {
     }
 
     public static Tuple create(Schema schema, Map<String, DataEntity> map, DataEntity[] base) {
-        Tuple ret = new Tuple(schema);
+        Tuple ret = new Tuple();
 
         int len = schema.columnCount();
         ret.values = new DataEntity[len];
@@ -73,70 +63,18 @@ public class Tuple {
         return ret;
     }
 
-    public Tuple(Schema schema, byte[] data, int offset) {
-        this(schema);
-
-        int s = offset;
-        int count = ByteLib.bytesToInt(data, s);
-        s += 4;
-
-        values = new DataEntity[count];
-
-        for (int i = 0; i < count; ++i) {
-            if (data[s] == 0) {
-                ++s;
-
-                int len = ByteLib.bytesToInt(data, s);
-                s += 4;
-                if (schema == null)
-                    values[i] = DataEntity.fromBytes(data, s);
-                else
-                    values[i] = DataEntity.fromBytes(schema.type(i), data, s);
-                s += len;
-            } else {
-                ++s;
-                values[i] = new NullDataEntity();
-            }
-        }
+    public Tuple(ByteBuffer buffer) {
+        int len = buffer.getInt();
+        values = new DataEntity[len];
+        for (int i = 0; i < len; ++i)
+            values[i] = DataEntity.fromBytes(buffer);
     }
 
-    public byte[] getBytes() {
-        int len = 4;
-        byte[][] buffer = new byte[values.length][];
+    public void getBytes(ByteBuffer buffer) {
+        buffer.putInt(values.length);
         for (int i = 0; i < values.length; ++i) {
-            if (values[i].isNull()) {
-                buffer[i] = null;
-                len += 1;
-            } else {
-                if (schema == null)
-                    buffer[i] = values[i].getBytesWithType();
-                else
-                    buffer[i] = values[i].getBytes();
-                len += 5 + buffer[i].length;
-            }
+            values[i].getBytesWithType(buffer);
         }
-
-        byte[] data = new byte[len];
-        int s = 0;
-        ByteLib.intToBytes(values.length, data, s);
-        s += 4;
-        for (int i = 0; i < values.length; ++i) {
-            if (buffer[i] == null) {
-                data[s] = 1;
-                ++s;
-            } else {
-                data[s] = 0;
-                ++s;
-
-                ByteLib.intToBytes(buffer[i].length, data, s);
-                s += 4;
-
-                System.arraycopy(buffer[i], 0, data, s, buffer[i].length);
-                s += buffer[i].length;
-            }
-        }
-
-        return data;
     }
 
     public DataEntity get(int index) {

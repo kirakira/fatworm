@@ -3,7 +3,7 @@ package fatworm.record;
 import static java.sql.Types.*;
 import java.util.*;
 
-import fatworm.util.ByteLib;
+import fatworm.util.ByteBuffer;
 import fatworm.dataentity.*;
 
 public class Schema {
@@ -109,116 +109,18 @@ public class Schema {
         return info.size();
     }
 
-    public byte[] getBytes() {
-        byte[][] buffer = new byte[info.size()][];
-        int len = 4;
+    public void getBytes(ByteBuffer buffer) {
+        buffer.putInt(info.size());
         for (int i = 0; i < info.size(); ++i) {
             FieldInfo field = info.get(i);
-            byte[] stringBuffer = ByteLib.stringToBytes(field.name);
-            byte[] valueBuffer = null;
-            int bufferSize;
-            if (field.defaultValue.isNull())
-                bufferSize = 4 + stringBuffer.length + 8 + 4;
-            else {
-                valueBuffer = field.defaultValue.getBytes();
-                bufferSize = 4 + stringBuffer.length + 8 + 4 + 4 + valueBuffer.length;
-            }
-
-            buffer[i] = new byte[bufferSize];
-            len += bufferSize;
-
-            int s = 0;
-            ByteLib.intToBytes(stringBuffer.length, buffer[i], s);
-            s += 4;
-            System.arraycopy(stringBuffer, 0, buffer[i], s, stringBuffer.length);
-            s += stringBuffer.length;
-            ByteLib.intToBytes(field.type, buffer[i], s);
-            s += 4;
-            ByteLib.intToBytes(field.length, buffer[i], s);
-            s += 4;
-            if (field.notNull)
-                buffer[i][s] = 1;
-            else
-                buffer[i][s] = 0;
-            ++s;
-            if (field.autoIncrement)
-                buffer[i][s] = 1;
-            else
-                buffer[i][s] = 0;
-            ++s;
-            if (field.primaryKey)
-                buffer[i][s] = 1;
-            else
-                buffer[i][s] = 0;
-            ++s;
-            if (field.defaultValue.isNull()) {
-                buffer[i][s] = 1;
-                ++s;
-            } else {
-                buffer[i][s] = 0;
-                ++s;
-                ByteLib.intToBytes(valueBuffer.length, buffer[i], s);
-                s += 4;
-                System.arraycopy(valueBuffer, 0, buffer[i], s, valueBuffer.length);
-                s += valueBuffer.length;
-            }
+            field.getBytes(buffer);
         }
-
-        byte[] data = new byte[len];
-        int s = 0;
-        ByteLib.intToBytes(info.size(), data, s);
-        s += 4;
-        for (int i = 0; i < info.size(); ++i) {
-            System.arraycopy(buffer[i], 0, data, s, buffer[i].length);
-            s += buffer[i].length;
-        }
-
-        return data;
     }
 
-    public Schema(byte[] data, int offset) {
-        int s = offset;
-        int count = ByteLib.bytesToInt(data, s);
-        s += 4;
-        for (int i = 0; i < count; ++i) {
-            int slen = ByteLib.bytesToInt(data, s);
-            s += 4;
-            String name = ByteLib.bytesToString(data, s, slen);
-            s += slen;
-            int type = ByteLib.bytesToInt(data, s);
-            s += 4;
-            int length = ByteLib.bytesToInt(data, s);
-            s += 4;
-            boolean notNull, autoIncrement, primaryKey;
-            if (data[s] == 0)
-                notNull = false;
-            else
-                notNull = true;
-            ++s;
-            if (data[s] == 0)
-                autoIncrement = false;
-            else
-                autoIncrement = true;
-            ++s;
-            if (data[s] == 0)
-                primaryKey = false;
-            else
-                primaryKey = true;
-            ++s;
-            DataEntity defaultValue;
-            if (data[s] == 0) {
-                ++s;
-                slen = ByteLib.bytesToInt(data, s);
-                s += 4;
-                defaultValue = DataEntity.fromBytes(type, data, s);
-                s += 4;
-            } else {
-                ++s;
-                defaultValue = new NullDataEntity();
-            }
-
-            addField(name, type, length, notNull, autoIncrement, primaryKey, defaultValue);
-        }
+    public Schema(ByteBuffer buffer) {
+        int len = buffer.getInt();
+        for (int i = 0; i < len; ++i)
+            info.add(new FieldInfo(buffer));
     }
 
     class FieldInfo {
@@ -226,6 +128,7 @@ public class Schema {
         int type, length;
         boolean notNull, autoIncrement, primaryKey;
         DataEntity defaultValue;
+
         public FieldInfo(String name, int type, int length, boolean notNull, boolean autoIncrement,
                 boolean primaryKey, DataEntity defaultValue) {
             this.name = name;
@@ -236,6 +139,26 @@ public class Schema {
             this.primaryKey = primaryKey;
             this.defaultValue = defaultValue;
         }
+
+        public FieldInfo(ByteBuffer buffer) {
+            name = buffer.getString();
+            type = buffer.getInt();
+            length = buffer.getInt();
+            notNull = buffer.getBoolean();
+            autoIncrement = buffer.getBoolean();
+            primaryKey = buffer.getBoolean();
+            defaultValue = DataEntity.fromBytes(buffer);
+        }
+
+        public void getBytes(ByteBuffer buffer) {
+            buffer.putString(name);
+            buffer.putInt(type);
+            buffer.putInt(length);
+            buffer.putBoolean(notNull);
+            buffer.putBoolean(autoIncrement);
+            buffer.putBoolean(primaryKey);
+            defaultValue.getBytesWithType(buffer);
+        }
     }
 
     public int estimatedLength() {
@@ -243,9 +166,9 @@ public class Schema {
         for (int i = 0; i < info.size(); ++i) {
             FieldInfo field = info.get(i);
             if (field.type == VARCHAR)
-                tot += field.length / 3;
+                tot += field.length * 2 / 3;
             else if (field.type == DECIMAL)
-                tot += field.length + 2;
+                tot += (field.length + 2) * 2;
             else if (field.type == INTEGER)
                 tot += 4;
             else if (field.type == BOOLEAN)
@@ -256,8 +179,8 @@ public class Schema {
                 tot += 8;
             else if (field.type == FLOAT)
                 tot += 8;
-            else
-                tot += field.length + 1;
+            else if (field.type == CHAR)
+                tot += field.length * 2 + 4;
         }
         return tot;
     }

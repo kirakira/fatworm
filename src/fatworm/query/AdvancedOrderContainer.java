@@ -24,8 +24,6 @@ public class AdvancedOrderContainer extends OrderContainer {
     ArrayList<RecordFile> tempTables;
     PriorityQueue<TupleAndIndex> q;
 
-    int limit = -1;
-
     private class TupleAndIndex implements Comparable<TupleAndIndex> {
         DataEntity[] tuple;
         int index;
@@ -56,6 +54,7 @@ public class AdvancedOrderContainer extends OrderContainer {
 	
 	public void sort() {
         boolean fail = false;
+        int limit = -1;
         do {
             fail = false;
 
@@ -64,16 +63,17 @@ public class AdvancedOrderContainer extends OrderContainer {
 
             int tupleSize;
 
+
             scan.beforeFirst();
             boolean end = false;
             do {
                 int count = 0;
 		        table = new ArrayList<DataEntity[]>();
                 ArrayList<Object> occupy1 = new ArrayList<Object>();
-                byte[] occupy2 = new byte[4096 * 10];
+                byte[] occupy2 = (limit == -1 ? new byte[4096 * 10] : null);
                 int tsize;
 
-                DataEntity[][] occupy3 = new DataEntity[4][];
+                DataEntity[][] occupy3 = (limit == -1 ? new DataEntity[4][] : null);
                 DataEntity[] ttuple = null;
                 int occupy3_len = 0;
 
@@ -94,14 +94,16 @@ public class AdvancedOrderContainer extends OrderContainer {
                             if (tsize > tupleSize)
                                 tupleSize = tsize;
 
-                            if (occupy3_len < occupy3.length) {
-                                occupy3[occupy3_len] = ttuple;
-                                ++occupy3_len;
-                            }
+                            if (limit == -1) {
+                                if (occupy3_len < occupy3.length) {
+                                    occupy3[occupy3_len] = ttuple;
+                                    ++occupy3_len;
+                                }
 
-                            occupy1.add(null);
+                                occupy1.add(null);
+                                occupy2 = new byte[4 * tupleSize];
+                            }
                             ++count;
-                            occupy2 = new byte[2 * tupleSize];
                         } else {
                             read = true;
                             end = true;
@@ -115,10 +117,11 @@ public class AdvancedOrderContainer extends OrderContainer {
                         occupy1 = null;
                         occupy2 = null;
                         occupy3 = null;
-                        System.out.println("Wan tuo le 1, count=" + count);
+                        //System.out.println("Wan tuo le 1, count=" + count);
                         limit = count / 2;
-                        e.printStackTrace();
-                    }
+                        //e.printStackTrace();
+                    } else if (limit == -1)
+                        limit = count / 2;
                 }
 
                 if (fail)
@@ -139,7 +142,7 @@ public class AdvancedOrderContainer extends OrderContainer {
                 		current = null;
                         limit = count;
                     } else {
-                        System.out.println("External sort");
+                        //System.out.println("External sort, limit=" + limit);
                         RecordFile t = Storage.getInstance().insertTempTable(tupleSize);
                         tempTables.add(t);
 
@@ -150,8 +153,8 @@ public class AdvancedOrderContainer extends OrderContainer {
                     }
                 } catch (OutOfMemoryError e) {
                     table = null;
-                    System.out.println("Wan tuo le 2, count=" + count);
-                    e.printStackTrace();
+                    //System.out.println("Wan tuo le 2, count=" + count);
+                    //e.printStackTrace();
                     fail = true;
                     limit = count / 2;
                 }

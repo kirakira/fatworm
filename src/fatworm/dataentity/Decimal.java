@@ -1,6 +1,6 @@
 package fatworm.dataentity;
 
-import fatworm.util.ByteLib;
+import fatworm.util.ByteBuffer;
 
 import java.math.BigDecimal;
 import static java.sql.Types.*;
@@ -12,17 +12,13 @@ public class Decimal extends DataEntity {
         value = v;
     }
 
-    public Decimal(byte[] data, int offset) {
-        int slen = ByteLib.bytesToInt(data, offset);
-        value = new BigDecimal(ByteLib.bytesToString(data, offset + 4, slen));
+    public Decimal(ByteBuffer buffer) {
+        String s = buffer.getString();
+        value = new BigDecimal(s);
     }
 
-    public byte[] getBytes() {
-        byte[] data = ByteLib.stringToBytes(value.toPlainString());
-        byte[] ret = new byte[data.length + 4];
-        ByteLib.intToBytes(data.length, ret, 0);
-        System.arraycopy(data, 0, ret, 4, data.length);
-        return ret;
+    public void getBytes(ByteBuffer buffer) {
+        buffer.putString(value.toPlainString());
     }
 
     public int type() {
@@ -30,7 +26,7 @@ public class Decimal extends DataEntity {
     }
 
     public int estimatedSize() {
-        return value.toPlainString().length() * 2;
+        return value.toPlainString().length() * 2 + 4;
     }
     
     public int compareTo(DataEntity t) {

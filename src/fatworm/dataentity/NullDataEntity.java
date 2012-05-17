@@ -1,5 +1,7 @@
 package fatworm.dataentity;
 
+import fatworm.util.ByteBuffer;
+
 import static java.sql.Types.*;
 
 public class NullDataEntity extends DataEntity
@@ -8,8 +10,7 @@ public class NullDataEntity extends DataEntity
         return true;
     }
 
-    public byte[] getBytes() {
-        return new byte[0];
+    public void getBytes(ByteBuffer buffer) {
     }
 
     public int type() {

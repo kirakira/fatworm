@@ -88,6 +88,7 @@ public class Database implements IOHelper {
                     System.out.println("check ok, contains " + result.size() + " values");
                 }
             }*/
+            /*
             Set<String> data = new HashSet<String>();
             for (int i = 0; i < 10000; ++i) {
                 int l = rand.nextInt(100);
@@ -105,7 +106,7 @@ public class Database implements IOHelper {
                 System.out.println("check ok, data count: " + data.size());
 
             System.out.println("Total time: " + t0);
-            System.out.println("Disk IO time: " + File.totalTime + " (" + (double) File.totalTime / (double) t0 * 100 + "%)");
+            System.out.println("Disk IO time: " + File.totalTime + " (" + (double) File.totalTime / (double) t0 * 100 + "%)");*/
         }
     }
 
@@ -153,7 +154,7 @@ public class Database implements IOHelper {
         if (relation == 0)
             return null;
         else
-            return Table.load(this, relation, table, schema);
+            return Table.load(this, relation, schema);
     }
 
     // returns null if the table name already existed
@@ -167,7 +168,7 @@ public class Database implements IOHelper {
             SchemaOnDisk ss = SchemaOnDisk.create(this, schema);
             sBlock = ss.save();
         }
-        Table st = Table.create(this, table, sBlock);
+        Table st = Table.create(this, sBlock);
         int tBlock = st.save();
         superTable.insertTable(table, tBlock, sBlock);
         return st;
@@ -177,7 +178,7 @@ public class Database implements IOHelper {
         if (getTable(table) != null)
             return null;
         int sBlock;
-        Table st = Table.createTemp(this, table, tupleSize);
+        Table st = Table.createTemp(this, tupleSize);
         int tBlock = st.save();
         superTable.insertTable(table, tBlock, 0);
         return st;

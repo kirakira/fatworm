@@ -1,77 +1,58 @@
 package fatworm.storage;
 
 import fatworm.storage.bucket.Bucket;
-import fatworm.util.ByteLib;
+import fatworm.util.ByteBuffer;
 import fatworm.record.Schema;
 
 import java.util.ArrayList;
 
 public class Cell {
     private IOHelper io;
-    private Schema schema;
     private Bucket bucket;
     private ArrayList<Tuple> tuples;
     private int next;
 
-    private Cell(IOHelper io, Schema schema) {
+    private Cell(IOHelper io) {
         this.io = io;
-        this.schema = schema;
         bucket = null;
         tuples = new ArrayList<Tuple>();
         next = 0;
     }
 
-    public static Cell create(IOHelper io, Schema schema) {
-        Cell ret = new Cell(io, schema);
+    public static Cell create(IOHelper io) {
+        Cell ret = new Cell(io);
 
         ret.bucket = Bucket.create(io, null);
         return ret;
     }
 
-    public static Cell load(IOHelper io, Schema schema, int block) {
-        Cell ret = new Cell(io, schema);
+    public static Cell load(IOHelper io, int block) {
+        Cell ret = new Cell(io);
         ret.bucket = Bucket.load(io, block);
 
         byte[] data = ret.bucket.getData();
-        int s = 0;
-        ret.next = ByteLib.bytesToInt(data, s);
-        s += 4;
-        int len = ByteLib.bytesToInt(data, s);
-        s += 4;
-        for (int i = 0; i < len; ++i) {
-            int tlen = ByteLib.bytesToInt(data, s);
-            s += 4;
+        ByteBuffer buffer = new ByteBuffer(data);
 
-            ret.tuples.add(new Tuple(ret.schema, data, s));
-            s += tlen;
-        }
+        ret.next = buffer.getInt();
+        int len = buffer.getInt();
+        for (int i = 0; i < len; ++i)
+            ret.tuples.add(new Tuple(buffer));
 
         return ret;
     }
 
-    private byte[] getBytes() {
-        int len = 8;
-        byte[][] buffer = new byte[tuples.size()][];
-        for (int i = 0; i < tuples.size(); ++i) {
-            buffer[i] = tuples.get(i).getBytes();
-            len += 4 + buffer[i].length;
-        }
+    private void getBytes(ByteBuffer buffer) {
+        buffer.putInt(next);
+        buffer.putInt(tuples.size());
+        for (Tuple t: tuples)
+            t.getBytes(buffer);
+    }
 
-        byte[] data = new byte[len];
-        int s = 0;
-        ByteLib.intToBytes(next, data, s);
-        s += 4;
-        ByteLib.intToBytes(tuples.size(), data, s);
-        s += 4;
-        for (int i = 0; i < tuples.size(); ++i) {
-            ByteLib.intToBytes(buffer[i].length, data, s);
-            s += 4;
-
-            System.arraycopy(buffer[i], 0, data, s, buffer[i].length);
-            s += buffer[i].length;
-        }
-
-        return data;
+    public int save() throws java.io.IOException {
+        ByteBuffer buffer = new ByteBuffer();
+        getBytes(buffer);
+        bucket.setData(buffer.array());
+        return bucket.save();
     }
 
     public void remove() {
@@ -96,11 +77,6 @@ public class Cell {
 
     public void remove(int index) {
         tuples.remove(index);
-    }
-
-    public int save() throws java.io.IOException {
-        bucket.setData(getBytes());
-        return bucket.save();
     }
 
     public int getNext() {
