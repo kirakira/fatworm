@@ -15,7 +15,7 @@ public class BPlusTreeTester {
         test.test();
     }
 
-    Random rand = new Random();
+    Random rand = new Random(0);
     private String dbName = "bptree";
 
     public void test() throws java.io.IOException {
@@ -33,7 +33,7 @@ public class BPlusTreeTester {
         if (bptree == null)
             System.err.println("bptree == null");
         else {
-            int range = 1000;
+            int range = 100000;
             List<Integer>[] data = new List[range];
             for (int i = 0; i < range; ++i)
                 data[i] = new LinkedList<Integer>();
@@ -67,7 +67,20 @@ public class BPlusTreeTester {
                 } else {
                     System.out.println("check ok, contains " + result.size() + " values");
                 }
+                if (result.size() > 0) {
+                    System.out.println("Removing " + i);
+                    for (Integer value: result) {
+                        bptree.remove(tmp, value);
+                    }
+                    /*
+                    if (bptree.check() == false)
+                        System.out.println("check failed");
+                    else
+                        System.out.println("check after remove ok");*/
+                }
             }
+            if (bptree.check() == false)
+                System.out.println("check failed");
             /*
             Set<String> data = new HashSet<String>();
             for (int i = 0; i < 10000; ++i) {

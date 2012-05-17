@@ -7,6 +7,7 @@ import fatworm.storage.bucket.Bucket;
 import java.util.Comparator;
 import java.util.List;
 import java.util.LinkedList;
+import java.util.Iterator;
 
 public class BPlusTree {
     public enum KeySize {
@@ -121,8 +122,10 @@ public class BPlusTree {
                     n = new Node(n.pointers[0]);
                 }
                 byte[] last = null;
+                int count = 0;
                 while (true) {
                     for (int i = 0; i < n.keys.length; ++i) {
+                        ++count;
                         if (last == null)
                             last = n.keys[i];
                         else {
@@ -136,7 +139,7 @@ public class BPlusTree {
                     else
                         n = new Node(n.pointers[n.pointers.length - 1]);
                 }
-                System.out.println();
+                System.out.println(count + " values in total");
                 return true;
             }
         } catch (java.io.IOException e) {
@@ -151,7 +154,11 @@ public class BPlusTree {
         for (int i = 1; i < n.keys(); ++i)
             if (compare.compare(n.keys[i - 1], n.keys[i]) >= 0)
                 return false;
-        if ((root == this.root && !n.isLeaf() && n.pointers() < 2) || (root != this.root && n.pointers() < (fanout + 1) / 2)) {
+        if (n.pointers() > fanout) {
+            System.err.println("Node has too many pointers");
+            return false;
+        }
+        if ((root == this.root && !n.isLeaf() && n.pointers() < 2) || (root != this.root && n.pointers() < n.minPointers())) {
             System.err.println("Node has too few pointers");
             return false;
         }
@@ -199,7 +206,7 @@ public class BPlusTree {
             Node node = new Node(root);
 
             SearchResult ret = new SearchResult();
-            ret.block = node.find(key);
+            ret.block = node.findValue(key);
             if (ret.block == 0)
                 ret.success = false;
             else
@@ -263,7 +270,7 @@ public class BPlusTree {
 
     private InsertResult insertRaw(int current, byte[] key, int value) throws java.io.IOException {
         Node n = new Node(current);
-        int block = n.find(key);
+        int block = n.findValue(key);
         if (n.isLeaf()) {
             List<Integer> b;
             if (block == 0)
@@ -288,14 +295,109 @@ public class BPlusTree {
         }
     }
 
+    public void remove(byte[] key, int value) throws java.io.IOException {
+        if (root == 0)
+            System.err.println("Removing a key that doesn't exist");
+        else {
+            Node n = new Node(root);
+            if (removeRaw(n, key, value)) {
+                if (n.isLeaf()) {
+                    if (n.pointers.length == 1) {
+                        changeRoot(0);
+                        n.remove();
+                    } else
+                        n.save();
+                } else {
+                    if (n.pointers.length == 1) {
+                        changeRoot(n.pointers[0]);
+                        n.remove();
+                    } else
+                        n.save();
+                }
+            }
+        }
+    }
+
+    private boolean removeRaw(Node node, byte[] key, int value) throws java.io.IOException {
+        if (node.isLeaf()) {
+            int pos = node.findIndex(key);
+            if (pos == -1) {
+                System.err.println("Removing a key that doesn't exist");
+                return false;
+            } else {
+                Bucket bucket = Bucket.load(io, node.pointers[pos]);
+                List<Integer> list = getList(bucket.getData());
+                boolean removed = false;
+                for (Iterator<Integer> iter = list.iterator(); iter.hasNext();) {
+                    Integer i = iter.next();
+                    if (i.intValue() == value) {
+                        iter.remove();
+                        removed = true;
+                        break;
+                    }
+                }
+                if (!removed) {
+                    System.err.println("Removing a value that doesn't exist");
+                    return false;
+                } else {
+                    if (list.size() == 0) {
+                        bucket.remove();
+                        if (node.remove(pos))
+                            return true;
+                        else {
+                            node.save();
+                            return false;
+                        }
+                    } else {
+                        bucket.setData(putList(list));
+                        bucket.save();
+                        return false;
+                    }
+                }
+            }
+        } else {
+            int pos = node.findIndex(key);
+            Node nk = new Node(node.pointers[pos + 1]);
+            if (removeRaw(nk, key, value)) {
+                Node nl = null, nr = null;
+                if (pos != -1) {
+                    nl = new Node(node.pointers[pos]);
+                    if (node.redistributeSave(pos, nl, nk, true)) {
+                        node.save();
+                        return false;
+                    }
+                }
+                if (pos != node.keys.length - 1) {
+                    nr = new Node(node.pointers[pos + 2]);
+                    if (node.redistributeSave(pos + 1, nk, nr, false)) {
+                        node.save();
+                        return false;
+                    }
+                }
+                if (nl == null) {
+                    if (!node.mergeSave(pos + 1, nk, nr)) {
+                        node.save();
+                        return false;
+                    } else
+                        return true;
+                } else {
+                    if (!node.mergeSave(pos, nl, nk)) {
+                        node.save();
+                        return false;
+                    } else
+                        return true;
+                }
+            } else
+                return false;
+        }
+    }
+
     class Node {
         boolean leaf;
         int[] pointers;
         byte[][] keys;
 
         Bucket bucket;
-
-        private LinkedList<Integer> blocks = new LinkedList<Integer>();
 
         private Node(boolean leaf) {
             this.leaf = leaf;
@@ -384,7 +486,7 @@ public class BPlusTree {
                 return -1;
         }
 
-        public int find(byte[] key) {
+        public int findValue(byte[] key) {
             int pos = binarySearch(key);
             if (leaf) {
                 if (pos != -1 && compare.compare(keys[pos], key) == 0)
@@ -399,6 +501,17 @@ public class BPlusTree {
             }
         }
 
+        public int findIndex(byte[] key) {
+            int pos = binarySearch(key);
+            if (leaf) {
+                if (pos != -1 && compare.compare(keys[pos], key) == 0)
+                    return pos;
+                else
+                    return -1;
+            } else
+                return pos;
+        }
+
         public boolean isLeaf() {
             return leaf;
         }
@@ -409,6 +522,221 @@ public class BPlusTree {
 
         public int keys() {
             return keys.length;
+        }
+
+        private int minPointers() {
+            if (leaf)
+                return fanout / 2 + 1;
+            else
+                return (fanout + 1) / 2;
+        }
+
+        public boolean remove(int pos) throws java.io.IOException {
+            int[] newPointers = new int[pointers.length - 1];
+            byte[][] newKeys = new byte[keys.length - 1][];
+
+            if (leaf)
+                newPointers[newPointers.length - 1] = pointers[newPointers.length];
+            else
+                newPointers[0] = pointers[0];
+
+            for (int i = 0; i < newKeys.length; ++i) {
+                if (leaf) {
+                    if (i < pos) {
+                        newKeys[i] = keys[i];
+                        newPointers[i] = pointers[i];
+                    } else {
+                        newKeys[i] = keys[i + 1];
+                        newPointers[i] = pointers[i + 1];
+                    }
+                } else {
+                    if (i < pos) {
+                        newKeys[i] = keys[i];
+                        newPointers[i + 1] = pointers[i + 1];
+                    } else {
+                        newKeys[i] = keys[i + 1];
+                        newPointers[i + 1] = pointers[i + 2];
+                    }
+                }
+            }
+
+            pointers = newPointers;
+            keys = newKeys;
+
+            return pointers.length < minPointers();
+        }
+
+        public boolean redistributeSave(int keyIndex, Node left, Node right, boolean leftToRight) throws java.io.IOException {
+            System.out.println("redistribute save");
+            System.out.println("before: " + left.keys.length + " + " + right.keys.length);
+            byte[] mid = keys[keyIndex];
+
+            if (leftToRight) {
+                if (left.pointers.length <= left.minPointers())
+                    return false;
+
+                if (left.leaf) {
+                    int[] newPointers = new int[left.pointers.length - 1];
+                    byte[][] newKeys = new byte[left.keys.length - 1][];
+
+                    byte[] ck = left.keys[left.keys.length - 1];
+                    int cp = left.pointers[left.pointers.length - 2];
+
+                    newPointers[newPointers.length - 1] = left.pointers[left.pointers.length - 1];
+                    for (int i = 0; i < newPointers.length - 1; ++i)
+                        newPointers[i] = left.pointers[i];
+                    for (int i = 0; i < newKeys.length; ++i)
+                        newKeys[i] = left.keys[i];
+                    left.pointers = newPointers;
+                    left.keys = newKeys;
+
+                    newPointers = new int[right.pointers.length + 1];
+                    newKeys = new byte[right.keys.length + 1][];
+                    newPointers[0] = cp;
+                    newKeys[0] = ck;
+                    keys[keyIndex] = ck;
+                    for (int i = 0; i < right.pointers.length; ++i)
+                        newPointers[i + 1] = right.pointers[i];
+                    for (int i = 0; i < right.keys.length; ++i)
+                        newKeys[i + 1] = right.keys[i];
+                    right.pointers = newPointers;
+                    right.keys = newKeys;
+                } else {
+                    int[] newPointers = new int[left.pointers.length - 1];
+                    byte[][] newKeys = new byte[left.keys.length - 1][];
+
+                    byte[] ck = left.keys[left.keys.length - 1];
+                    int cp = left.pointers[left.pointers.length - 1];
+
+                    for (int i = 0; i < newPointers.length; ++i)
+                        newPointers[i] = left.pointers[i];
+                    for (int i = 0; i < newKeys.length; ++i)
+                        newKeys[i] = left.keys[i];
+                    left.pointers = newPointers;
+                    left.keys = newKeys;
+
+                    newPointers = new int[right.pointers.length + 1];
+                    newKeys = new byte[right.keys.length + 1][];
+                    newPointers[0] = cp;
+                    newKeys[0] = mid;
+                    keys[keyIndex] = ck;
+                    for (int i = 0; i < right.pointers.length; ++i)
+                        newPointers[i + 1] = right.pointers[i];
+                    for (int i = 0; i < right.keys.length; ++i)
+                        newKeys[i + 1] = right.keys[i];
+                    right.pointers = newPointers;
+                    right.keys = newKeys;
+                }
+
+                left.save();
+                right.save();
+
+                System.out.println("after: " + left.keys.length + " + " + right.keys.length);
+                return true;
+            } else {
+                if (right.pointers.length <= right.minPointers())
+                    return false;
+
+                if (left.leaf) {
+                    int[] newPointers = new int[right.pointers.length - 1];
+                    byte[][] newKeys = new byte[right.keys.length - 1][];
+
+                    byte[] ck = right.keys[0];
+                    int cp = right.pointers[0];
+
+                    for (int i = 0; i < newPointers.length; ++i)
+                        newPointers[i] = right.pointers[i + 1];
+                    for (int i = 0; i < newKeys.length; ++i)
+                        newKeys[i] = right.keys[i + 1];
+                    right.pointers = newPointers;
+                    right.keys = newKeys;
+
+                    newPointers = new int[left.pointers.length + 1];
+                    newKeys = new byte[left.keys.length + 1][];
+                    newPointers[newPointers.length - 1] = left.pointers[left.pointers.length - 1];
+                    newPointers[newPointers.length - 2] = cp;
+                    newKeys[newKeys.length - 1] = ck;
+                    keys[keyIndex] = ck;
+                    for (int i = 0; i < left.pointers.length - 1; ++i)
+                        newPointers[i] = left.pointers[i];
+                    for (int i = 0; i < left.keys.length; ++i)
+                        newKeys[i] = left.keys[i];
+                    left.pointers = newPointers;
+                    left.keys = newKeys;
+                } else {
+                    int[] newPointers = new int[right.pointers.length - 1];
+                    byte[][] newKeys = new byte[right.keys.length - 1][];
+
+                    byte[] ck = right.keys[0];
+                    int cp = right.pointers[0];
+
+                    for (int i = 0; i < newPointers.length; ++i)
+                        newPointers[i] = right.pointers[i + 1];
+                    for (int i = 0; i < newKeys.length; ++i)
+                        newKeys[i] = right.keys[i + 1];
+                    right.pointers = newPointers;
+                    right.keys = newKeys;
+
+                    newPointers = new int[left.pointers.length + 1];
+                    newKeys = new byte[left.keys.length + 1][];
+                    newPointers[newPointers.length - 1] = cp;
+                    newKeys[newKeys.length - 1] = mid;
+                    keys[keyIndex] = ck;
+                    for (int i = 0; i < left.pointers.length; ++i)
+                        newPointers[i] = left.pointers[i];
+                    for (int i = 0; i < left.keys.length; ++i)
+                        newKeys[i] = left.keys[i];
+                    left.pointers = newPointers;
+                    left.keys = newKeys;
+                }
+
+                left.save();
+                right.save();
+
+                System.out.println("after: " + left.keys.length + " + " + right.keys.length);
+                return true;
+            }
+        }
+
+        public boolean mergeSave(int keyIndex, Node left, Node right) throws java.io.IOException {
+            System.out.println("merge save");
+            int[] newPointers;
+            byte[][] newKeys;
+            if (left.leaf) {
+                newPointers = new int[left.pointers.length + right.pointers.length - 1];
+                newKeys = new byte[left.keys.length + right.keys.length][];
+
+                System.arraycopy(left.keys, 0, newKeys, 0, left.keys.length);
+                System.arraycopy(right.keys, 0, newKeys, left.keys.length, right.keys.length);
+                System.arraycopy(left.pointers, 0, newPointers, 0, left.pointers.length - 1);
+                System.arraycopy(right.pointers, 0, newPointers, left.pointers.length - 1, right.pointers.length);
+            } else {
+                newPointers = new int[left.pointers.length + right.pointers.length];
+                newKeys = new byte[left.keys.length + right.keys.length + 1][];
+
+                byte[] mid = keys[keyIndex];
+
+                System.arraycopy(left.keys, 0, newKeys, 0, left.keys.length);
+                newKeys[left.keys.length] = mid;
+                System.arraycopy(right.keys, 0, newKeys, left.keys.length + 1, right.keys.length);
+                System.arraycopy(left.pointers, 0, newPointers, 0, left.pointers.length);
+                System.arraycopy(right.pointers, 0, newPointers, left.pointers.length, right.pointers.length);
+            }
+            left.pointers = newPointers;
+            left.keys = newKeys;
+            left.save();
+            right.remove();
+
+            newPointers = new int[pointers.length - 1];
+            newKeys = new byte[keys.length - 1][];
+            System.arraycopy(keys, 0, newKeys, 0, keyIndex);
+            System.arraycopy(pointers, 0, newPointers, 0, keyIndex + 1);
+            System.arraycopy(keys, keyIndex + 1, newKeys, keyIndex, keys.length - keyIndex - 1);
+            System.arraycopy(pointers, keyIndex + 2, newPointers, keyIndex + 1, pointers.length - keyIndex - 2);
+            keys = newKeys;
+            pointers = newPointers;
+
+            return pointers.length < minPointers();
         }
 
         public InsertResult insertSplitSave(byte[] key, int value) throws java.io.IOException {
@@ -422,7 +750,7 @@ public class BPlusTree {
                     ret.split = false;
                     return ret;
                 } else {
-                    System.err.println("Inserting a key that is already existed");
+                    System.err.println("Inserting a key that already existed");
                     return null;
                 }
             }
@@ -435,7 +763,7 @@ public class BPlusTree {
                 newPointers[pointers.length] = pointers[pointers.length - 1];
             else
                 newPointers[0] = pointers[0];
-            for (int i = 0; i < pointers.length; ++i) {
+            for (int i = 0; i < newKeys.length; ++i) {
                 if (leaf) {
                     if (i < pos) {
                         newPointers[i] = pointers[i];
@@ -472,7 +800,6 @@ public class BPlusTree {
 
                 ret = new InsertResult();
                 ret.split = false;
-
             }
 
             return ret;
