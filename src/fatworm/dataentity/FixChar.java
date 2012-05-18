@@ -63,6 +63,9 @@ public class FixChar extends DataEntity{
 			return new VarChar(value);
 		else if (type == java.sql.Types.TIMESTAMP) 
 			return new TimeStamp(java.sql.Timestamp.valueOf(value));
+		else if (type == java.sql.Types.INTEGER) {
+		    return new Int(Integer.valueOf(value));
+		}		
 		return this;
 	}
     public Object toJavaType() {

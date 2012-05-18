@@ -4,7 +4,6 @@ import java.util.Collection;
 
 import fatworm.dataentity.DataEntity;
 import fatworm.record.RecordIterator;
-import fatworm.record.RecordFile;
 /**
  * The interface will be implemented by each query scan.
  * There is a Scan class for each relational
@@ -99,7 +98,7 @@ public interface Scan {
     
     public String columnName(int index);
     
-    public RecordFile getRecordFile();
+    public RecordIterator getRecordFile();
     
     public DataEntity getFunctionValue(String func);
     

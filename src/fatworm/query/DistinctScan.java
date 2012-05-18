@@ -4,7 +4,6 @@ import java.util.Collection;
 
 import fatworm.dataentity.DataEntity;
 import fatworm.record.RecordIterator;
-import fatworm.record.RecordFile;
 import fatworm.util.Util;
 
 public class DistinctScan implements Scan {
@@ -97,7 +96,7 @@ public class DistinctScan implements Scan {
 	}
 
 	@Override
-	public RecordFile getRecordFile() {
+	public RecordIterator getRecordFile() {
 		return null;
 	}
 

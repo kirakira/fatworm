@@ -58,6 +58,9 @@ public class VarChar extends DataEntity {
 			return new TimeStamp(java.sql.Timestamp.valueOf(value.replaceAll("'", "")));
 			
 		}
+		else if (type == java.sql.Types.INTEGER) {
+		    return new Int(Integer.valueOf(value));
+		}
 		return this;
 	}
 

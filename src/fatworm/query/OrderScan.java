@@ -6,7 +6,6 @@ import java.util.List;
 import fatworm.absyn.OrderByColumn;
 import fatworm.dataentity.DataEntity;
 import fatworm.record.RecordIterator;
-import fatworm.record.RecordFile;
 import fatworm.util.Util;
 
 public class OrderScan implements Scan {
@@ -100,7 +99,7 @@ public class OrderScan implements Scan {
 	}
 
 	@Override
-	public RecordFile getRecordFile() {
+	public RecordIterator getRecordFile() {
 		return null;
 	}
 

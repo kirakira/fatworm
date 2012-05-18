@@ -5,7 +5,6 @@ import java.util.Set;
 
 import fatworm.dataentity.DataEntity;
 import fatworm.record.RecordIterator;
-import fatworm.record.RecordFile;
 import fatworm.util.Util;
 
 public class GroupScan implements Scan {
@@ -125,7 +124,7 @@ public class GroupScan implements Scan {
 	}
 
 	@Override
-	public RecordFile getRecordFile() {
+	public RecordIterator getRecordFile() {
 		return null;
 	}
 

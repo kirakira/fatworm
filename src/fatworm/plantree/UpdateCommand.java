@@ -17,6 +17,7 @@ import fatworm.query.SelectScan;
 import fatworm.query.SimpleEnv;
 import fatworm.query.TableScan;
 import fatworm.record.RecordFile;
+import fatworm.record.RecordIterator;
 import fatworm.record.Schema;
 import fatworm.util.Pair;
 import fatworm.util.Util;
@@ -30,8 +31,7 @@ public class UpdateCommand extends Command{
 	private List<Pair<String, Value>> assigns = new LinkedList<Pair<String, Value>>();
 	//public Set<String> usefulColumns = new HashSet<String>();
 	
-	void update(RecordFile rf, Scan scan) {
-		Schema schema = rf.getSchema();
+	void update(Schema schema, RecordIterator iter, Scan scan) {
 		Env env = new SimpleEnv();
 
 		for(Pair<String, Value> assign: assigns) {
@@ -46,7 +46,7 @@ public class UpdateCommand extends Command{
 			    result.put(assign.getFirst(), assign.getSecond().getValue(env).toType(schema.type(assign.getFirst())));
 			    env.endScope();
 			}
-			rf.update(result);
+			iter.update(result);
 		}
 	}
 	
@@ -57,12 +57,13 @@ public class UpdateCommand extends Command{
 	
 	public void execute() {
 		Scan scan = new TableScan(name);
+		Schema schema = ((TableScan)scan).getSchema();
 		scan.beforeFirst();
 		if (condition != null) 
 			scan = new SelectScan(scan, condition, Util.getEmptyEnv());
 		boolean next = scan.next();
 		while(next) {
-			update(scan.getRecordFile(), scan);
+			update(schema, scan.getRecordFile(), scan);
 			next = scan.next(); 
 		}
 	} 

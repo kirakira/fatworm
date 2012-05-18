@@ -20,5 +20,6 @@ public class CreateTable extends Command{
 	
 	public void execute() {
 		Util.createTable(name, schema);
+		Util.createTotalIndex(name);
 	}
 }

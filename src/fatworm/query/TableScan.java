@@ -7,16 +7,19 @@ import fatworm.dataentity.DataEntity;
 import fatworm.record.RecordIterator;
 import fatworm.record.RecordFile;
 import fatworm.record.Schema;
+import fatworm.record.RecordIterator;
 import fatworm.util.Util;
 
 public class TableScan implements Scan{
     String tableName;
     Schema schema;
-    RecordFile iter;
+    RecordFile rf;
+    RecordIterator iter;
     public TableScan(String name) {
         this.tableName = name;
-        this.iter = Util.getTable(name);
-        this.schema = iter.getSchema();
+        this.rf = Util.getTable(name);
+        this.iter = rf.scan();
+        this.schema = rf.getSchema();
     }
     
     public void beforeFirst() {
@@ -74,11 +77,11 @@ public class TableScan implements Scan{
 
 	@Override
 	public DataEntity getColumnByIndex(int index) {
-		return iter.getFieldByIndex(index);
+		return iter.getField(index);
 	}
 	
 	public int getNumberOfColumns() {
-		return fields().size();
+		return schema.columnCount();
 	}
 
 	public int indexOfField(String field) {
@@ -118,7 +121,7 @@ public class TableScan implements Scan{
 	}
 
 	@Override
-	public RecordFile getRecordFile() {
+	public RecordIterator getRecordFile() {
 		return iter;
 	}
 
@@ -147,15 +150,19 @@ public class TableScan implements Scan{
         if (Util.isFieldSuffix(colname))
             colname = Util.getColumnFieldName(colname);
         if (cop.equals("EQ"))
-            return iter.indexEqual(colname, right);
+            return rf.indexEqual(colname, right);
         if (cop.equals("LE"))
-            return iter.indexLessThanEqual(colname, right);
+            return rf.indexLessThanEqual(colname, right);
         if (cop.equals("LT"))
-            return iter.indexLessThan(colname, right);
+            return rf.indexLessThan(colname, right);
         if (cop.equals("GE"))
-            return iter.indexGreaterThanEqual(colname, right);
+            return rf.indexGreaterThanEqual(colname, right);
         if (cop.equals("GT"))
-            return iter.indexGreaterThan(colname, right);
+            return rf.indexGreaterThan(colname, right);
         return null;
+    }
+    
+    public Schema getSchema() {
+        return schema;
     }
 }

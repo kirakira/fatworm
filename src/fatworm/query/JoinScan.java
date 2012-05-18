@@ -7,7 +7,6 @@ import java.util.Set;
 
 import fatworm.dataentity.DataEntity;
 import fatworm.record.RecordIterator;
-import fatworm.record.RecordFile;
 
 public class JoinScan implements Scan{
 
@@ -174,7 +173,7 @@ public class JoinScan implements Scan{
 		return null;
 	}
 	@Override
-	public RecordFile getRecordFile() {
+	public RecordIterator getRecordFile() {
 		return null;
 	}
 	@Override

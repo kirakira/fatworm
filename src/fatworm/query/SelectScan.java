@@ -6,7 +6,6 @@ import java.util.Set;
 
 import fatworm.absyn.BoolExpr;
 import fatworm.dataentity.DataEntity;
-import fatworm.record.RecordFile;
 import fatworm.record.RecordIterator;
 
 public class SelectScan implements Scan{
@@ -120,7 +119,7 @@ public class SelectScan implements Scan{
 	}
 
 	@Override
-	public RecordFile getRecordFile() {
+	public RecordIterator getRecordFile() {
 		return scan.getRecordFile();
 	}
 

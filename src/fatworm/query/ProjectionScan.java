@@ -19,7 +19,6 @@ import fatworm.dataentity.Float;
 import fatworm.dataentity.NullDataEntity;
 import fatworm.functioncalculator.FuncValue;
 import fatworm.functioncalculator.FunctionCalculator;
-import fatworm.record.RecordFile;
 import fatworm.record.RecordIterator;
 import fatworm.util.Util;
 
@@ -501,7 +500,7 @@ public class ProjectionScan implements Scan {
 	}
 
 	@Override
-	public RecordFile getRecordFile() {
+	public RecordIterator getRecordFile() {
 		return null;
 	}
 

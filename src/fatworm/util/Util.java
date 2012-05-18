@@ -123,4 +123,12 @@ public class Util
 	    return new ConditionJoinPlan(planList);
 	}
 
+    public static void createTotalIndex(String name) {
+        RecordFile rf = Util.getTable(name);
+        Schema schema = rf.getSchema();
+        for (int i = 0; i < schema.columnCount(); i++) {
+            rf.createIndex(schema.name(i));
+        }
+    }
+
 }

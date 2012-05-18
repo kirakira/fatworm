@@ -7,6 +7,7 @@ import fatworm.query.Scan;
 import fatworm.query.SelectScan;
 import fatworm.query.TableScan;
 import fatworm.record.RecordFile;
+import fatworm.record.RecordIterator;
 import fatworm.util.Util;
 
 public class DeleteCommand extends Command{
@@ -18,8 +19,8 @@ public class DeleteCommand extends Command{
 
 	public BoolExpr condition;
 
-	void delete(RecordFile rf)  {
-		rf.delete();
+	void delete(RecordIterator rf)  {
+		rf.remove();
 	}
 	
 	public void execute() {

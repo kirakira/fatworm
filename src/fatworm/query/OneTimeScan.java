@@ -4,7 +4,6 @@ import java.util.Collection;
 
 import fatworm.dataentity.DataEntity;
 import fatworm.record.RecordIterator;
-import fatworm.record.RecordFile;
 
 public class OneTimeScan implements Scan {
 
@@ -113,7 +112,7 @@ public class OneTimeScan implements Scan {
 	}
 
 	@Override
-	public RecordFile getRecordFile() {
+	public RecordIterator getRecordFile() {
 		// TODO Auto-generated method stub
 		return null;
 	}

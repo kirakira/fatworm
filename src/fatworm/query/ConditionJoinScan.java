@@ -20,6 +20,7 @@ public class ConditionJoinScan extends JoinScan {
     int[] tablereorder; //original scanlist.get(i) will be reorderscanlist[tablereorder[i]]
     DependentCondition[] dependentCondition;
     Scan[] reorderscanlist;
+    long timeconsume  = 0;
     List<BoolExpr> conditions;
     
     boolean iterTable = true;
@@ -102,7 +103,7 @@ public class ConditionJoinScan extends JoinScan {
             return false;
         int i = scanList.size() - 1;
         while(true) {
-            if (i >= scanList.size())
+            if (i >= scanList.size()) 
                 return true;
             while(i >= 0 && nextTable(i) == false) 
                 i--;

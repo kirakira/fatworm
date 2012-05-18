@@ -5,7 +5,6 @@ import java.util.LinkedList;
 
 import fatworm.dataentity.DataEntity;
 import fatworm.record.RecordIterator;
-import fatworm.record.RecordFile;
 import fatworm.util.Util;
 
 public class RenameScan implements Scan{
@@ -114,7 +113,7 @@ public class RenameScan implements Scan{
 			return null;
 	}
 	@Override
-	public RecordFile getRecordFile() {
+	public RecordIterator getRecordFile() {
 		// TODO Auto-generated method stub
 		return null;
 	}
