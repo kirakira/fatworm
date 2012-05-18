@@ -19,50 +19,6 @@ public class Tuple {
         return ret;
     }
 
-    public static Tuple create(Schema schema, Map<String, DataEntity> map) {
-        Tuple ret = new Tuple();
-
-        int len = schema.columnCount();
-        ret.values = new DataEntity[len];
-
-        int count = 0;
-        for (int i = 0; i < len; ++i) {
-            DataEntity de = map.get(schema.name(i));
-            if (de == null) {
-                if (schema.type(i) == TIMESTAMP)
-                    de = new TimeStamp();
-                else
-                    de = schema.defaultValue(i);
-            }
-            ++count;
-            ret.values[i] = de;
-        }
-        if (count != schema.columnCount())
-            return null;
-
-        return ret;
-    }
-
-    public static Tuple create(Schema schema, Map<String, DataEntity> map, DataEntity[] base) {
-        Tuple ret = new Tuple();
-
-        int len = schema.columnCount();
-        ret.values = new DataEntity[len];
-
-        int count = 0;
-        for (int i = 0; i < len; ++i) {
-            DataEntity de = map.get(schema.name(i));
-            if (de == null)
-                de = base[i];
-            ++count;
-            ret.values[i] = de;
-        }
-        if (count != schema.columnCount())
-            return null;
-
-        return ret;
-    }
-
     public Tuple(ByteBuffer buffer) {
         int len = buffer.getInt();
         values = new DataEntity[len];

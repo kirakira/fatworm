@@ -48,7 +48,6 @@ public class StorageTester {
             for (int i = 0; i < 10; ++i) {
                 Map<String, DataEntity> row = new HashMap<String, DataEntity>();
                 row.put("name", new VarChar("Alice_" + i));
-                row.put("id", new Int(i));
                 row.put("age", new Int(rand.nextInt(7) + 7));
                 row.put("school", new FixChar("Dalaran Higher School of Magic", 40));
                 row.put("young_pioneer", new Bool(rand.nextBoolean()));
@@ -126,6 +125,17 @@ public class StorageTester {
 
         System.out.println("Min age:" + table.min("age"));
         System.out.println("Max age:" + table.max("age"));
+
+        System.out.println("id >= 100:");
+        iter = table.indexGreaterThanEqual("id", new Int(100));
+        iter.beforeFirst();
+        while (iter.next()) {
+            for (int i = 0; i < table.getSchema().columnCount(); ++i)
+                System.out.print(iter.getField(i) + "\t");
+            System.out.println();
+        }
+
+ 
     }
 
     public void printTable(String db, String tablename) {

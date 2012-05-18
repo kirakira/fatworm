@@ -106,9 +106,60 @@ public class Table implements RecordFile {
         }
     }
 
+    private DataEntity[] fillTuple(Map<String, DataEntity> map) {
+        Schema schema = getSchema();
+        int len = schema.columnCount();
+        DataEntity[] ret = new DataEntity[len];
+
+        int count = 0;
+        for (int i = 0; i < len; ++i) {
+            DataEntity de = map.get(schema.name(i));
+            if (de == null) {
+                if (schema.type(i) == TIMESTAMP)
+                    de = new TimeStamp();
+                else if (schema.autoIncrement(i)) {
+                    DataEntity m = max(schema.name(i));
+                    int v = 1;
+                    if (m != null)
+                        v = ((Integer) m.toJavaType()).intValue() + 1;
+                    de = new Int(v);
+                } else
+                    de = schema.defaultValue(i);
+            }
+            ++count;
+            ret[i] = de;
+        }
+        if (count != schema.columnCount())
+            return null;
+
+        return ret;
+    }
+
+    private DataEntity[] fillTuple(Map<String, DataEntity> map, DataEntity[] base) {
+        Schema schema = getSchema();
+        int len = schema.columnCount();
+        DataEntity[] ret = new DataEntity[len];
+
+        int count = 0;
+        for (int i = 0; i < len; ++i) {
+            DataEntity de = map.get(schema.name(i));
+            if (de == null)
+                de = base[i];
+            ++count;
+            ret[i] = de;
+        }
+        if (count != schema.columnCount())
+            return null;
+
+        return ret;
+    }
+
+ 
     public boolean insert(Map<String, DataEntity> map) {
+        if (schema == null)
+            return false;
         try {
-            Tuple tuple = Tuple.create(getSchema(), map);
+            Tuple tuple = Tuple.create(fillTuple(map));
             if (tuple == null)
                 return false;
             insert(tuple);
@@ -267,10 +318,11 @@ public class Table implements RecordFile {
         public boolean update(Map<String, DataEntity> map) {
             try {
                 if (!removed && currentCell != null && currentIndex >= 0 && currentIndex < currentCell.tupleCount()) {
-                    Tuple tuple = Tuple.create(getSchema(), map, getTuple());
+                    DataEntity[] currentTuple = getTuple();
+                    Tuple tuple = Tuple.create(fillTuple(map, currentTuple));
                     if (tuple == null)
                         return false;
-                    removeIndexValues(currentCell.get(currentIndex).tuple(), currentCell.getBlock());
+                    removeIndexValues(currentTuple, currentCell.getBlock());
                     currentCell.set(currentIndex, tuple);
                     int newBlock = currentCell.save();
                     insertIndexValues(tuple.tuple(), newBlock);

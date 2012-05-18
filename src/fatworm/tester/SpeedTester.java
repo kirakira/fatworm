@@ -44,7 +44,7 @@ public class SpeedTester {
         sql_statement.execute("drop database " + dbName);
         sql_statement.execute("create database " + dbName);
         sql_statement.execute("use " + dbName);
-        sql_statement.execute("create table " + tableName + "(k int, v varchar(" + length + "))");
+        sql_statement.execute("create table " + tableName + "(k int, v varchar(" + length + "), primary key(k))");
 
         String s = "";
         for (int i = 0; i < length; ++i)
@@ -55,7 +55,7 @@ public class SpeedTester {
 
     public void testStorage() {
         Schema schema = new Schema();
-        schema.addField("k", INTEGER, 4, false, false, false, null);
+        schema.addField("k", INTEGER, 4, true, true, true, null);
         schema.addField("v", VARCHAR, length, false, false, false, null);
 
         Storage.getInstance().dropDatabase(dbName);
