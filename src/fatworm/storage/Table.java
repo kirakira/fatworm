@@ -248,7 +248,7 @@ public class Table implements RecordFile {
             return;
 
         for (int i = 0; i < getSchema().columnCount(); ++i) {
-            if (oldTuple[i].compareTo(newTuple[i]) == 0)
+            if (!oldTuple[i].isNull() && !newTuple[i].isNull() && oldTuple[i].compareTo(newTuple[i]) == 0)
                 continue;
 
             String colname = getSchema().name(i);
