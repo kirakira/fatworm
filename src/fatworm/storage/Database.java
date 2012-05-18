@@ -91,8 +91,6 @@ public class Database implements IOHelper {
 
     // returns null if the table name already existed
     public Table insertTable(String table, Schema schema) throws java.io.IOException {
-        System.out.println("creating a table");
-        System.out.println(schema);
         if (getTable(table) != null)
             return null;
         int sBlock;
