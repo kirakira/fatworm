@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 import fatworm.dataentity.DataEntity;
-import fatworm.record.Iterator;
+import fatworm.record.RecordIterator;
 import fatworm.record.RecordFile;
 import fatworm.record.Schema;
 import fatworm.util.Util;
@@ -143,7 +143,7 @@ public class TableScan implements Scan{
     }
 
     @Override
-    public Iterator getIndex(String colname, DataEntity right, String cop) {
+    public RecordIterator getIndex(String colname, DataEntity right, String cop) {
         if (Util.isFieldSuffix(colname))
             colname = Util.getColumnFieldName(colname);
         if (cop.equals("EQ"))

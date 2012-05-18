@@ -10,11 +10,11 @@ import fatworm.absyn.CompareExpr;
 import fatworm.absyn.ConstValue;
 import fatworm.absyn.OrList;
 import fatworm.dataentity.DataEntity;
-import fatworm.record.Iterator;
+import fatworm.record.RecordIterator;
 
 public class ConditionJoinScan extends JoinScan {
 
-    Iterator[] indexIteratorList;
+    RecordIterator[] indexIteratorList;
     int[] dependent;
     int[] comparecount;
     int[] tablereorder; //original scanlist.get(i) will be reorderscanlist[tablereorder[i]]
@@ -26,7 +26,7 @@ public class ConditionJoinScan extends JoinScan {
 
     public ConditionJoinScan(List<Scan> scanList) {
         super(scanList);
-        indexIteratorList = new Iterator[scanList.size()];
+        indexIteratorList = new RecordIterator[scanList.size()];
         dependent = new int[scanList.size()];
         tablereorder = new int[scanList.size()];
         comparecount = new int[scanList.size()];

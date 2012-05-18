@@ -1,13 +1,15 @@
 package fatworm.tester;
 
-import fatworm.util.ByteLib;
+import fatworm.dataentity.*;
 import fatworm.storage.Storage;
 import fatworm.storage.IOHelper;
+import fatworm.storage.DataAdapter;
 import fatworm.storage.bplustree.*;
 
 import java.util.Random;
 import java.util.List;
 import java.util.LinkedList;
+import static java.sql.Types.*;
 
 public class BPlusTreeTester {
     public static final void main(String[] args) throws java.io.IOException {
@@ -25,10 +27,13 @@ public class BPlusTreeTester {
         storage.useDatabase(dbName);
         IOHelper io = storage.getCurrentIOHelper();
 
+        DataAdapter da = new DataAdapter(INTEGER, 4);
+
         long t0 = System.nanoTime();
-        int block = BPlusTree.create(io, new IntegerComparator(), BPlusTree.KeySize.FIXED_4_BYTES).getBlock();
+        BPlusTree bptree = BPlusTree.create(io, da.comparator(), da.averageKeySize(), da.isVariant());
+        int block = bptree.save();
         //int block = BPlusTree.create(io, new StringComparator(), BPlusTree.KeySize.VARIANT).getBlock();
-        BPlusTree bptree = BPlusTree.load(io, new IntegerComparator(), block);
+        bptree = BPlusTree.load(io, da.comparator(), block);
         //BPlusTree bptree = BPlusTree.load(io, new StringComparator(), block);
         if (bptree == null)
             System.err.println("bptree == null");
@@ -40,9 +45,7 @@ public class BPlusTreeTester {
             for (int i = 0; i < 100000; ++i) {
                 int t = rand.nextInt(range);
                 data[t].add(new Integer(i));
-                byte[] tmp = new byte[4];
-                ByteLib.intToBytes(t, tmp, 0);
-                bptree.insert(tmp, i);
+                bptree.insert(da.putData(new Int(t)), i);
             }
             t0 = System.nanoTime() - t0;
             if (bptree.check() == false)
@@ -51,8 +54,7 @@ public class BPlusTreeTester {
                 System.out.println("check ok");
 
             for (int i = 0; i < range; ++i) {
-                byte[] tmp = new byte[4];
-                ByteLib.intToBytes(i, tmp, 0);
+                byte[] tmp = da.putData(new Int(i));
                 List<Integer> result = bptree.find(tmp);
                 if (!result.containsAll(data[i]) || !data[i].containsAll(result)) {
                     System.out.println("Data error");
@@ -100,6 +102,8 @@ public class BPlusTreeTester {
 
             System.out.println("Total time: " + t0);
             System.out.println("Disk IO time: " + File.totalTime + " (" + (double) File.totalTime / (double) t0 * 100 + "%)");*/
+
+            bptree.save();
         }
     }
 }

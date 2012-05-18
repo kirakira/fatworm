@@ -20,6 +20,7 @@ import fatworm.dataentity.NullDataEntity;
 import fatworm.functioncalculator.FuncValue;
 import fatworm.functioncalculator.FunctionCalculator;
 import fatworm.record.RecordFile;
+import fatworm.record.RecordIterator;
 import fatworm.util.Util;
 
 public class ProjectionScan implements Scan {
@@ -526,7 +527,7 @@ public class ProjectionScan implements Scan {
     }
 
     @Override
-    public fatworm.record.Iterator getIndex(String colname, DataEntity right,
+    public RecordIterator getIndex(String colname, DataEntity right,
             String cop) {
         // TODO Auto-generated method stub
         return null;

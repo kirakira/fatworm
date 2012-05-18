@@ -86,4 +86,8 @@ public class Cell {
     public void setNext(int next) {
         this.next = next;
     }
+
+    public int getBlock() {
+        return bucket.block();
+    }
 }

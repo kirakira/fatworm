@@ -7,6 +7,7 @@ import java.util.Set;
 import fatworm.absyn.BoolExpr;
 import fatworm.dataentity.DataEntity;
 import fatworm.record.RecordFile;
+import fatworm.record.RecordIterator;
 
 public class SelectScan implements Scan{
     Scan scan;
@@ -144,7 +145,7 @@ public class SelectScan implements Scan{
     }
 
     @Override
-    public fatworm.record.Iterator getIndex(String colname, DataEntity right,
+    public RecordIterator getIndex(String colname, DataEntity right,
             String cop) {
         // TODO Auto-generated method stub
         return null;

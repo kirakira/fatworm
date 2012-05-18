@@ -1,9 +1,10 @@
-package fatworm.storage;
+package fatworm.tester;
 
+import fatworm.storage.*;
 import fatworm.storage.bplustree.*;
 import fatworm.record.Schema;
 import fatworm.record.RecordFile;
-import fatworm.record.Iterator;
+import fatworm.record.RecordIterator;
 import fatworm.dataentity.*;
 
 import java.util.Random;
@@ -12,14 +13,14 @@ import java.util.HashMap;
 import java.math.BigDecimal;
 import static java.sql.Types.*;
 
-public class Tester {
+public class StorageTester {
     public static final void main(String[] args) throws java.io.FileNotFoundException, java.io.IOException {
-        Tester tester = new Tester();
+        StorageTester tester = new StorageTester();
         tester.test();
     }
 
     public void test() throws java.io.FileNotFoundException, java.io.IOException {
-        Random rand = new Random();
+        Random rand = new Random(0);
 
         Schema schema = new Schema();
         schema.addField("id", INTEGER, 4, true, true, true, new NullDataEntity());
@@ -33,6 +34,7 @@ public class Tester {
         schema.addField("height", FLOAT, 8, false, false, false, new NullDataEntity());
 
         Storage storage = Storage.getInstance();
+        storage.dropDatabase("lichking");
         if (!storage.createDatabase("lichking"))
             System.out.println("Create database failed");
         storage.useDatabase("lichking");
@@ -41,6 +43,8 @@ public class Tester {
             System.out.println("Table already existed");
             table = storage.getTable("loli");
         } else {
+            table.createIndex("age");
+
             for (int i = 0; i < 10; ++i) {
                 Map<String, DataEntity> row = new HashMap<String, DataEntity>();
                 row.put("name", new VarChar("Alice_" + i));
@@ -76,7 +80,43 @@ public class Tester {
         printTable("lichking", "loli");
 
         System.out.println("Age >= 10:");
-        Iterator iter = table.indexGreaterThanEqual("age", new Int(10));
+        RecordIterator iter = table.indexGreaterThanEqual("age", new Int(10));
+        iter.beforeFirst();
+        while (iter.next()) {
+            for (int i = 0; i < table.getSchema().columnCount(); ++i)
+                System.out.print(iter.getField(i) + "\t");
+            System.out.println();
+        }
+
+        System.out.println("Age > 10:");
+        iter = table.indexGreaterThan("age", new Int(10));
+        iter.beforeFirst();
+        while (iter.next()) {
+            for (int i = 0; i < table.getSchema().columnCount(); ++i)
+                System.out.print(iter.getField(i) + "\t");
+            System.out.println();
+        }
+
+        System.out.println("Age <= 10:");
+        iter = table.indexLessThanEqual("age", new Int(10));
+        iter.beforeFirst();
+        while (iter.next()) {
+            for (int i = 0; i < table.getSchema().columnCount(); ++i)
+                System.out.print(iter.getField(i) + "\t");
+            System.out.println();
+        }
+
+        System.out.println("Age < 10:");
+        iter = table.indexLessThan("age", new Int(10));
+        iter.beforeFirst();
+        while (iter.next()) {
+            for (int i = 0; i < table.getSchema().columnCount(); ++i)
+                System.out.print(iter.getField(i) + "\t");
+            System.out.println();
+        }
+
+        System.out.println("Age == 10:");
+        iter = table.indexEqual("age", new Int(10));
         iter.beforeFirst();
         while (iter.next()) {
             for (int i = 0; i < table.getSchema().columnCount(); ++i)
@@ -85,6 +125,7 @@ public class Tester {
         }
 
         System.out.println("Min age:" + table.min("age"));
+        System.out.println("Max age:" + table.max("age"));
     }
 
     public void printTable(String db, String tablename) {

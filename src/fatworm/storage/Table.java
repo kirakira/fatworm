@@ -2,13 +2,19 @@ package fatworm.storage;
 
 import fatworm.record.RecordFile;
 import fatworm.record.Schema;
-import fatworm.record.Iterator;
+import fatworm.record.RecordIterator;
 import fatworm.storage.bucket.Bucket;
 import fatworm.util.ByteBuffer;
+import fatworm.util.Predicate;
 import fatworm.dataentity.*;
+import fatworm.storage.bplustree.*;
+import fatworm.storage.bplustree.BPlusTree.NodeIterator;
 
 import static java.sql.Types.*;
 import java.util.Map;
+import java.util.Iterator;
+import java.util.List;
+import java.util.HashSet;
 
 public class Table implements RecordFile {
     private IOHelper io;
@@ -19,7 +25,7 @@ public class Table implements RecordFile {
     private int front, rear;
     private int capacity;
 
-    private Iterator scanIter;
+    private RecordIterator scanIter;
 
     private Table(IOHelper io, int schema) {
         this.io = io;
@@ -27,6 +33,7 @@ public class Table implements RecordFile {
             this.schema = null;
         else
             this.schema = SchemaOnDisk.load(io, schema);
+
         front = 0;
         rear = 0;
         capacity = 0;
@@ -85,15 +92,18 @@ public class Table implements RecordFile {
         return head.save();
     }
 
-    void remove() {
-        schema.remove();
-        int next = front;
-        do {
-            Cell cell = Cell.load(io, next);
-            cell.remove();
-            next = cell.getNext();
-        } while (next != 0);
-        head.remove();
+    public void remove() {
+        try {
+            schema.remove();
+            int next = front;
+            do {
+                Cell cell = Cell.load(io, next);
+                cell.remove();
+                next = cell.getNext();
+            } while (next != 0);
+            head.remove();
+        } catch (java.io.IOException e) {
+        }
     }
 
     public boolean insert(Map<String, DataEntity> map) {
@@ -125,13 +135,14 @@ public class Table implements RecordFile {
     private void insert(Tuple tuple) throws java.io.IOException {
         Cell cell = Cell.load(io, rear);
         cell.insert(tuple);
-        cell.save();
+        int cBlock = cell.save();
         if (cell.tupleCount() >= capacity) {
             rear = Cell.create(io).save();
             cell.setNext(rear);
             cell.save();
             save();
         }
+        insertIndexValues(tuple.tuple(), cBlock);
     }
 
     public boolean update(Map<String, DataEntity> map) {
@@ -143,6 +154,42 @@ public class Table implements RecordFile {
             return schema.schema();
         else
             return null;
+    }
+
+    private void insertIndexValues(DataEntity[] tuple, int block) throws java.io.IOException {
+        if (schema == null)
+            return;
+
+        for (int i = 0; i < getSchema().columnCount(); ++i) {
+            if (tuple[i].isNull())
+                continue;
+
+            String colname = getSchema().name(i);
+            BPlusTree tree = schema.getBPlusTree(colname);
+            if (tree == null)
+                continue;
+
+            DataAdapter da = schema.adapter(colname);
+            tree.insert(da.putData(tuple[i]), block);
+        }
+    }
+
+    private void removeIndexValues(DataEntity[] tuple, int block) throws java.io.IOException {
+        if (schema == null)
+            return;
+
+        for (int i = 0; i < getSchema().columnCount(); ++i) {
+            if (tuple[i].isNull())
+                continue;
+
+            String colname = getSchema().name(i);
+            BPlusTree tree = schema.getBPlusTree(colname);
+            if (tree == null)
+                continue;
+
+            DataAdapter da = schema.adapter(colname);
+            tree.remove(da.putData(tuple[i]), block);
+        }
     }
 
     public void beforeFirst() {
@@ -173,7 +220,7 @@ public class Table implements RecordFile {
         return scanIter.getTuple();
     }
 
-    private class ScanIterator implements Iterator {
+    private class ScanIterator implements RecordIterator {
         private Cell currentCell = null;
         private int currentIndex = 0;
         private boolean removed = false;
@@ -207,6 +254,7 @@ public class Table implements RecordFile {
         public void remove() {
             try {
                 if (!removed && currentCell != null && currentIndex >= 0 && currentIndex < currentCell.tupleCount()) {
+                    removeIndexValues(currentCell.get(currentIndex).tuple(), currentCell.getBlock());
                     currentCell.remove(currentIndex);
                     currentCell.save();
                     removed = true;
@@ -222,14 +270,23 @@ public class Table implements RecordFile {
                     Tuple tuple = Tuple.create(getSchema(), map, getTuple());
                     if (tuple == null)
                         return false;
+                    removeIndexValues(currentCell.get(currentIndex).tuple(), currentCell.getBlock());
                     currentCell.set(currentIndex, tuple);
-                    currentCell.save();
+                    int newBlock = currentCell.save();
+                    insertIndexValues(tuple.tuple(), newBlock);
                     return true;
                 } else
                     return false;
             } catch (java.io.IOException e) {
                 return false;
             }
+        }
+
+        int getBlock() {
+            if (!removed && currentCell != null && currentIndex >= 0 && currentIndex < currentCell.tupleCount())
+                return currentCell.getBlock();
+            else
+                return 0;
         }
 
         public DataEntity[] getTuple() {
@@ -285,65 +342,222 @@ public class Table implements RecordFile {
         }
     }
 
-    public Iterator scan() {
+    public RecordIterator scan() {
         return new ScanIterator();
     }
 
     public void createIndex(String col) {
-        // TODO
+        if (schema == null)
+            return;
+
+        try {
+            BPlusTree tree = schema.getBPlusTree(col);
+            if (tree == null) {
+                DataAdapter da = schema.adapter(col);
+                BPlusTree bptree = BPlusTree.create(io, da.comparator(), da.averageKeySize(), da.isVariant());
+                int block = bptree.save();
+
+                schema.putBPlusTree(col, bptree);
+
+                ScanIterator iter = new ScanIterator();
+                iter.beforeFirst();
+                while (iter.next())
+                    insertIndexValues(iter.getTuple(), iter.getBlock());
+            }
+        } catch (java.io.IOException e) {
+        }
     }
 
     public void dropIndex(String col) {
-        // TODO
+        if (schema == null)
+            return;
+
+        try {
+            schema.removeBPlusTree(col);
+        } catch (java.io.IOException e) {
+        }
     }
 
-    public Iterator indexEqual(String col, DataEntity value) {
-        return new DummyIndexIterator(col, value, new EqualToComparator());
+    public boolean hasIndex(String col) {
+        return schema.getBPlusTree(col) != null;
     }
 
-    public Iterator indexLessThan(String col, DataEntity value) {
-        return new DummyIndexIterator(col, value, new LessThanComparator());
+    private BPlusTree tree(String col) {
+        if (schema == null)
+            return null;
+        else
+            return schema.getBPlusTree(col);
     }
 
-    public Iterator indexLessThanEqual(String col, DataEntity value) {
-        return new DummyIndexIterator(col, value, new LessThanEqualToComparator());
+    public RecordIterator indexEqual(String col, DataEntity value) {
+        BPlusTree tree = tree(col);
+        if (tree == null)
+            return new DummyIndexIterator(col, value, new EqualToComparator());
+        else {
+            try {
+                DataAdapter da = schema.adapter(col);
+                List<Integer> list = tree.find(da.putData(value));
+                Schema schema = getSchema();
+                int colindex = schema.index(col);
+                return new CellListIterator(schema, io, colindex, value, list);
+            } catch (java.io.IOException e) {
+                return null;
+            }
+        }
     }
 
-    public Iterator indexGreaterThan(String col, DataEntity value) {
-        return new DummyIndexIterator(col, value, new GreaterThanComparator());
+    public RecordIterator indexLessThan(String col, final DataEntity value) {
+        BPlusTree tree = tree(col);
+        if (tree == null)
+            return new DummyIndexIterator(col, value, new LessThanComparator());
+        else {
+            try {
+                DataAdapter da = schema.adapter(col);
+                Schema schema = getSchema();
+                int colindex = schema.index(col);
+                return new IndexIterator(schema, io, colindex, tree.min(), new Predicate<DataEntity>() {
+                        public boolean apply(DataEntity x) {
+                            if (x.compareTo(value) < 0)
+                                return true;
+                            else
+                                return false;
+                        }
+                    }, da);
+            } catch (java.io.IOException e) {
+                return null;
+            }
+        }
     }
 
-    public Iterator indexGreaterThanEqual(String col, DataEntity value) {
-        return new DummyIndexIterator(col, value, new GreaterThanEqualToComparator());
+    public RecordIterator indexLessThanEqual(String col, final DataEntity value) {
+        BPlusTree tree = tree(col);
+        if (tree == null)
+            return new DummyIndexIterator(col, value, new LessThanEqualToComparator());
+        else {
+            try {
+                DataAdapter da = schema.adapter(col);
+                Schema schema = getSchema();
+                int colindex = schema.index(col);
+                return new IndexIterator(schema, io, colindex, tree.min(), new Predicate<DataEntity>() {
+                        public boolean apply(DataEntity x) {
+                            if (x.compareTo(value) <= 0)
+                                return true;
+                            else
+                                return false;
+                        }
+                    }, da);
+            } catch (java.io.IOException e) {
+                return null;
+            }
+        }
+    }
+
+    public RecordIterator indexGreaterThan(String col, DataEntity value) {
+        BPlusTree tree = tree(col);
+        if (tree == null)
+            return new DummyIndexIterator(col, value, new GreaterThanComparator());
+        else {
+            try {
+                DataAdapter da = schema.adapter(col);
+                Schema schema = getSchema();
+                int colindex = schema.index(col);
+                NodeIterator nodeIter = tree.findGreaterThanEqual(da.putData(value));
+                nodeIter.beforeFirst();
+                if (nodeIter.hasNext()) {
+                    DataEntity de = da.getData(nodeIter.next().key());
+                    if (de.compareTo(value) == 0)
+                        nodeIter.mark();
+                    nodeIter.beforeFirst();
+                }
+                return new IndexIterator(schema, io, colindex, nodeIter, new Predicate<DataEntity>() {
+                        public boolean apply(DataEntity x) {
+                            return true;
+                        }
+                    }, da);
+            } catch (java.io.IOException e) {
+                return null;
+            }
+        }
+    }
+
+    public RecordIterator indexGreaterThanEqual(String col, DataEntity value) {
+        BPlusTree tree = tree(col);
+        if (tree == null)
+            return new DummyIndexIterator(col, value, new GreaterThanEqualToComparator());
+        else {
+            try {
+                DataAdapter da = schema.adapter(col);
+                Schema schema = getSchema();
+                int colindex = schema.index(col);
+                NodeIterator nodeIter = tree.findGreaterThanEqual(da.putData(value));
+                return new IndexIterator(schema, io, colindex, nodeIter, new Predicate<DataEntity>() {
+                        public boolean apply(DataEntity x) {
+                            return true;
+                        }
+                    }, da);
+            } catch (java.io.IOException e) {
+                return null;
+            }
+        }
     }
 
     public DataEntity max(String col) {
-        Iterator iter = scan();
-        iter.beforeFirst();
-        DataComparator compare = new GreaterThanComparator();
-        DataEntity ret = null;
-        while (iter.next()) {
-            DataEntity value = iter.getField(col);
-            if (ret == null && !value.isNull())
-                ret = value;
-            else if (compare.compare(value, ret))
-                ret = value;
+        BPlusTree tree = tree(col);
+        if (tree == null) {
+            RecordIterator iter = scan();
+            iter.beforeFirst();
+            DataComparator compare = new GreaterThanComparator();
+            DataEntity ret = null;
+            while (iter.next()) {
+                DataEntity value = iter.getField(col);
+                if (ret == null && !value.isNull())
+                    ret = value;
+                else if (compare.compare(value, ret))
+                    ret = value;
+            }
+            return ret;
+        } else {
+            try {
+                DataAdapter da = schema.adapter(col);
+                NodeIterator nodeIter = tree.max();
+                nodeIter.beforeFirst();
+                if (nodeIter.hasNext())
+                    return da.getData(nodeIter.next().key());
+                else
+                    return null;
+            } catch (java.io.IOException e) {
+                return null;
+            }
         }
-        return ret;
     }
 
     public DataEntity min(String col) {
-        Iterator iter = scan();
-        iter.beforeFirst();
-        DataComparator compare = new LessThanComparator();
-        DataEntity ret = null;
-        while (iter.next()) {
-            DataEntity value = iter.getField(col);
-            if (ret == null && !value.isNull())
-                ret = value;
-            else if (compare.compare(value, ret))
-                ret = value;
+        BPlusTree tree = tree(col);
+        if (tree == null) {
+            RecordIterator iter = scan();
+            iter.beforeFirst();
+            DataComparator compare = new LessThanComparator();
+            DataEntity ret = null;
+            while (iter.next()) {
+                DataEntity value = iter.getField(col);
+                if (ret == null && !value.isNull())
+                    ret = value;
+                else if (compare.compare(value, ret))
+                    ret = value;
+            }
+            return ret;
+        } else {
+            try {
+                DataAdapter da = schema.adapter(col);
+                NodeIterator nodeIter = tree.min();
+                nodeIter.beforeFirst();
+                if (nodeIter.hasNext())
+                    return da.getData(nodeIter.next().key());
+                else
+                    return null;
+            } catch (java.io.IOException e) {
+                return null;
+            }
         }
-        return ret;
     }
 }

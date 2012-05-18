@@ -10,12 +10,4 @@ public class ByteLib {
     public static void intToBytes(int value, byte[] data, int offset) {
         ByteBuffer.wrap(data, offset, data.length - offset).putInt(value);
     }
-
-    public static String bytesToString(byte[] data, int offset, int len) {
-        return new String(data, offset, len);
-    }
-
-    public static byte[] stringToBytes(String s) {
-        return s.getBytes();
-    }
 }

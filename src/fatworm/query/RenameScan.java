@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 import fatworm.dataentity.DataEntity;
-import fatworm.record.Iterator;
+import fatworm.record.RecordIterator;
 import fatworm.record.RecordFile;
 import fatworm.util.Util;
 
@@ -135,7 +135,7 @@ public class RenameScan implements Scan{
         return scan.hasIndex(colname);
     }
     @Override
-    public Iterator getIndex(String colname, DataEntity right, String cop) {
+    public RecordIterator getIndex(String colname, DataEntity right, String cop) {
         if (Util.isFieldSuffix(colname))
             return scan.getIndex(Util.getColumnFieldName(colname), right, cop);
         else 

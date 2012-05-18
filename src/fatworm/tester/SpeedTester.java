@@ -48,7 +48,7 @@ public class SpeedTester {
 
         String s = "";
         for (int i = 0; i < length; ++i)
-            s += (char) ('a');
+            s += ('a');
         for (int i = 0; i < n; ++i)
             sql_statement.execute("insert into " + tableName + " values(" + rand.nextInt(100) + ", '" + "" + "')");
     }
@@ -65,7 +65,7 @@ public class SpeedTester {
 
         StringBuffer sb = new StringBuffer();
         for (int i = 0; i < length; ++i)
-            sb.append((char) ('a'));
+            sb.append('a');
         String s = sb.toString();
         for (int i = 0; i < n; ++i) {
             Map<String, DataEntity> map = new HashMap<String, DataEntity>();

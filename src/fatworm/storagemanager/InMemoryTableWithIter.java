@@ -12,6 +12,7 @@ import fatworm.dataentity.DataEntity;
 import fatworm.dataentity.NullDataEntity;
 import fatworm.record.RecordFile;
 import fatworm.record.Schema;
+import fatworm.record.RecordIterator;
 
 public class InMemoryTableWithIter implements RecordFile {
 
@@ -97,7 +98,7 @@ public class InMemoryTableWithIter implements RecordFile {
         return null;
     }
 
-    public fatworm.record.Iterator scan() {
+    public RecordIterator scan() {
         return null;
     }
 
@@ -107,23 +108,23 @@ public class InMemoryTableWithIter implements RecordFile {
     public void dropIndex(String col) {
     }
 
-    public fatworm.record.Iterator indexEqual(String col, DataEntity value) {
+    public RecordIterator indexEqual(String col, DataEntity value) {
         return null;
     }
 
-    public fatworm.record.Iterator indexLessThan(String col, DataEntity value) {
+    public RecordIterator indexLessThan(String col, DataEntity value) {
         return null;
     }
 
-    public fatworm.record.Iterator indexLessThanEqual(String col, DataEntity value) {
+    public RecordIterator indexLessThanEqual(String col, DataEntity value) {
         return null;
     }
 
-    public fatworm.record.Iterator indexGreaterThan(String col, DataEntity value) {
+    public RecordIterator indexGreaterThan(String col, DataEntity value) {
         return null;
     }
 
-    public fatworm.record.Iterator indexGreaterThanEqual(String col, DataEntity value) {
+    public RecordIterator indexGreaterThanEqual(String col, DataEntity value) {
         return null;
     }
     @Override

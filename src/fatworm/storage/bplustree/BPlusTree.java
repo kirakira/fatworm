@@ -8,13 +8,86 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.Iterator;
+import java.util.Queue;
 
 public class BPlusTree {
-    public enum KeySize {
-        FIXED_1_BYTE,
-        FIXED_4_BYTES,
-        FIXED_8_BYTES,
-        VARIANT
+    public static class Pair {
+        private byte[] key;
+        private List<Integer> values;
+
+        public Pair(byte[] key, List<Integer> values) {
+            this.key = key;
+            this.values = values;
+        }
+
+        public byte[] key() {
+            return key;
+        }
+
+        public List<Integer> values() {
+            return values;
+        }
+    }
+
+    public class NodeIterator implements Iterator<Pair> {
+        Node current, nfirst;
+        int index, ifirst;
+
+        public NodeIterator(Node current, int index) {
+            this.current = current;
+            this.index = index - 1;
+            mark();
+        }
+
+        public void beforeFirst() {
+            current = nfirst;
+            index = ifirst;
+        }
+
+        public void mark() {
+            nfirst = current;
+            ifirst = index;
+        }
+
+        public void remove() throws UnsupportedOperationException {
+            throw new UnsupportedOperationException();
+        }
+
+        public boolean hasNext() {
+            if (current == null)
+                return false;
+
+            int len = current.pointers.length;
+            if (index + 1 < len - 1)
+                return true;
+
+            if (current.pointers[len - 1] != 0)
+                return true;
+            else
+                return false;
+        }
+
+        private List<Integer> loadValues(int index) {
+            int block = current.pointers[index];
+            Bucket bucket = Bucket.load(io, block);
+            return getList(bucket.getData());
+        }
+
+        public Pair next() {
+            try {
+                int len = current.pointers.length;
+                if (index + 1 < len - 1) {
+                    ++index;
+                    return new Pair(current.keys[index], loadValues(index));
+                } else {
+                    current = new Node(current.pointers[len - 1]);
+                    index = -1;
+                    return next();
+                }
+            } catch (java.io.IOException e) {
+                return null;
+            }
+        }
     }
 
     private IOHelper io;
@@ -22,9 +95,11 @@ public class BPlusTree {
 
     private Bucket head;
 
-    private KeySize keySize;
+    private int keySize;
     private int fanout;
     private int root;
+
+    private static int VARIANT = 0;
 
     private static char[] magic = {'f', 'a', 't', 'w', 'o', 'r', 'm', 'b', 'p', 't'};
 
@@ -44,61 +119,35 @@ public class BPlusTree {
                 return null;
         }
 
-        byte ks = buffer.getByte();
-        if (ks == 0)
-            ret.keySize = KeySize.FIXED_1_BYTE;
-        else if (ks == 1)
-            ret.keySize = KeySize.FIXED_4_BYTES;
-        else if (ks == 2)
-            ret.keySize = KeySize.FIXED_8_BYTES;
-        else if (ks == 3)
-            ret.keySize = KeySize.VARIANT;
-        else
-            return null;
-
+        ret.keySize = buffer.getInt();
         ret.fanout = buffer.getInt();
         ret.root = buffer.getInt();
 
         return ret;
     }
 
-    public static BPlusTree create(IOHelper ioHelper, Comparator<byte[]> compare, KeySize size) throws java.io.IOException {
+    public static BPlusTree create(IOHelper ioHelper, Comparator<byte[]> compare, int averageKeySize, boolean variant) throws java.io.IOException {
         BPlusTree ret = new BPlusTree(ioHelper, compare);
-
-        ret.keySize = size;
-        ret.root = 0;
-
-        if (ret.keySize == KeySize.FIXED_1_BYTE)
-            ret.fanout = 816;
-        else if (ret.keySize == KeySize.FIXED_4_BYTES)
-            ret.fanout = 510;
-        else if (ret.keySize == KeySize.FIXED_8_BYTES)
-            ret.fanout = 340;
-        else if (ret.keySize == KeySize.VARIANT)
-            ret.fanout = 170;
-        else
-            return null;
-
         ret.head = Bucket.create(ret.io);
-        ret.saveHead();
+
+        if (variant)
+            ret.keySize = VARIANT;
+        else
+            ret.keySize = averageKeySize;
+        ret.root = 0;
+        ret.fanout = (ret.io.getBlockSize() - 13 + averageKeySize) / (averageKeySize + 4);
+        if (ret.fanout < 2)
+            ret.fanout = 2;
 
         return ret;
     }
 
-    private int saveHead() throws java.io.IOException {
+    public int save() throws java.io.IOException {
         ByteBuffer buffer = new ByteBuffer();
         for (int i = 0; i < magic.length; ++i)
             buffer.putChar(magic[i]);
 
-        if (keySize == KeySize.FIXED_1_BYTE)
-            buffer.putByte((byte) 0);
-        else if (keySize == KeySize.FIXED_4_BYTES)
-            buffer.putByte((byte) 1);
-        else if (keySize == KeySize.FIXED_8_BYTES)
-            buffer.putByte((byte) 2);
-        else if (keySize == KeySize.VARIANT)
-            buffer.putByte((byte) 3);
-
+        buffer.putInt(keySize);
         buffer.putInt(fanout);
         buffer.putInt(root);
 
@@ -106,8 +155,25 @@ public class BPlusTree {
         return head.save();
     }
 
-    public int getBlock() {
-        return head.block();
+    public void remove() throws java.io.IOException {
+        Queue<Integer> q = new LinkedList<Integer>();
+        if (root != 0)
+            q.add(root);
+        while (!q.isEmpty()) {
+            int block = q.poll().intValue();
+            Node n = new Node(block);
+            if (n.isLeaf()) {
+                for (int i = 0; i < n.pointers.length - 1; ++i) {
+                    Bucket bucket = Bucket.load(io, n.pointers[i]);
+                    bucket.remove();
+                }
+            } else {
+                for (int i = 0; i < n.pointers.length; ++i)
+                    q.add(n.pointers[i]);
+            }
+            n.remove();
+        }
+        head.remove();
     }
 
     public boolean check() {
@@ -174,7 +240,6 @@ public class BPlusTree {
 
     private void changeRoot(int value) throws java.io.IOException {
         root = value;
-        saveHead();
     }
 
     private static class SearchResult {
@@ -234,6 +299,54 @@ public class BPlusTree {
         return buffer.array();
     }
 
+    public NodeIterator findGreaterThanEqual(byte[] key) throws java.io.IOException {
+        if (root == 0)
+            return new NodeIterator(null, -1);
+
+        int current = root;
+        while (true) {
+            Node n = new Node(current);
+            int pos = n.findIndexGreaterThanEqual(key);
+            if (pos == -1)
+                return new NodeIterator(null, -1);
+
+            if (n.isLeaf()) {
+                return new NodeIterator(n, pos);
+            } else {
+                current = n.pointers[pos + 1];
+            }
+        }
+    }
+
+    public NodeIterator min() throws java.io.IOException {
+        if (root == 0)
+            return new NodeIterator(null, -1);
+
+        int current = root;
+        while (true) {
+            Node n = new Node(current);
+            if (n.isLeaf()) {
+                return new NodeIterator(n, 0);
+            } else {
+                current = n.pointers[0];
+            }
+        }
+    }
+
+    public NodeIterator max() throws java.io.IOException {
+        if (root == 0)
+            return new NodeIterator(null, -1);
+
+        int current = root;
+        while (true) {
+            Node n = new Node(current);
+            if (n.isLeaf()) {
+                return new NodeIterator(n, n.keys.length - 1);
+            } else
+                current = n.pointers[n.pointers.length - 1];
+        }
+    }
+
     public List<Integer> find(byte[] key) throws java.io.IOException {
         int current = root;
 
@@ -281,7 +394,7 @@ public class BPlusTree {
                 bucket.remove();
             }
             b.add(value);
-            
+
             Bucket bucket = Bucket.create(io);
             bucket.setData(putList(b));
             int bucketBlock = bucket.save();
@@ -416,14 +529,10 @@ public class BPlusTree {
                 pointers[i] = buffer.getInt();
             for (int i = 0; i < keys.length; ++i) {
                 int l;
-                if (keySize == KeySize.FIXED_1_BYTE)
-                    l = 1;
-                else if (keySize == KeySize.FIXED_4_BYTES)
-                    l = 4;
-                else if (keySize == KeySize.FIXED_8_BYTES)
-                    l = 8;
-                else
+                if (keySize == VARIANT)
                     l = buffer.getInt();
+                else
+                    l = keySize;
                 keys[i] = new byte[l];
                 buffer.getBytes(keys[i], 0, l);
             }
@@ -447,16 +556,11 @@ public class BPlusTree {
                 buffer.putInt(pointers[i]);
             for (int i = 0; i < keys.length; ++i) {
                 int l;
-                if (keySize == KeySize.FIXED_1_BYTE)
-                    l = 1;
-                else if (keySize == KeySize.FIXED_4_BYTES)
-                    l = 4;
-                else if (keySize == KeySize.FIXED_8_BYTES)
-                    l = 8;
-                else {
+                if (keySize == VARIANT) {
                     l = keys[i].length;
                     buffer.putInt(l);
-                }
+                } else
+                    l = keySize;
                 buffer.putBytes(keys[i], 0, l);
             }
 
@@ -484,6 +588,35 @@ public class BPlusTree {
                 return l;
             else
                 return -1;
+        }
+
+        public int findIndexGreaterThanEqual(byte[] key) {
+            int pos = binarySearch(key);
+            if (leaf) {
+                if (pos != -1) {
+                    int c = compare.compare(keys[pos], key);
+                    if (c == 0)
+                        return pos;
+                    else if (pos + 1 < keys.length)
+                        return pos + 1;
+                    else
+                        return -1;
+                } else {
+                    if (pos + 1 < keys.length)
+                        return pos + 1;
+                    else
+                        return -1;
+                }
+            } else {
+                if (pos != -1) {
+                    int c = compare.compare(keys[pos], key);
+                    if (c == 0)
+                        return pos;
+                    else
+                        return pos + 1;
+                } else
+                    return pos + 1;
+            }
         }
 
         public int findValue(byte[] key) {
@@ -822,7 +955,7 @@ public class BPlusTree {
 
                 System.arraycopy(pointers, left - 1, node.pointers, 0, right);
                 System.arraycopy(keys, left - 1, node.keys, 0, right - 1);
-                
+
                 int next = node.save();
                 int[] newPointers = new int[left];
                 byte[][] newKeys = new byte[left - 1][];

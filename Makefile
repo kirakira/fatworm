@@ -14,7 +14,7 @@ parser: init
 	cd src/fatworm/parser; make parser
 
 base: init
-	$(JC) src/fatworm/util/ByteLib.java src/fatworm/util/ByteBuffer.java
+	$(JC) src/fatworm/util/ByteLib.java src/fatworm/util/ByteBuffer.java src/fatworm/util/Predicate.java
 
 dataentity: base
 	find src/fatworm/dataentity -name "*.java" > sources.txt
@@ -24,10 +24,11 @@ schema: dataentity
 	$(JC) src/fatworm/record/Schema.java
 
 storage: schema
-	$(JC) src/fatworm/record/RecordFile.java src/fatworm/record/Iterator.java
+	$(JC) src/fatworm/record/RecordFile.java src/fatworm/record/RecordIterator.java
 	$(JC) src/fatworm/storagemanager/StorageManagerInterface.java
 	find src/fatworm/storage -name "*.java" > sources.txt
 	$(JC) @sources.txt
+	$(JC) src/fatworm/tester/StorageTester.java
 
 bptree: storage
 	$(JC) src/fatworm/tester/BPlusTreeTester.java

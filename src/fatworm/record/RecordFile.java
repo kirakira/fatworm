@@ -30,18 +30,18 @@ public interface RecordFile {
     public boolean insert(DataEntity[] tuple);
 
     // scan the whole table
-    public Iterator scan();
+    public RecordIterator scan();
 
     // index manipulation
     public void createIndex(String col);
     public void dropIndex(String col);
 
     // index search
-    public Iterator indexEqual(String col, DataEntity value);
-    public Iterator indexLessThan(String col, DataEntity value);
-    public Iterator indexLessThanEqual(String col, DataEntity value);
-    public Iterator indexGreaterThan(String col, DataEntity value);
-    public Iterator indexGreaterThanEqual(String col, DataEntity value);
+    public RecordIterator indexEqual(String col, DataEntity value);
+    public RecordIterator indexLessThan(String col, DataEntity value);
+    public RecordIterator indexLessThanEqual(String col, DataEntity value);
+    public RecordIterator indexGreaterThan(String col, DataEntity value);
+    public RecordIterator indexGreaterThanEqual(String col, DataEntity value);
 
     public DataEntity max(String col);
     public DataEntity min(String col);

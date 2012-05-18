@@ -4,7 +4,7 @@ import fatworm.dataentity.DataEntity;
 
 import java.util.Map;
 
-public interface Iterator {
+public interface RecordIterator {
     public void beforeFirst();
     public boolean next();
 

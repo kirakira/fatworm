@@ -89,6 +89,9 @@ public class Database implements IOHelper {
             sBlock = ss.save();
         }
         Table st = Table.create(this, sBlock);
+        for (int i = 0; i < schema.columnCount(); ++i)
+            if (schema.primaryKey(i))
+                st.createIndex(schema.name(i));
         int tBlock = st.save();
         superTable.insertTable(table, tBlock, sBlock);
         return st;

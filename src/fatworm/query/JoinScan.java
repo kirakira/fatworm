@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import fatworm.dataentity.DataEntity;
-import fatworm.record.Iterator;
+import fatworm.record.RecordIterator;
 import fatworm.record.RecordFile;
 
 public class JoinScan implements Scan{
@@ -196,7 +196,7 @@ public class JoinScan implements Scan{
         return false;
     }
     @Override
-    public Iterator getIndex(String colname, DataEntity right, String cop) {
+    public RecordIterator getIndex(String colname, DataEntity right, String cop) {
         // TODO Auto-generated method stub
         return null;
     }			
