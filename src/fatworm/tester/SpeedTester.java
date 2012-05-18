@@ -21,7 +21,7 @@ public class SpeedTester {
     public static final void main(String[] args) {
         SpeedTester tester = new SpeedTester();
         try {
-            tester.testStorage();
+            tester.testIndex();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -31,7 +31,7 @@ public class SpeedTester {
     String tableName = "speed";
     int n = 100000;
     int length = 100000;
-    Random rand = new Random();
+    Random rand = new Random(0);
 
     public void testFull() throws Exception {
         Class.forName("fatworm.driver.Driver");
@@ -73,5 +73,39 @@ public class SpeedTester {
             map.put("v", new VarChar(""));
             rf.insert(map);
         }
+        Storage.getInstance().save();
+    }
+
+    public void testIndex() {
+        int charLength = 1024, count = 1000;
+
+        Schema schema = new Schema();
+        schema.addField("a", VARCHAR, charLength, false, false, false, new VarChar("abc"));
+
+        Storage.getInstance().dropDatabase(dbName);
+        Storage.getInstance().createDatabase(dbName);
+        Storage.getInstance().useDatabase(dbName);
+        RecordFile rf = Storage.getInstance().insertTable(tableName, schema);
+        rf.createIndex("a");
+
+        for (int i = 0; i < count; ++i) {
+            StringBuffer sb = new StringBuffer();
+            for (int j = 0; j < charLength; ++j) {
+                char c = (char) ('a' + rand.nextInt(26));
+                sb.append(c);
+            }
+
+            Map<String, DataEntity> map = new HashMap<String, DataEntity>();
+            map.put("a", new VarChar(sb.toString()));
+            rf.insert(map);
+        }
+
+        /*
+        RecordIterator iter = rf.scan();
+        iter.beforeFirst();
+        while (iter.next())
+            System.out.println(iter.getField(0).toJavaType());*/
+
+        Storage.getInstance().save();
     }
 }
