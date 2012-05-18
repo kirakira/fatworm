@@ -28,7 +28,8 @@ public class Storage implements StorageManagerInterface {
             try {
                 if (f.exists())
                     f.delete();
-                tempDB = new Database(fileName(tempDBName, false));
+                tempDB = Database.create(fileName(tempDBName, false));
+                tempDB.save();
                 return tempDB;
             } catch (java.io.IOException e) {
                 return null;
@@ -59,7 +60,7 @@ public class Storage implements StorageManagerInterface {
             return false;
         else {
             try {
-                Database db = new Database(fileName(name));
+                Database db = Database.create(fileName(name));
                 db.close();
                 return true;
             } catch (java.io.FileNotFoundException e) {
@@ -80,7 +81,7 @@ public class Storage implements StorageManagerInterface {
 
         Database db = null;
         try {
-            db = new Database(fileName(name));
+            db = Database.load(fileName(name));
         } catch (java.io.IOException e) {
             return false;
         }

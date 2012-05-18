@@ -21,20 +21,25 @@ public class Database implements IOHelper {
 
     long readCount = 0, writeCount = 0;
 
-    public Database(String name) throws java.io.FileNotFoundException, java.io.IOException {
-        load(name);
-    }
-
-    private void load(String name) throws java.io.FileNotFoundException, java.io.IOException {
+    private Database(String name) throws java.io.FileNotFoundException {
         RandomAccessFile raf = new RandomAccessFile(name, "rw");
         file = new File(raf);
+    }
 
-        freeList = FreeList.load(file);
-        if (freeList == null) {
-            freeList = new FreeList();
-            superTable = SuperTable.create(this);
-        } else
-            superTable = SuperTable.load(this);
+    public static Database create(String name) throws java.io.FileNotFoundException, java.io.IOException {
+        Database db = new Database(name);
+        db.freeList = new FreeList();
+        db.superTable = SuperTable.create(db);
+        return db;
+    }
+
+    public static Database load(String name) throws java.io.FileNotFoundException, java.io.IOException {
+        Database db = new Database(name);
+
+        db.freeList = FreeList.load(db.file);
+        db.superTable = SuperTable.load(db);
+
+        return db;
     }
 
     public void save() throws java.io.IOException {
@@ -108,6 +113,10 @@ public class Database implements IOHelper {
     }
 
     public void close() {
-    	file.close();
+        try {
+            save();
+        	file.close();
+        } catch (java.io.IOException e) {
+        }
     }
 }
