@@ -45,19 +45,19 @@ public class SortTester {
         Statement sql_statement = con.createStatement();
 
         int length = 100000;
-        /*
         sql_statement.execute("drop database " + dbName);
         sql_statement.execute("create database " + dbName);
         sql_statement.execute("use " + dbName);
         sql_statement.execute("create table " + tableName + "(k int, v char(" + length + "))");
 
         int n = 1000;
-        String s = "";
+        StringBuffer sb = new StringBuffer();
         for (int i = 0; i < length; ++i)
-            s += (char) ('a');
+            sb.append((char) ('a'));
+        String s = sb.toString();
         for (int i = 0; i < n; ++i)
             sql_statement.execute("insert into " + tableName + " values(" + rand.nextInt(100) + ", '" + s + "')");
-        System.out.println("Insert finished");*/
+        System.out.println("Insert finished");
         sql_statement.execute("use " + dbName);
 
         boolean result = sql_statement.execute("select * from " + tableName + " order by k desc");
