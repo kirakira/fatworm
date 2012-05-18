@@ -85,12 +85,10 @@ public class Table implements RecordFile {
         return ret;
     }
 
-    public int save() throws java.io.IOException {
+    public int saveHead() throws java.io.IOException {
         ByteBuffer buffer = new ByteBuffer();
         getHeadBytes(buffer);
         head.setData(buffer.array());
-        if (schema != null)
-            schema.save();
         return head.save();
     }
 
@@ -193,6 +191,7 @@ public class Table implements RecordFile {
             rear = Cell.create(io).save();
             cell.setNext(rear);
             cell.save();
+            saveHead();
         }
         insertIndexValues(tuple.tuple(), cBlock);
     }
@@ -411,6 +410,7 @@ public class Table implements RecordFile {
                 int block = bptree.save();
 
                 schema.putBPlusTree(col, bptree);
+                schema.save();
 
                 ScanIterator iter = new ScanIterator();
                 iter.beforeFirst();
@@ -427,6 +427,7 @@ public class Table implements RecordFile {
 
         try {
             schema.removeBPlusTree(col);
+            schema.save();
         } catch (java.io.IOException e) {
         }
     }

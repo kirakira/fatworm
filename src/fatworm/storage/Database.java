@@ -50,8 +50,6 @@ public class Database implements IOHelper {
     public void save() throws java.io.IOException {
         superTable.save();
         freeList.save(file);
-        for (Table t: tables.values())
-            t.save();
     }
 
     public boolean readBlock(int block, byte[] data, int offset) throws java.io.IOException {
@@ -106,7 +104,7 @@ public class Database implements IOHelper {
         for (int i = 0; i < schema.columnCount(); ++i)
             if (schema.primaryKey(i))
                 st.createIndex(schema.name(i));
-        int tBlock = st.save();
+        int tBlock = st.saveHead();
         superTable.insertTable(table, tBlock, sBlock);
         tables.put(table, st);
         return st;
@@ -117,7 +115,7 @@ public class Database implements IOHelper {
             return null;
         int sBlock;
         Table st = Table.createTemp(this, tupleSize);
-        int tBlock = st.save();
+        int tBlock = st.saveHead();
         superTable.insertTable(table, tBlock, 0);
         tables.put(table, st);
         return st;
