@@ -243,6 +243,27 @@ public class Table implements RecordFile {
         }
     }
 
+    private void updateIndexValues(DataEntity[] oldTuple, DataEntity[] newTuple, int oldBlock, int newBlock) throws java.io.IOException {
+        if (schema == null)
+            return;
+
+        for (int i = 0; i < getSchema().columnCount(); ++i) {
+            if (oldTuple[i].compareTo(newTuple[i]) == 0)
+                continue;
+
+            String colname = getSchema().name(i);
+            BPlusTree tree = schema.getBPlusTree(colname);
+            if (tree == null)
+                continue;
+
+            DataAdapter da = schema.adapter(colname);
+            if (!oldTuple[i].isNull())
+                tree.remove(da.putData(oldTuple[i]), oldBlock);
+            if (!newTuple[i].isNull())
+                tree.insert(da.putData(newTuple[i]), newBlock);
+        }
+    }
+
     public void beforeFirst() {
         scanIter.beforeFirst();
     }
@@ -318,14 +339,14 @@ public class Table implements RecordFile {
         public boolean update(Map<String, DataEntity> map) {
             try {
                 if (!removed && currentCell != null && currentIndex >= 0 && currentIndex < currentCell.tupleCount()) {
-                    DataEntity[] currentTuple = getTuple();
-                    Tuple tuple = Tuple.create(fillTuple(map, currentTuple));
+                    DataEntity[] oldTuple = getTuple();
+                    Tuple tuple = Tuple.create(fillTuple(map, oldTuple));
                     if (tuple == null)
                         return false;
-                    removeIndexValues(currentTuple, currentCell.getBlock());
+                    int oldBlock = currentCell.getBlock();
                     currentCell.set(currentIndex, tuple);
                     int newBlock = currentCell.save();
-                    insertIndexValues(tuple.tuple(), newBlock);
+                    updateIndexValues(oldTuple, tuple.tuple(), oldBlock, newBlock);
                     return true;
                 } else
                     return false;

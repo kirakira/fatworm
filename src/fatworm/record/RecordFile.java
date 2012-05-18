@@ -36,7 +36,9 @@ public interface RecordFile {
     public void createIndex(String col);
     public void dropIndex(String col);
 
-    // index search
+    // index-based search
+    // the order in which the returned iterator enumerates the dataset is guaranteed to be non-descending
+    // so that it is possible to perform a range search with these functions
     public RecordIterator indexEqual(String col, DataEntity value);
     public RecordIterator indexLessThan(String col, DataEntity value);
     public RecordIterator indexLessThanEqual(String col, DataEntity value);

@@ -191,4 +191,14 @@ public class Schema {
             ret.add(info.get(i).name);
         return ret;
     }
+
+    public String toString() {
+        String s = "";
+        for (int i = 0; i < info.size(); ++i) {
+            s += name(i) + ", type=" + type(i) + ", length=" + length(i) + " " + (notNull(i) ? "not_null " : "")
+                    + (autoIncrement(i) ? "auto_increment " : "") + (primaryKey(i) ? "primary_key " : "");
+            s += "\n";
+        }
+        return s;
+    }
 }
