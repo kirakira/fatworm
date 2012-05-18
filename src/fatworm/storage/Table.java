@@ -89,6 +89,8 @@ public class Table implements RecordFile {
         ByteBuffer buffer = new ByteBuffer();
         getHeadBytes(buffer);
         head.setData(buffer.array());
+        if (schema != null)
+            schema.save();
         return head.save();
     }
 
@@ -191,7 +193,6 @@ public class Table implements RecordFile {
             rear = Cell.create(io).save();
             cell.setNext(rear);
             cell.save();
-            save();
         }
         insertIndexValues(tuple.tuple(), cBlock);
     }

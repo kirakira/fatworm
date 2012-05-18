@@ -13,17 +13,22 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.Map;
+import java.util.HashMap;
 
 public class Database implements IOHelper {
     private File file;
     private FreeList freeList;
     private SuperTable superTable;
 
+    private Map<String, Table> tables;
+
     long readCount = 0, writeCount = 0;
 
     private Database(String name) throws java.io.FileNotFoundException {
         RandomAccessFile raf = new RandomAccessFile(name, "rw");
         file = new File(raf);
+        tables = new HashMap<String, Table>();
     }
 
     public static Database create(String name) throws java.io.FileNotFoundException, java.io.IOException {
@@ -45,6 +50,8 @@ public class Database implements IOHelper {
     public void save() throws java.io.IOException {
         superTable.save();
         freeList.save(file);
+        for (Table t: tables.values())
+            t.save();
     }
 
     public boolean readBlock(int block, byte[] data, int offset) throws java.io.IOException {
@@ -70,11 +77,18 @@ public class Database implements IOHelper {
     }
 
     public Table getTable(String table) throws java.io.IOException {
-        int relation = superTable.getRelation(table), schema = superTable.getSchema(table);
-        if (relation == 0)
-            return null;
-        else
-            return Table.load(this, relation, schema);
+        if (tables.containsKey(table))
+            return tables.get(table);
+        else {
+            int relation = superTable.getRelation(table), schema = superTable.getSchema(table);
+            if (relation == 0)
+                return null;
+            else {
+                Table ret = Table.load(this, relation, schema);
+                tables.put(table, ret);
+                return ret;
+            }
+        }
     }
 
     // returns null if the table name already existed
@@ -94,6 +108,7 @@ public class Database implements IOHelper {
                 st.createIndex(schema.name(i));
         int tBlock = st.save();
         superTable.insertTable(table, tBlock, sBlock);
+        tables.put(table, st);
         return st;
     }
 
@@ -104,6 +119,7 @@ public class Database implements IOHelper {
         Table st = Table.createTemp(this, tupleSize);
         int tBlock = st.save();
         superTable.insertTable(table, tBlock, 0);
+        tables.put(table, st);
         return st;
     }
 
@@ -112,6 +128,7 @@ public class Database implements IOHelper {
         if (table != null) {
             table.remove();
             superTable.removeTable(tablename);
+            tables.remove(tablename);
         }
     }
 
