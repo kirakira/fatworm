@@ -178,9 +178,10 @@ public class BPlusTree {
 
     public boolean check() {
         try {
-            if (root == 0)
+            if (root == 0) {
+                System.err.println("No value in tree, check ok");
                 return true;
-            else if (!check(root, 0))
+            } else if (!check(root, 0))
                 return false;
             else {
                 Node n = new Node(root);
@@ -205,7 +206,7 @@ public class BPlusTree {
                     else
                         n = new Node(n.pointers[n.pointers.length - 1]);
                 }
-                System.out.println(count + " values in total");
+                System.err.println(count + " values in total");
                 return true;
             }
         } catch (java.io.IOException e) {
@@ -216,7 +217,7 @@ public class BPlusTree {
 
     private boolean check(int root, int level) throws java.io.IOException {
         Node n = new Node(root);
-        System.out.println("Level " + level + ": " + n.pointers() + " children" + (n.isLeaf() ? " (leaf)" : ""));
+        System.err.println("Level " + level + ": " + n.pointers() + " children" + (n.isLeaf() ? " (leaf)" : ""));
         for (int i = 1; i < n.keys(); ++i)
             if (compare.compare(n.keys[i - 1], n.keys[i]) >= 0)
                 return false;
@@ -410,7 +411,7 @@ public class BPlusTree {
 
     public void remove(byte[] key, int value) throws java.io.IOException {
         if (root == 0)
-            System.err.println("Removing a key that doesn't exist");
+            System.err.println("Removing a key that doesn't exist (no root)");
         else {
             Node n = new Node(root);
             if (removeRaw(n, key, value)) {
@@ -435,7 +436,7 @@ public class BPlusTree {
         if (node.isLeaf()) {
             int pos = node.findIndex(key);
             if (pos == -1) {
-                System.err.println("Removing a key that doesn't exist");
+                System.err.println("Removing a key that doesn't exist (no key)");
                 return false;
             } else {
                 Bucket bucket = Bucket.load(io, node.pointers[pos]);
@@ -450,7 +451,7 @@ public class BPlusTree {
                     }
                 }
                 if (!removed) {
-                    System.err.println("Removing a value that doesn't exist");
+                    System.err.println("Removing a value that doesn't exist (no value)");
                     return false;
                 } else {
                     if (list.size() == 0) {
@@ -573,6 +574,8 @@ public class BPlusTree {
         }
 
         private int binarySearch(byte[] key) {
+            if (keys.length == 0)
+                return -1;
             int l = 0, r = keys.length - 1, m;
             while (l < r) {
                 m = (l + r + 1) / 2;
@@ -700,8 +703,6 @@ public class BPlusTree {
         }
 
         public boolean redistributeSave(int keyIndex, Node left, Node right, boolean leftToRight) throws java.io.IOException {
-            System.out.println("redistribute save");
-            System.out.println("before: " + left.keys.length + " + " + right.keys.length);
             byte[] mid = keys[keyIndex];
 
             if (leftToRight) {
@@ -764,7 +765,6 @@ public class BPlusTree {
                 left.save();
                 right.save();
 
-                System.out.println("after: " + left.keys.length + " + " + right.keys.length);
                 return true;
             } else {
                 if (right.pointers.length <= right.minPointers())
@@ -789,7 +789,7 @@ public class BPlusTree {
                     newPointers[newPointers.length - 1] = left.pointers[left.pointers.length - 1];
                     newPointers[newPointers.length - 2] = cp;
                     newKeys[newKeys.length - 1] = ck;
-                    keys[keyIndex] = ck;
+                    keys[keyIndex] = right.keys[0];
                     for (int i = 0; i < left.pointers.length - 1; ++i)
                         newPointers[i] = left.pointers[i];
                     for (int i = 0; i < left.keys.length; ++i)
@@ -826,13 +826,11 @@ public class BPlusTree {
                 left.save();
                 right.save();
 
-                System.out.println("after: " + left.keys.length + " + " + right.keys.length);
                 return true;
             }
         }
 
         public boolean mergeSave(int keyIndex, Node left, Node right) throws java.io.IOException {
-            System.out.println("merge save");
             int[] newPointers;
             byte[][] newKeys;
             if (left.leaf) {
