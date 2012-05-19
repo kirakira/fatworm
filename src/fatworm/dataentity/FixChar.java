@@ -28,7 +28,7 @@ public class FixChar extends DataEntity{
     }
 
     public int estimatedSize() {
-        return length * 2 + 8;
+        return length + 4;
     }
 
     public int compareTo(DataEntity t){

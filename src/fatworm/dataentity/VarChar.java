@@ -24,7 +24,7 @@ public class VarChar extends DataEntity {
     }
 
     public int estimatedSize() {
-        return 2 * value.length() + 4;
+        return value.length() + 4;
     }
 
     public int compareTo(DataEntity t){

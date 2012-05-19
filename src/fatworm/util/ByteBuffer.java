@@ -107,20 +107,18 @@ public class ByteBuffer {
     }
 
     public void putString(String s) {
-        int len = 4 + 2 * s.length();
-        makeRoom(len);
-        buffer.putInt(s.length());
-        for (int i = 0; i < s.length(); ++i)
-            putChar(s.charAt(i));
+        byte[] data = s.getBytes();
+        putInt(data.length);
+        putBytes(data, 0, data.length);
         updateLength();
     }
 
     public String getString() {
-        int len = buffer.getInt();
-        StringBuffer sb = new StringBuffer();
-        for (int i = 0; i < len; ++i)
-            sb.append(getChar());
-        return sb.toString();
+        int len = getInt();
+        int pos = buffer.position();
+        String ret = new String(buffer.array(), pos, len);
+        buffer.position(pos + len);
+        return ret;
     }
 
     public void putBytes(byte[] data, int offset, int len) {

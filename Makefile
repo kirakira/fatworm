@@ -28,7 +28,7 @@ storage: schema
 	$(JC) src/fatworm/storagemanager/StorageManagerInterface.java
 	find src/fatworm/storage -name "*.java" > sources.txt
 	$(JC) @sources.txt
-	$(JC) src/fatworm/tester/StorageTester.java
+	$(JC) src/fatworm/tester/StorageTester.java src/fatworm/tester/ScanTester.java
 
 bptree: storage
 	$(JC) src/fatworm/tester/BPlusTreeTester.java

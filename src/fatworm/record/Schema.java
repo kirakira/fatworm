@@ -166,9 +166,9 @@ public class Schema {
         for (int i = 0; i < info.size(); ++i) {
             FieldInfo field = info.get(i);
             if (field.type == VARCHAR)
-                tot += field.length * 2 / 3;
+                tot += field.length / 3 + 4;
             else if (field.type == DECIMAL)
-                tot += (field.length + 2) * 2;
+                tot += field.length + 6;
             else if (field.type == INTEGER)
                 tot += 4;
             else if (field.type == BOOLEAN)
@@ -180,7 +180,7 @@ public class Schema {
             else if (field.type == FLOAT)
                 tot += 8;
             else if (field.type == CHAR)
-                tot += field.length * 2 + 4;
+                tot += field.length + 4;
         }
         return tot;
     }

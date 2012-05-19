@@ -26,7 +26,7 @@ public class Decimal extends DataEntity {
     }
 
     public int estimatedSize() {
-        return value.toPlainString().length() * 2 + 4;
+        return value.toPlainString().length() + 6;
     }
     
     public int compareTo(DataEntity t) {

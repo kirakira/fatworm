@@ -36,10 +36,12 @@ public class DataAdapter {
     }
 
     public int averageKeySize() {
-        if (type == DECIMAL || type == CHAR) {
-            return length * 2 + 4;
+        if (type == CHAR) {
+            return length + 4;
+        } else if (type == DECIMAL) {
+            return length + 6;
         } else if (type == VARCHAR) {
-            return length * 2 / 3 + 4;
+            return length / 3 + 4;
         } else
             return length;
     }
