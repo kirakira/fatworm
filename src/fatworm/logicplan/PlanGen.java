@@ -557,17 +557,17 @@ public class PlanGen {
 		for (int i = 2; i < childJ.getChildCount(); i++){
 			CommonTree columnDes = (CommonTree)childJ.getChild(i);
 			//NULL
-			if (columnDes.getChild(0).getText().startsWith("NULL")){
+			if (columnDes.getChild(0).getText().toUpperCase().startsWith("NULL")){
 				columnDef.setIsNull();
 				continue;
 			}
 			//AUTO_INCREMENT
-			if (columnDes.getChild(0).getText().startsWith("AUTO")){
+			if (columnDes.getChild(0).getText().toUpperCase().startsWith("AUTO")){
 				columnDef.setAutoIncrement();
 				continue;
 			}
 			//NOT NULL
-			if (columnDes.getChild(0).getText().startsWith("NOT") && columnDes.getChild(1).getText().startsWith("NULL")){
+			if (columnDes.getChild(0).getText().toUpperCase().startsWith("NOT") && columnDes.getChild(1).getText().toUpperCase().startsWith("NULL")){
 				columnDef.setIsNotNull();
 				continue;
 			}
