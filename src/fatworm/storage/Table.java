@@ -200,7 +200,6 @@ public class Table implements RecordFile {
             rear = rearCell.save();
             cell.setNext(rear);
             cell.save();
-            saveHead();
         }
     }
 

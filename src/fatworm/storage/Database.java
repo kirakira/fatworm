@@ -50,6 +50,8 @@ public class Database implements IOHelper {
     public void save() throws java.io.IOException {
         superTable.save();
         freeList.save(file);
+        for (Table t: tables.values())
+            t.save();
     }
 
     public boolean readBlock(int block, byte[] data, int offset) throws java.io.IOException {
@@ -124,6 +126,7 @@ public class Database implements IOHelper {
     public void dropTable(String tablename) throws java.io.IOException {
         Table table = getTable(tablename);
         if (table != null) {
+            table.save();
             table.remove();
             superTable.removeTable(tablename);
             tables.remove(tablename);
