@@ -450,8 +450,12 @@ public class Table implements RecordFile {
 
                 ScanIterator iter = new ScanIterator();
                 iter.beforeFirst();
-                while (iter.next())
-                    insertIndexValues(iter.getTuple(), iter.getBlock());
+                int colindex = getSchema().index(col);
+                while (iter.next()) {
+                    DataEntity de = iter.getTuple()[colindex];
+                    if (!de.isNull())
+                        bptree.insert(da.putData(de), iter.getBlock());
+                }
             }
         } catch (java.io.IOException e) {
         }
