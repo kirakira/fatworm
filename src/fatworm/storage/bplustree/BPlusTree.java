@@ -308,11 +308,15 @@ public class BPlusTree {
         while (true) {
             Node n = new Node(current);
             int pos = n.findIndexGreaterThanEqual(key);
-            if (pos == -1)
-                return new NodeIterator(null, -1);
-
             if (n.isLeaf()) {
-                return new NodeIterator(n, pos);
+                if (pos == -1) {
+                    if (n.pointers[n.pointers.length - 1] == 0)
+                        return new NodeIterator(null, -1);
+                    else
+                        current = n.pointers[n.pointers.length - 1];
+                } else {
+                    return new NodeIterator(n, pos);
+                }
             } else {
                 current = n.pointers[pos + 1];
             }
@@ -596,30 +600,14 @@ public class BPlusTree {
         public int findIndexGreaterThanEqual(byte[] key) {
             int pos = binarySearch(key);
             if (leaf) {
-                if (pos != -1) {
-                    int c = compare.compare(keys[pos], key);
-                    if (c == 0)
-                        return pos;
-                    else if (pos + 1 < keys.length)
-                        return pos + 1;
-                    else
-                        return -1;
-                } else {
-                    if (pos + 1 < keys.length)
-                        return pos + 1;
-                    else
-                        return -1;
-                }
-            } else {
-                if (pos != -1) {
-                    int c = compare.compare(keys[pos], key);
-                    if (c == 0)
-                        return pos;
-                    else
-                        return pos + 1;
-                } else
+                if (pos != -1 && compare.compare(keys[pos], key) == 0)
+                    return pos;
+                else if (pos + 1 < keys.length)
                     return pos + 1;
-            }
+                else
+                    return -1;
+            } else
+                return pos;
         }
 
         public int findValue(byte[] key) {
