@@ -63,9 +63,9 @@ public class UpdateCommand extends Command{
 	    
 		Scan scan = new TableScan(name);
 		Schema schema = ((TableScan)scan).getSchema();
-		scan.beforeFirst();
 		if (condition != null) 
 			scan = new SelectScan(scan, condition, Util.getEmptyEnv());
+		scan.beforeFirst();
 		boolean next = scan.next();
 		while(next) {
 			update(schema, scan.getRecordFile(), scan);

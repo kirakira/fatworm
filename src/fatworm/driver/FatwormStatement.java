@@ -60,6 +60,7 @@ public class FatwormStatement implements Statement {
 
 	@Override
 	public boolean execute(String arg0) throws SQLException {
+	    Util.setFirstOrder();
 		try {
 			result = Database.getInstance().execute(arg0);
 		} catch (Exception e) {

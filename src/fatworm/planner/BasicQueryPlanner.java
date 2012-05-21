@@ -26,6 +26,7 @@ import fatworm.util.Util;
 
 public class BasicQueryPlanner implements QueryPlanner {
 
+    boolean firstorder = true; 
 	@Override
 	public QueryPlan createQueryPlan(Node query) {
 		if (query == null)
@@ -35,7 +36,12 @@ public class BasicQueryPlanner implements QueryPlanner {
 			return new DistinctPlan(createQueryPlan(firstchild));
 		}
 		else if (query instanceof OrderBy) {
-			return new OrderPlan(createQueryPlan(firstchild), ((OrderBy)query).colNameList);
+		    if (firstorder) {
+		        firstorder = false;
+		        return new OrderPlan(createQueryPlan(firstchild), ((OrderBy)query).colNameList);
+		    }
+		    else 
+		        return createQueryPlan(firstchild);
 		}
 		else if (query instanceof Projection) {
 			return new ProjectionPlan(createQueryPlan(firstchild), ((Projection)query).valList);
@@ -50,8 +56,6 @@ public class BasicQueryPlanner implements QueryPlanner {
 			List<QueryPlan>  joinlist = new ArrayList<QueryPlan>();
 			for (Node node: query.childList) {
 			    QueryPlan plan = createQueryPlan(node);
-			    if (plan instanceof OrderPlan) 
-			        plan = ((OrderPlan)plan).plan;
 				joinlist.add(plan);
 			}
 			return Util.getJoinPlan(joinlist);
@@ -99,6 +103,10 @@ public class BasicQueryPlanner implements QueryPlanner {
 			return new TablePlan(((Table) query).name);
 		}
 		return null;
+	}
+	
+	public void setFirstOrder() {
+	    firstorder = true;
 	}
 
 }

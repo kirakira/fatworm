@@ -130,11 +130,14 @@ public class Util
         RecordFile rf = Util.getTable(name);
         Schema schema = rf.getSchema();
         for (int i = 0; i < schema.columnCount(); i++) {
-            //if (schema.type(i) != java.sql.Types.VARCHAR)
-              //  rf.createIndex(schema.name(i));
+//            if (schema.type(i) != java.sql.Types.VARCHAR)
+//                rf.createIndex(schema.name(i));
         }
     }
     
+    public static void setFirstOrder() {
+        Database.getInstance().getQueryPlanner().setFirstOrder();
+    }
     
 //    public static void beginRenameScope() {
 //        realname.push(new HashMap<String, String>());

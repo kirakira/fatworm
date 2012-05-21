@@ -19,4 +19,5 @@ public interface QueryPlanner {
     */
     public QueryPlan createQueryPlan(Node query);
     public QueryPlan createQueryPlan(Node query, Env env);
+    public void setFirstOrder();
 }

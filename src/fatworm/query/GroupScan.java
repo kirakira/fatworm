@@ -15,7 +15,7 @@ public class GroupScan implements Scan {
 	Scan scan;
 	Set<String> funcSet;
 	Map<String, String> realname;
-	
+	boolean donegroup = false;
 	public GroupScan (Scan scan, String keyName, Set<String> funcSet) {
 		this.funcSet = funcSet;
 		this.keyName = keyName; 
@@ -23,14 +23,15 @@ public class GroupScan implements Scan {
 	}
 	@Override
 	public void beforeFirst() {
-		if (!scan.hasColumn(keyName))
-		    this.keyName = getRealName(keyName);
-		container = Util.getGroupContainer(this.keyName, funcSet);
-		scan.beforeFirst();
-		while(scan.next()) {
-			container.update(scan);
-		}
-		container.finish();
+	    if (!donegroup) {
+    		container = Util.getGroupContainer(this.keyName, funcSet);
+    		scan.beforeFirst();
+    		while(scan.next()) {
+    			container.update(scan);
+    		}
+    		container.finish();
+    		donegroup = true;
+	    }
 		container.beforeFirst();
 		scan.beforeFirst();
 	}

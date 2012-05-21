@@ -14,19 +14,23 @@ public class OrderScan implements Scan {
 	Scan scan;
 	List<OrderByColumn> order;
 	OrderContainer container;
-	
+	boolean doneorder;
 	public OrderScan(Scan scan, List<OrderByColumn> order) {
 		this.scan = scan;
 		this.order = order;
+		
 	}
 	@Override
 	public void beforeFirst() {
-		scan.beforeFirst();		
-		container = Util.getOrderContainer(scan, order);
-		container.sort();
+	    if (!doneorder) {
+    		scan.beforeFirst();				
+    		container = Util.getOrderContainer(scan, order);
+    		container.sort();
+    		doneorder = true;
+	    }
 		container.beforeFirst();
 	}
-
+	
 	@Override
 	public boolean next() {
 		return container.next();
