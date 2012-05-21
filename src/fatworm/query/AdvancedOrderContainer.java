@@ -51,10 +51,20 @@ public class AdvancedOrderContainer extends OrderContainer {
             ret += de[i].estimatedSize() + 5;
         return ret + 4;
     }
+
+    private void printMemory() {
+        long used = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+        System.out.print("Memory: " + used / 1024 / 1024 + "MB");
+        if (Runtime.getRuntime().maxMemory() == Long.MAX_VALUE)
+            System.out.println(" / No limit");
+        else
+            System.out.println(" / " + Runtime.getRuntime().maxMemory() / 1024 / 1024 + "MB");
+    }
 	
 	public void sort() {
-        boolean fail = false;
         int limit = -1;
+        //System.out.println("Start sort");
+        boolean fail = false;
         do {
             fail = false;
 
@@ -63,19 +73,15 @@ public class AdvancedOrderContainer extends OrderContainer {
 
             int tupleSize;
 
-
             scan.beforeFirst();
             boolean end = false;
             do {
+                //System.out.println("Start new run");
                 int count = 0;
 		        table = new ArrayList<DataEntity[]>();
-                ArrayList<Object> occupy1 = new ArrayList<Object>();
-                byte[] occupy2 = (limit == -1 ? new byte[4096 * 10] : null);
                 int tsize;
 
-                DataEntity[][] occupy3 = (limit == -1 ? new DataEntity[4][] : null);
                 DataEntity[] ttuple = null;
-                int occupy3_len = 0;
 
                 tupleSize = 0;
 
@@ -83,26 +89,27 @@ public class AdvancedOrderContainer extends OrderContainer {
                 try {
                     while (limit == -1 || count < limit) {
                         read = false;
-                        occupy2 = null;
                         if (scan.next()) {
+                            /*
+                            if (table.size() % 100000 == 0) {
+                                System.out.println("Read 100 kilo new elements, count=" + table.size());
+                                printMemory();
+                            }*/
                             read = true;
 
                             ttuple = add(scan);
                             table.add(ttuple);
 
-                            tsize = length(ttuple);
-                            if (tsize > tupleSize)
+                            if (limit == -1 || tupleSize == 0) {
+                                tsize = length(ttuple);
                                 tupleSize = tsize;
-
-                            if (limit == -1) {
-                                if (occupy3_len < occupy3.length) {
-                                    occupy3[occupy3_len] = ttuple;
-                                    ++occupy3_len;
+                                if (limit == -1) {
+                                    limit = (int) (2 * Runtime.getRuntime().maxMemory() / 3 / (long) (40 + tsize));
+                                    if (limit < 0)
+                                        limit = Integer.MAX_VALUE;
                                 }
-
-                                occupy1.add(null);
-                                occupy2 = new byte[4 * tupleSize];
                             }
+
                             ++count;
                         } else {
                             read = true;
@@ -114,9 +121,6 @@ public class AdvancedOrderContainer extends OrderContainer {
                     if (read == false) {
                         fail = true;
                         table = null;
-                        occupy1 = null;
-                        occupy2 = null;
-                        occupy3 = null;
                         //System.out.println("Wan tuo le 1, count=" + count);
                         limit = count / 2;
                         //e.printStackTrace();
@@ -127,11 +131,9 @@ public class AdvancedOrderContainer extends OrderContainer {
                 if (fail)
                     break;
 
-                occupy1 = null;
-                occupy2 = null;
-                occupy3 = null;
                 //System.gc();
                 try {
+                    //System.out.println("Sorting the loaded " + table.size() + " elements");
                     Collections.sort(table, comparator);
 
                     if (!end)
@@ -146,8 +148,14 @@ public class AdvancedOrderContainer extends OrderContainer {
                         RecordFile t = Storage.getInstance().insertTempTable(tupleSize);
                         tempTables.add(t);
 
+                        //int per = 0;
                         for (DataEntity[] dea: table) {
                             t.insert(dea);
+                            /*
+                            ++per;
+
+                            if (per % 100000 == 0)
+                                System.out.println("Wrote 100 kilo elements");*/
                         }
                         table = null;
                     }

@@ -11,7 +11,7 @@ import java.util.Map;
 
 public class CellListIterator implements RecordIterator {
     private Schema schema;
-    private IOHelper io;
+    private Table table;
     private int colindex;
     private DataEntity value;
     private List<Integer> list;
@@ -19,9 +19,9 @@ public class CellListIterator implements RecordIterator {
     private Iterator<Integer> listIter;
     private RecordIterator cellIter;
 
-    public CellListIterator(Schema schema, IOHelper io, int colindex, DataEntity value, List<Integer> list) {
+    public CellListIterator(Schema schema, Table table, int colindex, DataEntity value, List<Integer> list) {
         this.schema = schema;
-        this.io = io;
+        this.table = table;
         this.colindex = colindex;
         this.value = value;
         this.list = list;
@@ -39,7 +39,7 @@ public class CellListIterator implements RecordIterator {
         if (cellIter == null || !cellIter.next()) {
             while (listIter.hasNext()) {
                 int cellBlock = listIter.next().intValue();
-                Cell cell = Cell.load(io, cellBlock);
+                Cell cell = table.loadCell(cellBlock);
                 cellIter = new CellIterator(schema, cell, colindex, value);
                 cellIter.beforeFirst();
                 if (cellIter.next())

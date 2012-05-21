@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class IndexIterator implements RecordIterator {
     private Schema schema;
-    private IOHelper io;
+    private Table table;
     private int colindex;
     private Predicate<DataEntity> predicate;
     private DataAdapter adapter;
@@ -22,9 +22,9 @@ public class IndexIterator implements RecordIterator {
     private NodeIterator nodeIter;
     private RecordIterator cellListIter;
 
-    public IndexIterator(Schema schema, IOHelper io, int colindex, NodeIterator nodeIter, Predicate<DataEntity> predicate, DataAdapter da) {
+    public IndexIterator(Schema schema, Table table, int colindex, NodeIterator nodeIter, Predicate<DataEntity> predicate, DataAdapter da) {
         this.schema = schema;
-        this.io = io;
+        this.table = table;
         this.colindex = colindex;
         this.nodeIter = nodeIter;
         this.predicate = predicate;
@@ -45,7 +45,7 @@ public class IndexIterator implements RecordIterator {
                 DataEntity value = adapter.getData(pair.key());
                 if (predicate.apply(value) == false)
                     return false;
-                cellListIter = new CellListIterator(schema, io, colindex, value, pair.values());
+                cellListIter = new CellListIterator(schema, table, colindex, value, pair.values());
                 cellListIter.beforeFirst();
                 if (cellListIter.next())
                     return true;

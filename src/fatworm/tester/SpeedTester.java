@@ -21,7 +21,7 @@ public class SpeedTester {
     public static final void main(String[] args) {
         SpeedTester tester = new SpeedTester();
         try {
-            tester.testIndex();
+            tester.testStorage();
         } catch (Exception e) {
             e.printStackTrace();
         }
