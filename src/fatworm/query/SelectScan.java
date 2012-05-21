@@ -46,6 +46,25 @@ public class SelectScan implements Scan{
 			env.endScope();
 		}
 		return false;
+//		long timeconsume= 0;
+//		while(true) {
+//		    long start = System.nanoTime();
+//		    if (!scan.next())
+//		        break;
+//		    timeconsume += System.nanoTime() - start;
+//			env.beginScope();
+//			for(String column: usefulColumn) {
+//				if (scan.hasColumn(column))
+//					env.putValue(column, scan.getColumn(column));
+//				else if (scan.hasFunctionValue(column))
+//					env.putValue(column, scan.getFunctionValue(column));
+//			}
+//			if (pred.satisfiedBy(env))
+//				return true;
+//			env.endScope();
+//		}
+//		System.out.println(timeconsume);
+//		return false;
 	}
 
 	@Override

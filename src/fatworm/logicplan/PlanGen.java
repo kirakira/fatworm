@@ -412,6 +412,9 @@ public class PlanGen {
 			current = processOrderBy(t, (Node)current);
 			current = processDistinct(t, (Node)current);
 		}
+		if (t.getText().startsWith("CreateIndex")) {
+		    current = new CreateIndex(t.getChild(1).getText(), t.getChild(2).getText());
+		}
 		if (t.getText().startsWith("CreateDatabase")){
 			current = new CreateDatabase(t.getChild(0).getText());
 		}

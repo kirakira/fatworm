@@ -3,6 +3,7 @@ package fatworm.planner;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import fatworm.dataentity.DataEntity;
 import fatworm.plantree.Command;
@@ -32,6 +33,8 @@ public class BasicExecutor implements Executor {
 						result.add(((QueryInsert) command).getTupleMap(schema, scan));
 					for(Map<String, DataEntity> tuple: result) {
 					    rf.insert(tuple);
+					    for (Entry<String, DataEntity> column: tuple.entrySet())
+					        System.out.println(column.getKey() +" " + column.getValue());
 					}
 				}
 			}catch (Exception e) {

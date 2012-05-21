@@ -142,6 +142,9 @@ public class TableScan implements Scan{
 
     @Override
     public boolean hasIndex(String colname) {
+        if (Util.isFieldSuffix(colname))
+            colname = Util.getColumnFieldName(colname);
+        rf.createIndex(colname);
         return true;
     }
 

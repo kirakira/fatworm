@@ -30,11 +30,12 @@ public class UpdateCommand extends Command{
 	public BoolExpr condition;
 	private List<Pair<String, Value>> assigns = new LinkedList<Pair<String, Value>>();
 	//public Set<String> usefulColumns = new HashSet<String>();
-	
+	static long timeconsume = 0;
 	void update(Schema schema, RecordIterator iter, Scan scan) {
 		Env env = new SimpleEnv();
 
 		for(Pair<String, Value> assign: assigns) {
+		    
 		    Map<String, DataEntity> result = new HashMap<String, DataEntity> ();
 			if (assign.getSecond() instanceof ConstDefault)
 				result.put(assign.getFirst(), schema.defaultValue(assign.getFirst()));
@@ -46,7 +47,10 @@ public class UpdateCommand extends Command{
 			    result.put(assign.getFirst(), assign.getSecond().getValue(env).toType(schema.type(assign.getFirst())));
 			    env.endScope();
 			}
+			
 			iter.update(result);
+
+
 		}
 	}
 	
@@ -56,6 +60,7 @@ public class UpdateCommand extends Command{
 	}
 	
 	public void execute() {
+	    
 		Scan scan = new TableScan(name);
 		Schema schema = ((TableScan)scan).getSchema();
 		scan.beforeFirst();
@@ -64,7 +69,7 @@ public class UpdateCommand extends Command{
 		boolean next = scan.next();
 		while(next) {
 			update(schema, scan.getRecordFile(), scan);
-			next = scan.next(); 
+			next = scan.next();
 		}
 	} 
 }

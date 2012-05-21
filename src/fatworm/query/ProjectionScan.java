@@ -427,8 +427,10 @@ public class ProjectionScan implements Scan {
 	void calcType() {
 		int i = 0;
 		for (ProjectionValue proj: projections) {
-			if (proj instanceof ProjectionAllColumnValue)
+			if (proj instanceof ProjectionAllColumnValue) {
+			    i++;
 				continue;
+			}
 			Map<String, Integer> typemap = new HashMap<String, Integer>();
 			for (String column: usefulColumnList.get(i)) {
 				if (Util.isFunction(column)) {
