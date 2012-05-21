@@ -85,6 +85,7 @@ public class Table implements RecordFile {
         ret.front = buffer.getInt();
         ret.rear = buffer.getInt();
         ret.capacity = buffer.getInt();
+        ret.rearCell = Cell.load(io, ret.rear);
         return ret;
     }
 
@@ -95,7 +96,6 @@ public class Table implements RecordFile {
         int headBlock = head.save();
         if (rearCell != null)
             rearCell.save();
-        System.out.println("table saved");
         return headBlock;
     }
 
