@@ -88,7 +88,7 @@ public class Table implements RecordFile {
         return ret;
     }
 
-    public int saveHead() throws java.io.IOException {
+    public int save() throws java.io.IOException {
         ByteBuffer buffer = new ByteBuffer();
         getHeadBytes(buffer);
         head.setData(buffer.array());
