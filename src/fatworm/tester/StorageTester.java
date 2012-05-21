@@ -136,6 +136,7 @@ public class StorageTester {
         }
 
  
+        storage.save();
     }
 
     public void printTable(String db, String tablename) {
@@ -159,6 +160,5 @@ public class StorageTester {
             System.out.println();
         }
         System.out.println(count + " tuples in total.");
-        storage.save();
     }
 }
