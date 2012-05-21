@@ -2,6 +2,7 @@ package fatworm.query;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import fatworm.absyn.OrderByColumn;
 import fatworm.dataentity.DataEntity;
@@ -17,12 +18,12 @@ public class OrderScan implements Scan {
 	public OrderScan(Scan scan, List<OrderByColumn> order) {
 		this.scan = scan;
 		this.order = order;
-		scan.beforeFirst();		
-		container = Util.getOrderContainer(scan, order);
-		container.sort();
 	}
 	@Override
 	public void beforeFirst() {
+		scan.beforeFirst();		
+		container = Util.getOrderContainer(scan, order);
+		container.sort();
 		container.beforeFirst();
 	}
 
@@ -130,6 +131,14 @@ public class OrderScan implements Scan {
     public RecordIterator getIndex(String colname, DataEntity right, String cop) {
         // TODO Auto-generated method stub
         return null;
+    }
+    @Override
+    public String getRealName(String alias) {
+        return scan.getRealName(alias);
+    }
+    @Override
+    public void setRealName(Map<String, String> map) {
+        scan.setRealName(map);
     }
 
 }

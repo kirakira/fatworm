@@ -2,6 +2,7 @@ package fatworm.query;
 
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.Map;
 
 import fatworm.dataentity.DataEntity;
 import fatworm.record.RecordIterator;
@@ -139,6 +140,14 @@ public class RenameScan implements Scan{
             return scan.getIndex(Util.getColumnFieldName(colname), right, cop);
         else 
             return scan.getIndex(colname, right, cop);
+    }
+    @Override
+    public String getRealName(String alias) {
+        return scan.getRealName(alias);
+    }
+    @Override
+    public void setRealName(Map<String, String> map) {
+        scan.setRealName(map);
     }		
 	
 }

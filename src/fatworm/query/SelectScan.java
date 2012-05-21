@@ -2,6 +2,7 @@ package fatworm.query;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import fatworm.absyn.BoolExpr;
@@ -13,22 +14,24 @@ public class SelectScan implements Scan{
     Scan scan;
     BoolExpr pred;
     Env env;
+    Map<String, String> realname;
     Set<String> usefulColumn;
     public SelectScan(Scan scan, BoolExpr pred, Env env) {
         this.scan = scan;
         this.pred = pred;
         this.env = env;
-        usefulColumn = pred.dumpUsefulColumns();
-        Iterator<String> iter = usefulColumn.iterator();
-        while (iter.hasNext()) {
-        	String c = iter.next();
-        	if (!scan.hasColumn(c) && !scan.hasFunctionValue(c) )
-        		iter.remove();
-        }
     }
 
 	@Override
 	public void beforeFirst() {
+        usefulColumn = pred.dumpUsefulColumns();
+        Iterator<String> iter = usefulColumn.iterator();
+        while (iter.hasNext()) {
+        	String c = iter.next();
+        	if (!scan.hasColumn(c) && !scan.hasFunctionValue(c) && !scan.hasColumn(getRealName(c)) && !scan.hasFunctionValue(getRealName(c)))
+        		iter.remove();
+        }
+	    
         scan.beforeFirst();
 	}
 
@@ -41,15 +44,15 @@ public class SelectScan implements Scan{
 					env.putValue(column, scan.getColumn(column));
 				else if (scan.hasFunctionValue(column))
 					env.putValue(column, scan.getFunctionValue(column));
-//				else {
-//				    String realname = Util.getRealName(column);
-//				    if (realname != null) {
-//        				if (scan.hasColumn(realname))
-//        					env.putValue(column, scan.getColumn(realname));
-//        				else if (scan.hasFunctionValue(realname))
-//        					env.putValue(column, scan.getFunctionValue(realname));
-//				    }
-//				}
+				else {
+				    String real = getRealName(column);
+				    if (realname != null) {
+        				if (scan.hasColumn(real))
+        					env.putValue(column, scan.getColumn(real));
+        				else if (scan.hasFunctionValue(real))
+        					env.putValue(column, scan.getFunctionValue(real));
+				    }
+				}
 			}
 			if (pred.satisfiedBy(env))
 				return true;
@@ -177,5 +180,16 @@ public class SelectScan implements Scan{
             String cop) {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    @Override
+    public String getRealName(String alias) {
+        return realname.get(alias) == null ? alias: realname.get(alias);
+    }
+
+    @Override
+    public void setRealName(Map<String, String> map) {
+        scan.setRealName(map);
+        realname = map;
     }			
 }

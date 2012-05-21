@@ -1,6 +1,7 @@
 package fatworm.query;
 
 import java.util.Collection;
+import java.util.Map;
 
 import fatworm.dataentity.DataEntity;
 import fatworm.record.RecordIterator;
@@ -12,14 +13,14 @@ public class DistinctScan implements Scan {
 	DistinctContainer container;
 	public DistinctScan(Scan scan) {
 		this.scan = scan;
-		container = Util.getDistinctContainer();
-		scan.beforeFirst();
-		while(scan.next())
-			container.update(scan);
 	}
 	
 	@Override
 	public void beforeFirst() {
+		container = Util.getDistinctContainer();
+		scan.beforeFirst();
+		while(scan.next())
+			container.update(scan);
 		container.beforeFirst();
 	}
 
@@ -128,5 +129,15 @@ public class DistinctScan implements Scan {
     public RecordIterator getIndex(String colname, DataEntity right, String cop) {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    @Override
+    public String getRealName(String alias) {
+        return scan.getRealName(alias);
+    }
+
+    @Override
+    public void setRealName(Map<String, String> map) {
+        scan.setRealName(map);
     }
 }

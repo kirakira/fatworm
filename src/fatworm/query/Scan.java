@@ -1,6 +1,7 @@
 package fatworm.query;
 
 import java.util.Collection;
+import java.util.Map;
 
 import fatworm.dataentity.DataEntity;
 import fatworm.record.RecordIterator;
@@ -109,4 +110,9 @@ public interface Scan {
 	public boolean hasIndex(String colname);
 	
 	public RecordIterator getIndex(String colname, DataEntity right, String cop);
+	
+	public String getRealName(String alias);
+
+	public void setRealName(Map<String, String> map);
+
 }

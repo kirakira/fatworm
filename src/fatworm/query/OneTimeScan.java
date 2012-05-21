@@ -1,6 +1,7 @@
 package fatworm.query;
 
 import java.util.Collection;
+import java.util.Map;
 
 import fatworm.dataentity.DataEntity;
 import fatworm.record.RecordIterator;
@@ -143,6 +144,14 @@ public class OneTimeScan implements Scan {
     public RecordIterator getIndex(String colname, DataEntity right, String cop) {
         // TODO Auto-generated method stub
         return null;
+    }
+    @Override
+    public String getRealName(String alias) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    @Override
+    public void setRealName(Map<String, String> map) {
     }
 
 }

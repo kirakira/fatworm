@@ -21,6 +21,7 @@ public class QueryValue extends Value {
 	@Override
 	public DataEntity getValue(Env env) {
 		scan = Util.getQueryPlanner().createQueryPlan(query, env).open();
+		scan.beforeFirst();
 		if (scan.next()) {
 			return scan.getColumnByIndex(0);
 		}
@@ -34,8 +35,7 @@ public class QueryValue extends Value {
 
 	@Override
 	public int getType(Map<String, Integer> typemap) {
-		//XXX
-		return 0;
+		return java.sql.Types.VARCHAR;
 	}
 
 }

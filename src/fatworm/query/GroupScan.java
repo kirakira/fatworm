@@ -1,6 +1,7 @@
 package fatworm.query;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 
 import fatworm.dataentity.DataEntity;
@@ -13,22 +14,23 @@ public class GroupScan implements Scan {
 	String keyName;
 	Scan scan;
 	Set<String> funcSet;
+	Map<String, String> realname;
 	
 	public GroupScan (Scan scan, String keyName, Set<String> funcSet) {
 		this.funcSet = funcSet;
 		this.keyName = keyName; 
 		this.scan = scan;
-//		if (!scan.hasColumn(keyName))
-//		    this.keyName = Util.getRealName(keyName);
+	}
+	@Override
+	public void beforeFirst() {
+		if (!scan.hasColumn(keyName))
+		    this.keyName = getRealName(keyName);
 		container = Util.getGroupContainer(this.keyName, funcSet);
 		scan.beforeFirst();
 		while(scan.next()) {
 			container.update(scan);
 		}
 		container.finish();
-	}
-	@Override
-	public void beforeFirst() {
 		container.beforeFirst();
 		scan.beforeFirst();
 	}
@@ -153,5 +155,13 @@ public class GroupScan implements Scan {
         public RecordIterator getIndex(String colname, DataEntity right, String cop) {
             // TODO Auto-generated method stub
             return null;
-        }		
+        }
+        public String getRealName(String alias) {
+            return realname.get(alias) == null ? alias: realname.get(alias);
+        }
+        @Override
+        public void setRealName(Map<String, String> map) {
+            scan.setRealName(map);
+            realname = map;
+        }			
 }

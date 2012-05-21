@@ -27,7 +27,9 @@ public class ProjectionScan implements Scan {
     List<ProjectionValue> projections;
     List<Set<String>> usefulColumnList;
     Map<String, DataEntity> oneGroupFunctionValue;
-
+    Map<String, String> realname;
+    Set<String> oneGroupFunction;
+    
     int[] typeArray;
     boolean iterTable = true;
     boolean startOne = true;
@@ -53,7 +55,7 @@ public class ProjectionScan implements Scan {
         }
         
         
-        Set<String> oneGroupFunction = new HashSet<String>();
+        oneGroupFunction = new HashSet<String>();
         for (Set<String> usefulColumn: usefulColumnList) {
 	        Iterator<String> iter = usefulColumn.iterator();
 	        while (iter.hasNext()) {
@@ -65,10 +67,6 @@ public class ProjectionScan implements Scan {
 	        }
         }
         //oneGroupFunctionType = new HashMap<String, Integer>();
-        oneGroupFunctionValue = new HashMap<String, DataEntity>();
-        for (String s: oneGroupFunction) {
-            oneGroupFunctionValue.put(s, calcFunction(s,scan));
-        }
         calcType();
     }
     
@@ -173,6 +171,11 @@ public class ProjectionScan implements Scan {
     }
 	@Override
 	public void beforeFirst() {
+        oneGroupFunctionValue = new HashMap<String, DataEntity>();
+        for (String s: oneGroupFunction) {
+            oneGroupFunctionValue.put(s, calcFunction(s,scan));
+        }
+	    
 		if (iterTable)
 			scan.beforeFirst();
 		else {
@@ -315,7 +318,7 @@ public class ProjectionScan implements Scan {
 						else {
 							if (Util.isFunction(colname))
 								env.putValue(colname, scan.getFunctionValue(colname));
-							else 
+							else if (scan.hasColumn(colname))
 								env.putValue(colname, scan.getColumn(colname));
 						}
 					}
@@ -532,5 +535,16 @@ public class ProjectionScan implements Scan {
             String cop) {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    @Override
+    public String getRealName(String alias) {
+        return realname.get(alias);
+    }
+
+    @Override
+    public void setRealName(Map<String, String> map) {
+        realname = map;
+        scan.setRealName(map);
     }		
 }

@@ -2,6 +2,7 @@ package fatworm.query;
 
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.Map;
 
 import fatworm.dataentity.DataEntity;
 import fatworm.record.RecordIterator;
@@ -165,5 +166,14 @@ public class TableScan implements Scan{
     
     public Schema getSchema() {
         return schema;
+    }
+
+    @Override
+    public String getRealName(String alias) {
+        return null;
+    }
+
+    @Override
+    public void setRealName(Map<String, String> map) {
     }
 }

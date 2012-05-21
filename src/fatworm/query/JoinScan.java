@@ -3,6 +3,7 @@ package fatworm.query;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import fatworm.dataentity.DataEntity;
@@ -198,5 +199,14 @@ public class JoinScan implements Scan{
     public RecordIterator getIndex(String colname, DataEntity right, String cop) {
         // TODO Auto-generated method stub
         return null;
+    }
+    @Override
+    public String getRealName(String alias) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    @Override
+    public void setRealName(Map<String, String> map) {
+        
     }			
 }
