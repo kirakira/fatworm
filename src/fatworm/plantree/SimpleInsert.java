@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import fatworm.absyn.ConstDefault;
+import fatworm.absyn.ConstNull;
 import fatworm.absyn.ConstValue;
 import fatworm.absyn.Value;
 import fatworm.dataentity.DataEntity;
@@ -26,6 +27,9 @@ public class SimpleInsert extends InsertCommand {
 			Value value = values.get(i);
 			if (value instanceof ConstDefault) {
 				continue;
+			}
+			if (value instanceof ConstNull) {
+			    continue;
 			}
 			result.put(schema.name(i), value.getValue(null).toType(schema.type(i)));
 		}

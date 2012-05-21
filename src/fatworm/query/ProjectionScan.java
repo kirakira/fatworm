@@ -186,7 +186,7 @@ public class ProjectionScan implements Scan {
 			return scan.next();
 		else { 
 		    scan.beforeFirst();
-			if (startOne && scan.next()) {
+			if (startOne && (scan.next() || oneGroupFunctionValue.size() > 0)) {
 				startOne = false;
 				return true;
 			}

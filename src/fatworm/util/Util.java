@@ -1,7 +1,10 @@
 package fatworm.util;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 
 import fatworm.planner.QueryPlanner;
 import fatworm.query.ConditionJoinPlan;
@@ -131,5 +134,26 @@ public class Util
               //  rf.createIndex(schema.name(i));
         }
     }
-
+    
+    
+//    public static void beginRenameScope() {
+//        realname.push(new HashMap<String, String>());
+//    }
+//    
+//    public static void endRenameScope() {
+//        realname.pop();
+//    }
+//    public static void putRealName(String alias, String name) {
+//        realname.peek().put(alias, name);
+//    }
+//    
+//    public static String getRealName(String alias) {
+//        return realname.peek().get(alias);
+//    }
+//
+//    static Stack<Map<String, String>> realname = new Stack<Map<String, String>>();
+//    
+//    public static void clearRealName() {
+//        realname.clear();
+//    }
 }

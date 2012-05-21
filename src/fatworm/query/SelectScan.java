@@ -7,6 +7,7 @@ import java.util.Set;
 import fatworm.absyn.BoolExpr;
 import fatworm.dataentity.DataEntity;
 import fatworm.record.RecordIterator;
+import fatworm.util.Util;
 
 public class SelectScan implements Scan{
     Scan scan;
@@ -21,7 +22,7 @@ public class SelectScan implements Scan{
         Iterator<String> iter = usefulColumn.iterator();
         while (iter.hasNext()) {
         	String c = iter.next();
-        	if (!scan.hasColumn(c) && !scan.hasFunctionValue(c))
+        	if (!scan.hasColumn(c) && !scan.hasFunctionValue(c) )
         		iter.remove();
         }
     }
@@ -40,6 +41,15 @@ public class SelectScan implements Scan{
 					env.putValue(column, scan.getColumn(column));
 				else if (scan.hasFunctionValue(column))
 					env.putValue(column, scan.getFunctionValue(column));
+//				else {
+//				    String realname = Util.getRealName(column);
+//				    if (realname != null) {
+//        				if (scan.hasColumn(realname))
+//        					env.putValue(column, scan.getColumn(realname));
+//        				else if (scan.hasFunctionValue(realname))
+//        					env.putValue(column, scan.getFunctionValue(realname));
+//				    }
+//				}
 			}
 			if (pred.satisfiedBy(env))
 				return true;

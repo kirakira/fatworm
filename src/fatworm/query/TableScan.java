@@ -142,9 +142,6 @@ public class TableScan implements Scan{
 
     @Override
     public boolean hasIndex(String colname) {
-        if (Util.isFieldSuffix(colname))
-            colname = Util.getColumnFieldName(colname);
-        rf.createIndex(colname);
         return true;
     }
 
@@ -152,6 +149,7 @@ public class TableScan implements Scan{
     public RecordIterator getIndex(String colname, DataEntity right, String cop) {
         if (Util.isFieldSuffix(colname))
             colname = Util.getColumnFieldName(colname);
+        rf.createIndex(colname);
         if (cop.equals("EQ"))
             return rf.indexEqual(colname, right);
         if (cop.equals("LE"))

@@ -18,7 +18,9 @@ public class GroupScan implements Scan {
 		this.funcSet = funcSet;
 		this.keyName = keyName; 
 		this.scan = scan;
-		container = Util.getGroupContainer(keyName, funcSet);
+//		if (!scan.hasColumn(keyName))
+//		    this.keyName = Util.getRealName(keyName);
+		container = Util.getGroupContainer(this.keyName, funcSet);
 		scan.beforeFirst();
 		while(scan.next()) {
 			container.update(scan);
