@@ -49,7 +49,10 @@ public class BasicQueryPlanner implements QueryPlanner {
 		else if (query instanceof Join) {
 			List<QueryPlan>  joinlist = new ArrayList<QueryPlan>();
 			for (Node node: query.childList) {
-				joinlist.add(createQueryPlan(node));
+			    QueryPlan plan = createQueryPlan(node);
+			    if (plan instanceof OrderPlan) 
+			        plan = ((OrderPlan)plan).plan;
+				joinlist.add(plan);
 			}
 			return Util.getJoinPlan(joinlist);
 		}

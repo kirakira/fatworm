@@ -7,7 +7,7 @@ import fatworm.absyn.OrderByColumn;
 
 public class OrderPlan extends QueryPlan {
 	
-	QueryPlan plan;
+	public QueryPlan plan;
 	List<OrderByColumn> order;
 	
 	public OrderPlan(QueryPlan plan, List<OrderByColumn> order, Env env) {
