@@ -88,7 +88,7 @@ public class Table implements RecordFile {
         return ret;
     }
 
-    public int saveHead() throws java.io.IOException {
+    public int save() throws java.io.IOException {
         ByteBuffer buffer = new ByteBuffer();
         getHeadBytes(buffer);
         head.setData(buffer.array());
@@ -200,7 +200,6 @@ public class Table implements RecordFile {
             rear = rearCell.save();
             cell.setNext(rear);
             cell.save();
-            saveHead();
         }
     }
 
@@ -451,8 +450,12 @@ public class Table implements RecordFile {
 
                 ScanIterator iter = new ScanIterator();
                 iter.beforeFirst();
-                while (iter.next())
-                    insertIndexValues(iter.getTuple(), iter.getBlock());
+                int colindex = getSchema().index(col);
+                while (iter.next()) {
+                    DataEntity de = iter.getTuple()[colindex];
+                    if (!de.isNull())
+                        bptree.insert(da.putData(de), iter.getBlock());
+                }
             }
         } catch (java.io.IOException e) {
         }
