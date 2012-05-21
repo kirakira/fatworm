@@ -23,6 +23,7 @@ public class Table implements RecordFile {
     private Bucket head;
 
     private int front, rear;
+    private Cell rearCell;
     private int capacity;
 
     private RecordIterator scanIter;
@@ -36,6 +37,7 @@ public class Table implements RecordFile {
 
         front = 0;
         rear = 0;
+        rearCell = null;
         capacity = 0;
 
         scanIter = scan();
@@ -48,7 +50,8 @@ public class Table implements RecordFile {
     private static Table createRaw(IOHelper io, int schemaBlock, int tupleSize) {
         try {
             Table ret = new Table(io, schemaBlock);
-            ret.front = Cell.create(io).save();
+            ret.rearCell = Cell.create(io);
+            ret.front = ret.rearCell.save();
             ret.rear = ret.front;
             if (ret.schema != null)
                 ret.capacity = (io.getBlockSize() - 16) / (ret.schema.estimatedTupleSize());
@@ -89,7 +92,10 @@ public class Table implements RecordFile {
         ByteBuffer buffer = new ByteBuffer();
         getHeadBytes(buffer);
         head.setData(buffer.array());
-        return head.save();
+        int headBlock = head.save();
+        if (rearCell != null)
+            rearCell.save();
+        return headBlock;
     }
 
     public void remove() {
@@ -97,7 +103,7 @@ public class Table implements RecordFile {
             schema.remove();
             int next = front;
             do {
-                Cell cell = Cell.load(io, next);
+                Cell cell = loadCell(next);
                 cell.remove();
                 next = cell.getNext();
             } while (next != 0);
@@ -184,16 +190,18 @@ public class Table implements RecordFile {
     }
 
     private void insert(Tuple tuple) throws java.io.IOException {
-        Cell cell = Cell.load(io, rear);
+        Cell cell = loadCell(rear);
         cell.insert(tuple);
-        int cBlock = cell.save();
+        int cBlock = cell.getBlock();
+        insertIndexValues(tuple.tuple(), cBlock);
+
         if (cell.tupleCount() >= capacity) {
-            rear = Cell.create(io).save();
+            rearCell = Cell.create(io);
+            rear = rearCell.save();
             cell.setNext(rear);
             cell.save();
             saveHead();
         }
-        insertIndexValues(tuple.tuple(), cBlock);
     }
 
     public boolean update(Map<String, DataEntity> map) {
@@ -292,13 +300,21 @@ public class Table implements RecordFile {
         return scanIter.getTuple();
     }
 
+    Cell loadCell(int block) {
+        if (block == rear)
+            return rearCell;
+        else
+            return Cell.load(io, block);
+    }
+
     private class ScanIterator implements RecordIterator {
         private Cell currentCell = null;
         private int currentIndex = 0;
         private boolean removed = false;
 
         public void beforeFirst() {
-            currentCell = Cell.load(io, front);
+            if (currentCell == null || currentCell.getBlock() != front)
+                currentCell = loadCell(front);
             currentIndex = -1;
             removed = false;
         }
@@ -310,7 +326,7 @@ public class Table implements RecordFile {
                     int nextCell = currentCell.getNext();
                     if (nextCell == 0)
                         return false;
-                    currentCell = Cell.load(io, nextCell);
+                    currentCell = loadCell(nextCell);
                 } while (currentCell.tupleCount() == 0);
 
                 currentIndex = 0;
@@ -474,7 +490,7 @@ public class Table implements RecordFile {
                 List<Integer> list = tree.find(da.putData(value));
                 Schema schema = getSchema();
                 int colindex = schema.index(col);
-                return new CellListIterator(schema, io, colindex, value, list);
+                return new CellListIterator(schema, this, colindex, value, list);
             } catch (java.io.IOException e) {
                 return null;
             }
@@ -490,7 +506,7 @@ public class Table implements RecordFile {
                 DataAdapter da = schema.adapter(col);
                 Schema schema = getSchema();
                 int colindex = schema.index(col);
-                return new IndexIterator(schema, io, colindex, tree.min(), new Predicate<DataEntity>() {
+                return new IndexIterator(schema, this, colindex, tree.min(), new Predicate<DataEntity>() {
                         public boolean apply(DataEntity x) {
                             if (x.compareTo(value) < 0)
                                 return true;
@@ -513,7 +529,7 @@ public class Table implements RecordFile {
                 DataAdapter da = schema.adapter(col);
                 Schema schema = getSchema();
                 int colindex = schema.index(col);
-                return new IndexIterator(schema, io, colindex, tree.min(), new Predicate<DataEntity>() {
+                return new IndexIterator(schema, this, colindex, tree.min(), new Predicate<DataEntity>() {
                         public boolean apply(DataEntity x) {
                             if (x.compareTo(value) <= 0)
                                 return true;
@@ -544,7 +560,7 @@ public class Table implements RecordFile {
                         nodeIter.mark();
                     nodeIter.beforeFirst();
                 }
-                return new IndexIterator(schema, io, colindex, nodeIter, new Predicate<DataEntity>() {
+                return new IndexIterator(schema, this, colindex, nodeIter, new Predicate<DataEntity>() {
                         public boolean apply(DataEntity x) {
                             return true;
                         }
@@ -565,7 +581,7 @@ public class Table implements RecordFile {
                 Schema schema = getSchema();
                 int colindex = schema.index(col);
                 NodeIterator nodeIter = tree.findGreaterThanEqual(da.putData(value));
-                return new IndexIterator(schema, io, colindex, nodeIter, new Predicate<DataEntity>() {
+                return new IndexIterator(schema, this, colindex, nodeIter, new Predicate<DataEntity>() {
                         public boolean apply(DataEntity x) {
                             return true;
                         }
