@@ -37,6 +37,7 @@ public class SchemaOnDisk {
                 DataAdapter da = ret.adapter(ret.schema.name(i));
                 BPlusTree tree = BPlusTree.load(io, da.comparator(), iBlock);
                 ret.index.put(ret.schema.name(i), tree);
+                System.out.println("loaded index on " + ret.schema.name(i));
             }
         }
         return ret;
@@ -65,8 +66,9 @@ public class SchemaOnDisk {
             BPlusTree tree = index.get(schema.name(i));
             if (tree == null)
                 buffer.putInt(0);
-            else
+            else {
                 buffer.putInt(tree.save());
+            }
         }
         bucket.setData(buffer.array());
         return bucket.save();

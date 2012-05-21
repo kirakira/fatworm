@@ -444,10 +444,6 @@ public class Table implements RecordFile {
             if (tree == null) {
                 DataAdapter da = schema.adapter(col);
                 BPlusTree bptree = BPlusTree.create(io, da.comparator(), da.averageKeySize(), da.isVariant());
-                int block = bptree.save();
-
-                schema.putBPlusTree(col, bptree);
-                schema.save();
 
                 ScanIterator iter = new ScanIterator();
                 iter.beforeFirst();
@@ -457,6 +453,11 @@ public class Table implements RecordFile {
                     if (!de.isNull())
                         bptree.insert(da.putData(de), iter.getBlock());
                 }
+
+                int block = bptree.save();
+
+                schema.putBPlusTree(col, bptree);
+                schema.save();
             }
         } catch (java.io.IOException e) {
         }

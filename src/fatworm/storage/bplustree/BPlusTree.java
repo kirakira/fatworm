@@ -241,6 +241,7 @@ public class BPlusTree {
 
     private void changeRoot(int value) throws java.io.IOException {
         root = value;
+        save();
     }
 
     private static class SearchResult {
