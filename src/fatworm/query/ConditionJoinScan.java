@@ -11,6 +11,7 @@ import fatworm.absyn.ConstValue;
 import fatworm.absyn.OrList;
 import fatworm.dataentity.DataEntity;
 import fatworm.record.RecordIterator;
+import fatworm.util.Util;
 
 public class ConditionJoinScan extends JoinScan {
 
@@ -22,6 +23,7 @@ public class ConditionJoinScan extends JoinScan {
     Scan[] reorderscanlist;
     long timeconsume  = 0;
     List<BoolExpr> conditions;
+    DataEntity[] upperbound;
     
     boolean iterTable = true;
 
@@ -31,6 +33,7 @@ public class ConditionJoinScan extends JoinScan {
         dependent = new int[scanList.size()];
         tablereorder = new int[scanList.size()];
         comparecount = new int[scanList.size()];
+        upperbound = new DataEntity[scanList.size()];
         dependentCondition = new DependentCondition[scanList.size()];
         reorderscanlist = new Scan[scanList.size()];
         for (int i = 0; i < dependent.length; i++) {
@@ -44,8 +47,15 @@ public class ConditionJoinScan extends JoinScan {
     
     private boolean nextTable(int i) {
         if (dependent[i] >= 0) {
-            if (indexIteratorList[i] != null)
-                return indexIteratorList[i].next(); 
+            if (indexIteratorList[i] != null) {
+                boolean res = indexIteratorList[i].next();
+                if (res && upperbound[i] != null) {
+                    DataEntity now = indexIteratorList[i].getField(Util.getFieldName(dependentCondition[i].myleft));
+                    if (now.compareTo(upperbound[i]) > 0)
+                        return false;
+                }
+                return res;
+            }
             else return false;
         }
         else 
@@ -167,6 +177,7 @@ public class ConditionJoinScan extends JoinScan {
             processEqualColumn(list);
             processInEqualConst(list);
             processInEqualColumn(list);
+            processUpperBound(list);
             for (int i = 0; i < scanList.size(); i++)
                 if(dependent[i] == i)
                     indexIteratorList[i].beforeFirst();
@@ -177,6 +188,36 @@ public class ConditionJoinScan extends JoinScan {
         return null;
     }
     
+    private void processUpperBound(List<BoolExpr> list) {
+        int i = 0;
+        while (i < list.size()) {
+            if (list.get(i) instanceof CompareExpr) {
+                CompareExpr comp = (CompareExpr) list.get(i);
+                if ((comp.cop.equals("GE") || comp.cop.equals("GT")) && comp.left instanceof ConstValue && comp.right instanceof ColumnValue) {
+                    ConstValue left = (ConstValue) comp.left;
+                    String right = ((ColumnValue) comp.right).colName.toString();
+                    int tableNum = getColumnTable(right);
+                    if (tableNum >= 0 && dependent[tableNum] >= 0 && dependentCondition[tableNum].myleft.equals(right)) {
+                        int type = reorderscanlist[tableNum].type(right);
+                        upperbound[tableNum] = left.getValue(null).toType(type);
+                    }
+                }
+                if ((comp.cop.equals("LE") || comp.cop.equals("LT")) && comp.right instanceof ConstValue && comp.left instanceof ColumnValue) {
+                    ConstValue right = (ConstValue) comp.right;
+                    String left = ((ColumnValue) comp.left).colName.toString();
+                    int tableNum = getColumnTable(left);
+                    if (tableNum >= 0 && dependent[tableNum] >= 0 && dependentCondition[tableNum].myleft.equals(left)) {
+                        int type = reorderscanlist[tableNum].type(left);
+                        upperbound[tableNum] = right.getValue(null).toType(type);
+                    }
+                }
+            }
+            i++;
+        }
+            
+    }
+
+
     void processPriority(List<BoolExpr> list) {
         for (int i = 0; i < scanList.size(); i++) {
             for (BoolExpr expr:list) {
@@ -227,6 +268,7 @@ public class ConditionJoinScan extends JoinScan {
                             int type = reorderscanlist[tableNum].type(right);
                             indexIteratorList[tableNum] = reorderscanlist[tableNum].getIndex(right,left.getValue(null).toType(type), "EQ");
                             dependent[tableNum] = tableNum;
+                            dependentCondition[tableNum] = new DependentCondition(right, null, "EQ");                            
                             list.remove(i);
                             continue;
                         }
@@ -239,6 +281,7 @@ public class ConditionJoinScan extends JoinScan {
                             int type = reorderscanlist[tableNum].type(left);
                             indexIteratorList[tableNum] = reorderscanlist[tableNum].getIndex(left, right.getValue(null).toType(type), "EQ");
                             dependent[tableNum] = tableNum;
+                            dependentCondition[tableNum] = new DependentCondition(left, null, "EQ");                            
                             list.remove(i);
                             continue;
                         }
@@ -282,6 +325,7 @@ public class ConditionJoinScan extends JoinScan {
                             indexIteratorList[tableNum] = reorderscanlist[tableNum].getIndex(right,left.getValue(null).toType(type), 
                                                                                       inverseCop(comp.cop));
                             dependent[tableNum] = tableNum;
+                            dependentCondition[tableNum] = new DependentCondition(right, null, inverseCop(comp.cop));
                             list.remove(i);
                             continue;
                         }
@@ -294,6 +338,7 @@ public class ConditionJoinScan extends JoinScan {
                             int type = reorderscanlist[tableNum].type(left);
                             indexIteratorList[tableNum] = reorderscanlist[tableNum].getIndex(left, right.getValue(null).toType(type), comp.cop);
                             dependent[tableNum] = tableNum;
+                            dependentCondition[tableNum] = new DependentCondition(left, null, comp.cop);
                             list.remove(i);
                             continue;
                         }

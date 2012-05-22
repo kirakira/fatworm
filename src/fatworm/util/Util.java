@@ -61,6 +61,14 @@ public class Util
 	public static String getColumnFieldName(String column) {
 		return column.substring(column.indexOf(".")+1);	
 	}
+	
+	public static String getFieldName(String col) {
+	    if (Util.isFieldSuffix(col))
+	        return Util.getColumnFieldName(col);
+	    else if (Util.isSimpleColumn(col))
+	        return col;
+	    return null;
+	}
 
 	public static Env getEmptyEnv() {
 		return new SimpleEnv();

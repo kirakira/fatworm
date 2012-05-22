@@ -49,6 +49,7 @@ public class Database implements IOHelper {
 
     public void save() throws java.io.IOException {
         superTable.save();
+        System.out.println("ghost gold");
         freeList.save(file);
         for (Table t: tables.values())
             t.save();

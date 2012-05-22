@@ -171,11 +171,12 @@ public class ProjectionScan implements Scan {
     }
 	@Override
 	public void beforeFirst() {
-        oneGroupFunctionValue = new HashMap<String, DataEntity>();
-        for (String s: oneGroupFunction) {
-            oneGroupFunctionValue.put(s, calcFunction(s,scan));
-        }
-	    
+	    if (oneGroupFunctionValue == null) {
+            oneGroupFunctionValue = new HashMap<String, DataEntity>();
+            for (String s: oneGroupFunction) {
+                oneGroupFunctionValue.put(s, calcFunction(s,scan));
+            }
+	    }
 		if (iterTable)
 			scan.beforeFirst();
 		else {
