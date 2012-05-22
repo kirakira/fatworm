@@ -28,6 +28,8 @@ public class Table implements RecordFile {
 
     private RecordIterator scanIter;
 
+    private boolean dirty;
+
     private Table(IOHelper io, int schema) {
         this.io = io;
         if (schema == 0)
@@ -39,6 +41,7 @@ public class Table implements RecordFile {
         rear = 0;
         rearCell = null;
         capacity = 0;
+        dirty = false;
 
         scanIter = scan();
     }
@@ -90,13 +93,17 @@ public class Table implements RecordFile {
     }
 
     public int save() throws java.io.IOException {
-        ByteBuffer buffer = new ByteBuffer();
-        getHeadBytes(buffer);
-        head.setData(buffer.array());
-        int headBlock = head.save();
-        if (rearCell != null)
-            rearCell.save();
-        return headBlock;
+        if (dirty) {
+            ByteBuffer buffer = new ByteBuffer();
+            getHeadBytes(buffer);
+            head.setData(buffer.array());
+            int headBlock = head.save();
+            if (rearCell != null)
+                rearCell.save();
+            dirty = false;
+            return headBlock;
+        } else
+            return head.block();
     }
 
     public void remove() {
@@ -109,6 +116,7 @@ public class Table implements RecordFile {
                 next = cell.getNext();
             } while (next != 0);
             head.remove();
+            dirty = false;
         } catch (java.io.IOException e) {
         }
     }
@@ -202,6 +210,8 @@ public class Table implements RecordFile {
             cell.setNext(rear);
             cell.save();
         }
+
+        dirty = true;
     }
 
     public boolean update(Map<String, DataEntity> map) {
