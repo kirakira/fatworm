@@ -64,12 +64,10 @@ public class FatwormStatement implements Statement {
 		try {
 			result = Database.getInstance().execute(arg0);
 		} catch (Exception e) {
-		    Util.getStorageManager().save();		    
 			System.out.println(arg0);			
 			e.printStackTrace();
 			return false;
 		}
-		Util.getStorageManager().save();
 		return result != null;
 	}
 

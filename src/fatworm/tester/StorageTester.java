@@ -56,7 +56,6 @@ public class StorageTester {
                 table.insert(row);
             }
         }
-        storage.save();
 
         printTable("lichking", "loli");
 
@@ -73,8 +72,6 @@ public class StorageTester {
         Map<String, DataEntity> map = new HashMap<String, DataEntity>();
         map.put("name", new VarChar("Elly"));
         table.insert(map);
-
-        storage.save();
 
         printTable("lichking", "loli");
 
@@ -134,9 +131,6 @@ public class StorageTester {
                 System.out.print(iter.getField(i) + "\t");
             System.out.println();
         }
-
- 
-        storage.save();
     }
 
     public void printTable(String db, String tablename) {

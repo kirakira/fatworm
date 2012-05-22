@@ -61,10 +61,6 @@ public class MemoryStorageManager implements StorageManagerInterface {
 	}
 
 	@Override
-	public void save() {
-	}
-
-	@Override
 	public void setPath(String path) {
 		// TODO Auto-generated method stub
 		

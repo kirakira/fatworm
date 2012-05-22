@@ -17,6 +17,7 @@ public class Storage implements StorageManagerInterface {
     private static Storage instance = null;
 
     private Storage() {
+        Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownSave()));
     }
 
     private Database tempDB() {
@@ -154,7 +155,7 @@ public class Storage implements StorageManagerInterface {
         }
     }
 
-    public void save() {
+    void save() {
         if (current == null)
             return;
 

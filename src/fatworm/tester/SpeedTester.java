@@ -73,7 +73,6 @@ public class SpeedTester {
             map.put("v", new VarChar(""));
             rf.insert(map);
         }
-        Storage.getInstance().save();
     }
 
     public void testIndex() {
@@ -105,7 +104,5 @@ public class SpeedTester {
         iter.beforeFirst();
         while (iter.next())
             System.out.println(iter.getField(0).toJavaType());*/
-
-        Storage.getInstance().save();
     }
 }
