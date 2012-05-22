@@ -9,8 +9,6 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 
-import fatworm.storage.Storage;
-
 public class DriverTest {
 	public static void main(String[] args) throws Exception {
 		
