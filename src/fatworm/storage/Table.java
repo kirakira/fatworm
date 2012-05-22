@@ -64,6 +64,7 @@ public class Table implements RecordFile {
                 ret.capacity = 1;
 
             ret.head = Bucket.create(io);
+            ret.dirty = true;
             return ret;
         } catch (java.io.IOException e) {
             return null;
