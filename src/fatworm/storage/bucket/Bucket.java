@@ -1,8 +1,9 @@
 package fatworm.storage.bucket;
 
-import java.util.LinkedList;
-import fatworm.storage.*;
+import fatworm.storage.IOHelper;
 import fatworm.util.ByteLib;
+
+import java.util.LinkedList;
 
 public class Bucket {
     private int block;
